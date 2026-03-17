@@ -26,4 +26,24 @@ api.interceptors.request.use(
     }
 );
 
+// Add a response interceptor to handle errors globally
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            console.warn('❌ [API Response] 401 Unauthorized - Clearing session and redirecting...');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            // Force redirect to login page if we're not already there
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;

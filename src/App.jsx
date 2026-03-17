@@ -30,7 +30,7 @@ function App() {
   return (
     <AuthProvider>
       <GlobalProvider>
-        <Router>
+        <Router basename='/accounting-app'>
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
