@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
             } catch (e) {
                 console.error("Failed to parse stored user:", e);
                 localStorage.removeItem('user');
+                localStorage.removeItem('token');
             }
         }
         setLoading(false);
