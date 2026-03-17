@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/accounting-app/api',
+    baseURL: 'http://localhost:5000/accounting-app/api', // Adjust if backend port changes
     headers: {
         'Content-Type': 'application/json',
     },
@@ -38,8 +38,8 @@ api.interceptors.response.use(
             localStorage.removeItem('user');
 
             // Force redirect to login page if we're not already there
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            if (window.location.pathname !== '/accounting-app/login') {
+                window.location.href = '/accounting-app/login';
             }
         }
         return Promise.reject(error);
