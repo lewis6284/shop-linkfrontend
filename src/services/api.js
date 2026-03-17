@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api', // Adjust if backend port changes
+    baseURL: 'http://localhost:5000/accounting-app/api', // Adjust if backend port changes
     headers: {
         'Content-Type': 'application/json',
     },
@@ -36,7 +36,7 @@ api.interceptors.response.use(
             console.warn('❌ [API Response] 401 Unauthorized - Clearing session and redirecting...');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            
+
             // Force redirect to login page if we're not already there
             if (window.location.pathname !== '/login') {
                 window.location.href = '/login';
