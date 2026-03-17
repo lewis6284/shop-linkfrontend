@@ -16,12 +16,11 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
-        if (token && storedUser) {
+        if (token && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
                 setUser(JSON.parse(storedUser));
             } catch (e) {
-                console.warn('Invalid user data in localStorage, clearing session.');
-                localStorage.removeItem('token');
+                console.error("Failed to parse stored user:", e);
                 localStorage.removeItem('user');
             }
         }
