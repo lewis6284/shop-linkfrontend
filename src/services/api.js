@@ -38,8 +38,8 @@ api.interceptors.response.use(
             localStorage.removeItem('user');
 
             // Force redirect to login page if we're not already there
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/accounting-app/login';
             }
         }
         return Promise.reject(error);
