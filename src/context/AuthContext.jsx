@@ -19,10 +19,11 @@ export const AuthProvider = ({ children }) => {
         if (token && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
             try {
                 setUser(JSON.parse(storedUser));
-            } catch (e) {
-                console.error("Failed to parse stored user:", e);
-                localStorage.removeItem('user');
+            } catch (error) {
+                console.error("Failed to parse user from localStorage", error);
+                // Clear potentially corrupted data
                 localStorage.removeItem('token');
+                localStorage.removeItem('user');
             }
         }
         setLoading(false);
