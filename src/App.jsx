@@ -57,7 +57,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/employees" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['ADMIN']}>
                 <Employees />
               </ProtectedRoute>
             } />
@@ -67,12 +67,12 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/salary-payments" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['ADMIN']}>
                 <SalaryPayments />
               </ProtectedRoute>
             } />
             <Route path="/accounts" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['ADMIN']}>
                 <Accounts />
               </ProtectedRoute>
             } />

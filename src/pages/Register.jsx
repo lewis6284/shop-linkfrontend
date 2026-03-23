@@ -28,7 +28,7 @@ const Register = () => {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-100 to-purple-100">
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50 backdrop-blur-sm">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-brand-900">FinApp</h1>
+                    <h1 className="text-3xl font-bold text-brand-900">Accounting System</h1>
                     <p className="text-gray-500 mt-2">Create a new account</p>
                 </div>
 

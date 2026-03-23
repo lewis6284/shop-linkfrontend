@@ -33,7 +33,7 @@ const Sidebar = ({ isOpen, toggle }) => {
                 //{ path: '/salary-payments', name: 'Salary Payments', icon: <Briefcase size={20} />, roles: ['admin', 'accountant'] },
                 { path: '/revenues', name: 'Revenues', icon: <ArrowUpCircle size={20} />, roles: ['admin', 'accountant'] },
                 { path: '/expenses', name: 'Expenses', icon: <ArrowDownCircle size={20} />, roles: ['admin', 'accountant'] },
-                { path: '/accounts', name: 'Accounts', icon: <Landmark size={20} />, roles: ['admin', 'accountant'] },
+                { path: '/accounts', name: 'Accounts', icon: <Landmark size={20} />, roles: ['admin'] },
                 { path: '/journal', name: 'Journal', icon: <BookOpen size={20} />, roles: ['admin', 'accountant'] },
                 { path: '/receipts', name: 'Receipts', icon: <FileText size={20} />, roles: ['admin', 'accountant'] },
                 { path: '/reports', name: 'Reports', icon: <TrendingUp size={20} />, roles: ['admin', 'accountant'] },
@@ -60,11 +60,11 @@ const Sidebar = ({ isOpen, toggle }) => {
                 <div className="h-16 flex items-center px-6 border-b border-gray-50">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand-100">
-                            F
+                            A
                         </div>
                         {isOpen && (
                             <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-                                <h1 className="text-xl font-bold text-gray-900 tracking-tight">FinApp</h1>
+                                <h1 className="text-xl font-bold text-gray-900 tracking-tight">Accounting System</h1>
                             </div>
                         )}
                     </div>

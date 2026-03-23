@@ -36,7 +36,7 @@ const Layout = () => {
                 className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-white shadow-xl transition-all duration-300 ease-in-out flex flex-col z-20`}
             >
                 <div className="flex items-center justify-between p-4 border-b">
-                    <h1 className={`font-bold text-xl text-brand-600 ${!isSidebarOpen && 'hidden'}`}>FinApp</h1>
+                    <h1 className={`font-bold text-xl text-brand-600 ${!isSidebarOpen && 'hidden'}`}>Accounting System</h1>
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 hover:bg-gray-100 rounded-md">
                         {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
                     </button>

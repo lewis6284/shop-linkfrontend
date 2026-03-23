@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Table, { TableRow, TableCell } from '../components/Table';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -10,6 +11,7 @@ import { Plus, DollarSign, Edit, Trash2, User, FileText, Globe, Briefcase, QrCod
 import toast from 'react-hot-toast';
 
 const Candidates = () => {
+    const navigate = useNavigate();
     const { candidatePaymentTypes, accounts, agencies } = useGlobal();
     const { user } = useAuth();
     const [candidates, setCandidates] = useState([]);
@@ -152,7 +154,7 @@ const Candidates = () => {
         // Assuming you have useNavigate imported, if not I need to add it.
         // Since I am replacing a large chunk, I will check imports.
         // Actually, previous file content didn't use useNavigate. I must add it.
-        window.location.href = `/candidates/${id}`;
+        navigate(`/candidates/${id}`);
         // Better to use useNavigate in React but window.location works if I don't want to mess up imports too much in a partial replace.
         // However, I should probably do it right.
         // Let's assume I will add useNavigate hook at the top in a separate replace or just use <Link> or similar. 
@@ -218,7 +220,7 @@ const Candidates = () => {
                         <TableCell>
                             <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => window.location.href = `/candidates/${candidate.id}`}
+                                    onClick={() => navigate(`/candidates/${candidate.id}`)}
                                     className="text-brand-600 hover:bg-brand-50 p-2 rounded-lg transition-colors"
                                     title="View Profile"
                                 >
