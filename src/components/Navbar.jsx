@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
     Bell, Search, User, LogOut, Settings as SettingsIcon,
     Menu, Plus, DollarSign, TrendingDown, Lock, Moon, Sun
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { globalSearch } from '../services/searchService';
 
 const Navbar = ({ toggleSidebar }) => {
     const { user, logout } = useAuth();
@@ -12,6 +13,11 @@ const Navbar = ({ toggleSidebar }) => {
     const [darkMode, setDarkMode] = useState(
         localStorage.getItem('theme') === 'dark'
     );
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const searchRef = useRef(null);
 
     useEffect(() => {
         if (darkMode) {
@@ -22,6 +28,38 @@ const Navbar = ({ toggleSidebar }) => {
             localStorage.setItem('theme', 'light');
         }
     }, [darkMode]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (searchRef.current && !searchRef.current.contains(event.target)) {
+                setIsSearchOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (searchQuery.trim().length >= 2) {
+                setIsSearching(true);
+                try {
+                    const results = await globalSearch(searchQuery);
+                    setSearchResults(results);
+                    setIsSearchOpen(true);
+                } catch (error) {
+                    console.error("Search failed:", error);
+                } finally {
+                    setIsSearching(false);
+                }
+            } else {
+                setSearchResults([]);
+                setIsSearchOpen(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery]);
 
     const handleLogout = () => {
         logout();
@@ -46,15 +84,46 @@ const Navbar = ({ toggleSidebar }) => {
             </div>
 
             {/* Global Search - Hidden on small screens for now to save space */}
-            <div className="hidden md:flex flex-1 max-w-xl mx-8">
+            <div className="hidden md:flex flex-1 max-w-xl mx-8 relative" ref={searchRef}>
                 <div className="relative group w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500 transition-colors" size={18} />
                     <input
                         type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => { if (searchQuery.length >= 2) setIsSearchOpen(true); }}
                         placeholder="Search..."
                         className="w-full bg-gray-50 dark:bg-gray-900 border border-transparent focus:border-brand-100 dark:focus:border-brand-900 focus:bg-white dark:focus:bg-gray-800 rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-4 focus:ring-brand-50 dark:focus:ring-brand-900/20 transition-all outline-none text-gray-700 dark:text-gray-200"
                     />
                 </div>
+
+                {isSearchOpen && (
+                    <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 py-2 z-50 max-h-96 overflow-y-auto custom-scrollbar">
+                        {isSearching ? (
+                            <div className="px-4 py-3 text-sm text-gray-500 text-center">Searching...</div>
+                        ) : searchResults.length > 0 ? (
+                            searchResults.map((res, idx) => (
+                                <button
+                                    key={`${res.type}-${res.id}-${idx}`}
+                                    onClick={() => {
+                                        navigate(res.link);
+                                        setIsSearchOpen(false);
+                                        setSearchQuery('');
+                                    }}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex flex-col transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-0"
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{res.title}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-brand-500 bg-brand-50 dark:bg-brand-900/30 px-2 py-0.5 rounded-full">{res.type}</span>
+                                    </div>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{res.subtitle}</span>
+                                </button>
+                            ))
+                        ) : (
+                            <div className="px-4 py-3 text-sm text-gray-500 text-center">No results found for "{searchQuery}"</div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Right Actions */}
