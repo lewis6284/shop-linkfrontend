@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Candidates from './pages/Candidates';
 import CandidateDetails from './pages/CandidateDetails';
 import Employees from './pages/Employees';
+import EmployeeDetails from './pages/EmployeeDetails';
 import Accounts from './pages/Accounts';
 import Payments from './pages/Payments'; // now restricted to Candidate Payments
 import SalaryPayments from './pages/SalaryPayments';
@@ -59,6 +60,11 @@ function App() {
             <Route path="/employees" element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <Employees />
+              </ProtectedRoute>
+            } />
+            <Route path="/employees/:id" element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <EmployeeDetails />
               </ProtectedRoute>
             } />
             <Route path="/payments" element={

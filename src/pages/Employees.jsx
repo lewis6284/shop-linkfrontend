@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Table, { TableRow, TableCell } from '../components/Table';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
@@ -7,16 +8,16 @@ import { getEmployees, createEmployee, updateEmployee, deleteEmployee, softDelet
 import { createSalaryPayment } from '../services/paymentService';
 import { useGlobal } from '../context/GlobalContext';
 import { useAuth } from '../context/AuthContext';
-import { Plus, DollarSign, Edit, Trash2, QrCode, Phone, Briefcase, Calendar, Building2, User } from 'lucide-react';
+import { Plus, Edit, Trash2, QrCode, Phone, Briefcase, Calendar, Building2, User, ExternalLink, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Employees = () => {
+    const navigate = useNavigate();
     const { accounts, agencies } = useGlobal();
     const { user } = useAuth();
     const [employees, setEmployees] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isPayModalOpen, setIsPayModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isQRModalOpen, setIsQRModalOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -162,18 +163,18 @@ const Employees = () => {
                         <TableCell>
                             <div className="flex items-center gap-2">
                                 <button
+                                    onClick={() => navigate(`/employees/${employee.id}`)}
+                                    className="text-brand-600 hover:bg-brand-50 p-2 rounded-lg transition-colors border border-transparent hover:border-brand-100"
+                                    title="Financial Dashboard"
+                                >
+                                    <ExternalLink size={18} />
+                                </button>
+                                <button
                                     onClick={() => { setSelectedEmployee(employee); setIsQRModalOpen(true); }}
                                     className="text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors"
                                     title="View QR Code"
                                 >
                                     <QrCode size={18} />
-                                </button>
-                                <button
-                                    onClick={() => openPayModal(employee)}
-                                    className="text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-colors"
-                                    title="Pay Salary"
-                                >
-                                    <DollarSign size={18} />
                                 </button>
                                 <button
                                     onClick={() => openEditModal(employee)}
@@ -185,7 +186,7 @@ const Employees = () => {
                                 <button
                                     onClick={() => { setSelectedEmployee(employee); setIsDeleteModalOpen(true); }}
                                     className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                                    title="Delete"
+                                    title="Deactivate"
                                 >
                                     <Trash2 size={18} />
                                 </button>
@@ -263,39 +264,6 @@ const Employees = () => {
                     <button type="submit" className="w-full btn-primary bg-brand-600 hover:bg-brand-700 mt-4">
                         {isEditModalOpen ? 'Update Employee' : 'Create Employee'}
                     </button>
-                </form>
-            </Modal>
-
-            {/* Payment Modal */}
-            <Modal isOpen={isPayModalOpen} onClose={() => setIsPayModalOpen(false)} title={`Pay Salary: ${selectedEmployee?.name}`}>
-                <form onSubmit={handlePayment} className="space-y-4">
-                    <div className="bg-rose-50 text-rose-800 p-3 rounded-lg text-sm mb-4">
-                        This action will create a Salary Payment record, a Journal Entry (EXIT), and a Payment Receipt.
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="label">Month</label>
-                            <input type="month" required className="input-field" value={paymentData.month} onChange={e => setPaymentData({ ...paymentData, month: e.target.value })} />
-                        </div>
-                        <div>
-                            <label className="label">Payment Date</label>
-                            <input type="date" required className="input-field" value={paymentData.payment_date} onChange={e => setPaymentData({ ...paymentData, payment_date: e.target.value })} />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="label">Amount (Fbu)</label>
-                        <input type="number" required className="input-field" value={paymentData.amount} onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="label">Pay From Account</label>
-                        <select required className="input-field" value={paymentData.account_id} onChange={e => setPaymentData({ ...paymentData, account_id: e.target.value })}>
-                            <option value="">Select Account</option>
-                            {accounts.map(acc => (
-                                <option key={acc.id} value={acc.id}>{acc.name} ({acc.type})</option>
-                            ))}
-                        </select>
-                    </div>
-                    <button type="submit" className="w-full btn-primary bg-rose-600 hover:bg-rose-700">Confirm Payment & Generate Receipt</button>
                 </form>
             </Modal>
 
