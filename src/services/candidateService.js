@@ -25,6 +25,16 @@ export const createCandidatePayment = async (data) => {
     return response.data;
 };
 
+export const updateCandidatePayment = async (id, data) => {
+    const response = await api.put(`/payments/candidate/${id}`, data);
+    return response.data;
+};
+
+export const cancelCandidatePayment = async (id) => {
+    const response = await api.patch(`/payments/candidate/${id}/cancel`);
+    return response.data;
+};
+
 export const getCandidateById = async (id) => {
     const response = await api.get(`/candidates/${id}`);
     return response.data;
