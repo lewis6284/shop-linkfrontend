@@ -103,9 +103,15 @@ const Receipts = () => {
                                             <Eye size={18} />
                                         </button>
                                         <button
-                                            onClick={() => {
-                                                exportReceiptToPDF(receipt);
-                                                toast.success(`Downloading Receipt ${receipt.receipt_number}`);
+                                            onClick={async () => {
+                                                const tid = toast.loading('Generating PDF...');
+                                                try {
+                                                    await exportReceiptToPDF(receipt);
+                                                    toast.success(`Downloading Receipt ${receipt.receipt_number}`, { id: tid });
+                                                } catch (e) {
+                                                    console.error("PDF Gen Error:", e);
+                                                    toast.error('Failed to generate PDF', { id: tid });
+                                                }
                                             }}
                                             className="text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 p-2 rounded-xl transition-all"
                                             title="Download PDF"
@@ -156,7 +162,16 @@ const Receipts = () => {
                         <div className="pt-2 flex gap-3">
                             <button onClick={() => setSelectedReceipt(null)} className="btn-secondary flex-1 font-bold">Close Preview</button>
                             <button
-                                onClick={() => exportReceiptToPDF(selectedReceipt)}
+                                onClick={async () => {
+                                    const tid = toast.loading('Generating PDF...');
+                                    try {
+                                        await exportReceiptToPDF(selectedReceipt);
+                                        toast.success(`Downloading Receipt ${selectedReceipt.receipt_number}`, { id: tid });
+                                    } catch (e) {
+                                        console.error("PDF Gen Error:", e);
+                                        toast.error('Failed to generate PDF', { id: tid });
+                                    }
+                                }}
                                 className="btn-primary flex-1 bg-brand-600 font-bold flex items-center justify-center gap-2"
                             >
                                 <Download size={18} /> Download

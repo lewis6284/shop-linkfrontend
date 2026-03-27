@@ -97,35 +97,6 @@ const CandidatePayments = ({ candidate, totalPaid, onRefresh }) => {
                 </div>
             )}
 
-            {/* Payment Breakdown Table */}
-            {summary && summary.breakdown && summary.breakdown.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-5 border-b border-gray-100">
-                        <h2 className="text-lg font-bold text-gray-800">Payment Breakdown</h2>
-                    </div>
-                    <Table headers={['Payment Type', 'Total Paid', 'Remaining (from Package)', 'Status']}>
-                        {summary.breakdown.map((item, idx) => {
-                            let statusColor = "bg-gray-100 text-gray-600";
-                            if (item.status === 'FINAL') statusColor = "bg-green-100 text-green-700";
-                            else if (item.status === 'PARTIAL') statusColor = "bg-orange-100 text-orange-700";
-
-                            return (
-                                <TableRow key={idx}>
-                                    <TableCell className="font-semibold text-gray-700">{item.name}</TableCell>
-                                    <TableCell className="font-mono text-emerald-600 font-bold">{item.paid.toLocaleString()}</TableCell>
-                                    <TableCell className="font-mono text-gray-500">{item.remaining.toLocaleString()}</TableCell>
-                                    <TableCell>
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColor}`}>
-                                            {item.status}
-                                        </span>
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </Table>
-                </div>
-            )}
-
             {/* Historic Transactions */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
