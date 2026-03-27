@@ -39,3 +39,8 @@ export const getCandidateById = async (id) => {
     const response = await api.get(`/candidates/${id}`);
     return response.data;
 };
+
+export const getPaymentSummary = async (id) => {
+    const response = await api.get(`/candidates/${id}/payment-summary`);
+    return response.data;
+};

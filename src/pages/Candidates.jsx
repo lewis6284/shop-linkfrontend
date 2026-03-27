@@ -28,7 +28,8 @@ const Candidates = () => {
         name: '', phone: '', gender: 'MALE', marital_status: 'SINGLE',
         nationality: '', position_applied: '', national_id: '',
         passport_number: '',
-        agency_id: user?.agency_id || ''
+        agency_id: user?.agency_id || '',
+        package_amount: ''
     };
     const [candidateForm, setCandidateForm] = useState(initialFormState);
     const [paymentData, setPaymentData] = useState({
@@ -112,7 +113,8 @@ const Candidates = () => {
             position_applied: candidate.position_applied || '',
             national_id: candidate.national_id || '',
             passport_number: candidate.passport_number || '',
-            agency_id: candidate.agency_id || ''
+            agency_id: candidate.agency_id || '',
+            package_amount: candidate.package_amount || ''
         });
         setFormTab('personal');
         setIsEditModalOpen(true);
@@ -364,11 +366,56 @@ const Candidates = () => {
                             </div>
                         </div>
 
+                        {/* Section 4: Expected Package Payment */}
+                        {(!isEditModalOpen || user?.role === 'Admin') && (
+                            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mt-6">
+                                <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                    <DollarSign className="text-brand-500" size={18} />
+                                    Expected Package
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-sm font-semibold text-gray-700">Package Total Amount</label>
+                                        <div className="relative group">
+                                            <div className="absolute left-3 top-2.5 text-gray-400 group-focus-within:text-brand-500 transition-colors">
+                                                <span className="text-sm font-bold">FBU</span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                className="w-full text-lg font-black rounded-xl border-gray-300 border focus:border-brand-500 focus:ring-brand-500 pl-12 pr-4 py-3 text-right text-brand-700 bg-gray-50/50"
+                                                placeholder="0.00"
+                                                value={candidateForm.package_amount ? Number(candidateForm.package_amount).toLocaleString() : ''}
+                                                onChange={e => {
+                                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                                    setCandidateForm({ ...candidateForm, package_amount: val });
+                                                }}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-gray-400 font-medium italic">
+                                            This represents the total global expected payment for this candidate's registration.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                     </div>
 
-                    <div className="pt-4 border-t border-gray-100 mt-4">
-                        <button type="submit" className="w-full btn-primary bg-brand-600 hover:bg-brand-700">
-                            {isEditModalOpen ? 'Update Candidate' : 'Create Candidate'}
+                    <div className="pt-6 border-t border-gray-100 mt-6 pb-2">
+                        <button
+                            type="submit"
+                            className="w-full py-4 text-white font-bold rounded-2xl bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-100 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            {isEditModalOpen ? (
+                                <>
+                                    <Edit size={20} /> Update Candidate Details
+                                </>
+                            ) : (
+                                <>
+                                    <Plus size={20} /> Finalize Registration
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>

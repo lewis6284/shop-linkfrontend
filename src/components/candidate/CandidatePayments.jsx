@@ -3,7 +3,7 @@ import Table, { TableRow, TableCell } from '../Table';
 import Modal from '../Modal';
 import { Pencil, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { updateCandidatePayment, cancelCandidatePayment } from '../../services/candidateService';
+import { updateCandidatePayment, cancelCandidatePayment, getPaymentSummary } from '../../services/candidateService';
 import { getCandidatePaymentTypes } from '../../services/basicDataService';
 import { getAccounts } from '../../services/accountService';
 
@@ -13,12 +13,23 @@ const CandidatePayments = ({ candidate, totalPaid, onRefresh }) => {
     const [paymentTypes, setPaymentTypes] = useState([]);
     const [accounts, setAccounts] = useState([]);
     const [saving, setSaving] = useState(false);
+    const [summary, setSummary] = useState(null);
     const [form, setForm] = useState({ amount: '', payment_date: '', account_id: '', payment_type_id: '' });
 
     useEffect(() => {
-        getCandidatePaymentTypes().then(setPaymentTypes).catch(() => {});
-        getAccounts().then(setAccounts).catch(() => {});
-    }, []);
+        getCandidatePaymentTypes().then(setPaymentTypes).catch(() => { });
+        getAccounts().then(setAccounts).catch(() => { });
+        loadSummary();
+    }, [candidate.id]);
+
+    const loadSummary = async () => {
+        try {
+            const data = await getPaymentSummary(candidate.id);
+            setSummary(data);
+        } catch (err) {
+            console.error("Failed to load payment summary", err);
+        }
+    };
 
     const openEdit = (payment) => {
         setSelectedPayment(payment);
@@ -43,6 +54,7 @@ const CandidatePayments = ({ candidate, totalPaid, onRefresh }) => {
             toast.success('Payment updated');
             closeEdit();
             if (onRefresh) onRefresh();
+            loadSummary();
         } catch (err) {
             toast.error(err?.response?.data?.error || 'Failed to update payment');
         } finally {
@@ -56,6 +68,7 @@ const CandidatePayments = ({ candidate, totalPaid, onRefresh }) => {
             await cancelCandidatePayment(id);
             toast.success('Payment cancelled');
             if (onRefresh) onRefresh();
+            loadSummary();
         } catch (err) {
             toast.error(err?.response?.data?.error || 'Failed to cancel payment');
         }
@@ -65,7 +78,55 @@ const CandidatePayments = ({ candidate, totalPaid, onRefresh }) => {
     const allPayments = candidate.CandidatePayments || [];
 
     return (
-        <>
+        <div className="space-y-6">
+            {/* Global Summary Cards */}
+            {summary && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col justify-between">
+                        <span className="text-gray-500 text-sm font-bold uppercase">Total Package</span>
+                        <span className="text-2xl font-black text-gray-800 mt-2">{summary.totalPackage?.toLocaleString() || 0} <span className="text-sm font-medium text-gray-400">FBU</span></span>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-emerald-100 p-5 flex flex-col justify-between">
+                        <span className="text-emerald-500 text-sm font-bold uppercase">Total Paid</span>
+                        <span className="text-2xl font-black text-emerald-600 mt-2">{summary.totalPaid?.toLocaleString() || 0} <span className="text-sm font-medium text-emerald-400">FBU</span></span>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-red-100 p-5 flex flex-col justify-between">
+                        <span className="text-red-500 text-sm font-bold uppercase">Total Remaining</span>
+                        <span className="text-2xl font-black text-red-600 mt-2">{summary.totalRemaining?.toLocaleString() || 0} <span className="text-sm font-medium text-red-400">FBU</span></span>
+                    </div>
+                </div>
+            )}
+
+            {/* Payment Breakdown Table */}
+            {summary && summary.breakdown && summary.breakdown.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-5 border-b border-gray-100">
+                        <h2 className="text-lg font-bold text-gray-800">Payment Breakdown</h2>
+                    </div>
+                    <Table headers={['Payment Type', 'Total Paid', 'Remaining (from Package)', 'Status']}>
+                        {summary.breakdown.map((item, idx) => {
+                            let statusColor = "bg-gray-100 text-gray-600";
+                            if (item.status === 'FINAL') statusColor = "bg-green-100 text-green-700";
+                            else if (item.status === 'PARTIAL') statusColor = "bg-orange-100 text-orange-700";
+
+                            return (
+                                <TableRow key={idx}>
+                                    <TableCell className="font-semibold text-gray-700">{item.name}</TableCell>
+                                    <TableCell className="font-mono text-emerald-600 font-bold">{item.paid.toLocaleString()}</TableCell>
+                                    <TableCell className="font-mono text-gray-500">{item.remaining.toLocaleString()}</TableCell>
+                                    <TableCell>
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusColor}`}>
+                                            {item.status}
+                                        </span>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </Table>
+                </div>
+            )}
+
+            {/* Historic Transactions */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                     <div>
@@ -188,7 +249,7 @@ const CandidatePayments = ({ candidate, totalPaid, onRefresh }) => {
                     </div>
                 </div>
             </Modal>
-        </>
+        </div>
     );
 };
 
