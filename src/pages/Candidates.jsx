@@ -116,11 +116,10 @@ const Candidates = () => {
             national_id: candidate.national_id || '',
             passport_number: candidate.passport_number || '',
             passport_status: candidate.passport_status || 'AVAILABLE',
-            passport_issue_date: candidate.passport_issue_date || '',
-            passport_expiry_date: candidate.passport_expiry_date || '',
-            agency_id: candidate.agency_id || '',
             package_amount: candidate.package_amount || '',
-            status: candidate.status || 'PENDING'
+            status: candidate.status || 'PENDING',
+            passport_issue_date: candidate.passport_issue_date ? candidate.passport_issue_date.split('T')[0] : '',
+            passport_expiry_date: candidate.passport_expiry_date ? candidate.passport_expiry_date.split('T')[0] : ''
         });
         setFormTab('personal');
         setIsEditModalOpen(true);
@@ -409,8 +408,7 @@ const Candidates = () => {
                         </div>
 
                         {/* Section 4: Expected Package Payment */}
-                        {(!isEditModalOpen || user?.role === 'ADMIN') && (
-                            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mt-6">
+                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mt-6">
                                 <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
                                     <DollarSign className="text-brand-500" size={18} />
                                     Expected Package
@@ -423,24 +421,20 @@ const Candidates = () => {
                                                 <span className="text-sm font-bold">FBU</span>
                                             </div>
                                             <input
-                                                type="text"
-                                                inputMode="numeric"
+                                                type="number"
+                                                step="0.01"
                                                 className="w-full text-lg font-black rounded-xl border-gray-300 border focus:border-brand-500 focus:ring-brand-500 pl-12 pr-4 py-3 text-right text-brand-700 bg-gray-50/50"
                                                 placeholder="0.00"
-                                                value={candidateForm.package_amount ? Number(candidateForm.package_amount).toLocaleString() : ''}
-                                                onChange={e => {
-                                                    const val = e.target.value.replace(/[^0-9]/g, '');
-                                                    setCandidateForm({ ...candidateForm, package_amount: val });
-                                                }}
+                                                value={candidateForm.package_amount}
+                                                onChange={e => setCandidateForm({ ...candidateForm, package_amount: e.target.value })}
                                             />
                                         </div>
                                         <p className="text-xs text-gray-400 font-medium italic">
                                             This represents the total global expected payment for this candidate's registration.
                                         </p>
-                                    </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
 
                     </div>
 
