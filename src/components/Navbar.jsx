@@ -41,7 +41,7 @@ const Navbar = ({ toggleSidebar }) => {
             setIsSearching(true);
             try {
                 const results = await globalSearch(searchQuery);
-                setSearchResults(results || []);
+                setSearchResults(Array.isArray(results) ? results : []);
                 setShowDropdown(true);
             } catch (error) {
                 console.error("Search failed", error);
