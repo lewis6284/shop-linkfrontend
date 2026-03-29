@@ -367,7 +367,7 @@ const Candidates = () => {
                         </div>
 
                         {/* Section 4: Expected Package Payment */}
-                        {(!isEditModalOpen || user?.role === 'Admin') && (
+                        {(!isEditModalOpen || user?.role === 'ADMIN') && (
                             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mt-6">
                                 <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
                                     <DollarSign className="text-brand-500" size={18} />
