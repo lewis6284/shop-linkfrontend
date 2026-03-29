@@ -25,11 +25,12 @@ const Candidates = () => {
 
     // Form States
     const initialFormState = {
-        name: '', phone: '', gender: 'MALE', marital_status: 'SINGLE',
+        name: '', phone: '', email: '', gender: 'MALE', marital_status: 'SINGLE',
         nationality: '', position_applied: '', national_id: '',
-        passport_number: '',
+        passport_number: '', passport_status: 'AVAILABLE',
+        passport_issue_date: '', passport_expiry_date: '',
         agency_id: user?.agency_id || '',
-        package_amount: ''
+        package_amount: '', status: 'PENDING'
     };
     const [candidateForm, setCandidateForm] = useState(initialFormState);
     const [paymentData, setPaymentData] = useState({
@@ -107,14 +108,19 @@ const Candidates = () => {
         setCandidateForm({
             name: candidate.name,
             phone: candidate.phone || '',
+            email: candidate.email || '',
             gender: candidate.gender || 'MALE',
             marital_status: candidate.marital_status || 'SINGLE',
             nationality: candidate.nationality || '',
             position_applied: candidate.position_applied || '',
             national_id: candidate.national_id || '',
             passport_number: candidate.passport_number || '',
+            passport_status: candidate.passport_status || 'AVAILABLE',
+            passport_issue_date: candidate.passport_issue_date || '',
+            passport_expiry_date: candidate.passport_expiry_date || '',
             agency_id: candidate.agency_id || '',
-            package_amount: candidate.package_amount || ''
+            package_amount: candidate.package_amount || '',
+            status: candidate.status || 'PENDING'
         });
         setFormTab('personal');
         setIsEditModalOpen(true);
@@ -289,6 +295,10 @@ const Candidates = () => {
                                         <input type="text" className="input-field" value={candidateForm.phone} onChange={e => setCandidateForm({ ...candidateForm, phone: e.target.value })} />
                                     </div>
                                     <div>
+                                        <label className="label">Email</label>
+                                        <input type="email" className="input-field" value={candidateForm.email} onChange={e => setCandidateForm({ ...candidateForm, email: e.target.value })} />
+                                    </div>
+                                    <div>
                                         <label className="label">Agency Assignment</label>
                                         <div className="relative">
                                             <Building2 className="absolute left-3 top-3 text-gray-400" size={18} />
@@ -346,6 +356,24 @@ const Candidates = () => {
                                                 <input type="text" className="input-field pl-10" value={candidateForm.passport_number} onChange={e => setCandidateForm({ ...candidateForm, passport_number: e.target.value })} />
                                             </div>
                                         </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="label">Passport Status</label>
+                                                <select className="input-field" value={candidateForm.passport_status} onChange={e => setCandidateForm({ ...candidateForm, passport_status: e.target.value })}>
+                                                    <option value="AVAILABLE">Available</option>
+                                                    <option value="EXPIRED">Expired</option>
+                                                    <option value="MISSING">Missing</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="label">Issue Date</label>
+                                                <input type="date" className="input-field" value={candidateForm.passport_issue_date} onChange={e => setCandidateForm({ ...candidateForm, passport_issue_date: e.target.value })} />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="label">Expiry Date</label>
+                                            <input type="date" className="input-field" value={candidateForm.passport_expiry_date} onChange={e => setCandidateForm({ ...candidateForm, passport_expiry_date: e.target.value })} />
+                                        </div>
 
                                     </div>
                                 </div>
@@ -355,13 +383,27 @@ const Candidates = () => {
                         <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Additional Details</h3>
                             <div className="space-y-4">
-                                <div>
-                                    <label className="label">Marital Status</label>
-                                    <select className="input-field" value={candidateForm.marital_status} onChange={e => setCandidateForm({ ...candidateForm, marital_status: e.target.value })}>
-                                        <option value="SINGLE">Single</option>
-                                        <option value="MARRIED">Married</option>
-                                        <option value="DIVORCED">Divorced</option>
-                                    </select>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="label">Marital Status</label>
+                                        <select className="input-field" value={candidateForm.marital_status} onChange={e => setCandidateForm({ ...candidateForm, marital_status: e.target.value })}>
+                                            <option value="SINGLE">Single</option>
+                                            <option value="MARRIED">Married</option>
+                                            <option value="DIVORCED">Divorced</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="label">Candidate Status</label>
+                                        <select className="input-field" value={candidateForm.status} onChange={e => setCandidateForm({ ...candidateForm, status: e.target.value })}>
+                                            <option value="PENDING">Pending</option>
+                                            <option value="APPROVED">Approved</option>
+                                            <option value="REJECTED">Rejected</option>
+                                            <option value="PAID">Paid</option>
+                                            <option value="READY">Ready</option>
+                                            <option value="DEPLOYED">Deployed</option>
+                                            <option value="CANCELLED">Cancelled</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
