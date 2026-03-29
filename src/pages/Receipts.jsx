@@ -21,7 +21,8 @@ const Receipts = () => {
     useEffect(() => {
         const filtered = receipts.filter(r =>
             r.receipt_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.payer_type.toLowerCase().includes(searchTerm.toLowerCase())
+            r.payer_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (r.payer_name || '').toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredReceipts(filtered);
     }, [searchTerm, receipts]);
@@ -82,7 +83,9 @@ const Receipts = () => {
                                 <TableCell>
                                     <div className="flex flex-col">
                                         <span className="text-xs font-bold text-gray-400 uppercase tracking-tighter">{receipt.payer_type}</span>
-                                        <span className="font-medium text-gray-800">Entity ID: {receipt.payer_id}</span>
+                                        <span className="font-medium text-gray-800">
+                                            {receipt.payer_name || `ID: ${receipt.payer_id}`}
+                                        </span>
                                     </div>
                                 </TableCell>
                                 <TableCell className="font-mono font-bold text-gray-900">
@@ -151,7 +154,9 @@ const Receipts = () => {
                             </div>
                             <div>
                                 <p className="text-gray-400 font-bold text-[10px] uppercase">Payer Information</p>
-                                <p className="font-bold text-gray-800">{selectedReceipt.payer_type} #{selectedReceipt.payer_id}</p>
+                                <p className="font-bold text-gray-800">
+                                    {selectedReceipt.payer_type} — {selectedReceipt.payer_name || `ID: ${selectedReceipt.payer_id}`}
+                                </p>
                             </div>
                             <div>
                                 <p className="text-gray-400 font-bold text-[10px] uppercase">Total Value</p>

@@ -159,27 +159,118 @@ Date:${receiptData.date}`;
     doc.save(`Receipt-${receiptData.receipt_number}.pdf`);
 };
 
-export const exportJournalToPDF = (entries) => {
+const drawHeader = (doc, societyName, qrDataUrl, title) => {
+    // HEADER BACKGROUND
+    doc.setFillColor(79, 70, 229);
+    doc.rect(0, 0, 210, 35, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text(societyName.toUpperCase(), 14, 20);
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(title, 14, 28);
+
+    // QR BOX
+    if (qrDataUrl) {
+        doc.setDrawColor(79, 70, 229);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(160, 8, 40, 40, 3, 3);
+        doc.setFontSize(8);
+        doc.setTextColor(79, 70, 229);
+        doc.text("OFFICIAL DOC.", 165, 12);
+        doc.addImage(qrDataUrl, 'PNG', 165, 14, 30, 30);
+    }
+};
+
+export const exportJournalToPDF = async (entries, societyName = "AL-SUWEDI") => {
     const doc = new jsPDF();
+    const title = "OFFICIAL FINANCIAL JOURNAL";
 
-    doc.setFontSize(18);
-    doc.text("Journal Entries", 14, 20);
+    // QR CODE
+    let qrDataUrl = null;
+    try {
+        const qrString = `JournalExport:${new Date().toISOString()}`;
+        qrDataUrl = await QRCode.toDataURL(qrString, { margin: 1 });
+    } catch (e) {
+        console.error("QR error", e);
+    }
 
-    const tableColumn = ["Date", "Type", "Amount", "Currency", "Account", "Balance"];
+    // Compute totals
+    const totalIncome = entries.filter(e => e.type === 'ENTRY').reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+    const totalExpense = entries.filter(e => e.type === 'EXIT').reduce((s, e) => s + Math.abs(parseFloat(e.amount || 0)), 0);
+    const netBalance = totalIncome - totalExpense;
+
+    const tableColumn = ["Date", "Type", "Amount", "Account", "Source", "Balance"];
     const tableRows = entries.map(entry => [
         entry.date,
         entry.type,
-        entry.amount,
-        entry.currency,
-        entry.account_id, // Ideally resolve name
-        entry.balance_after
+        entry.amount.toLocaleString() + " " + entry.currency,
+        entry.Account?.name || entry.account_id,
+        entry.source_table,
+        entry.balance_after.toLocaleString() + " Fbu"
     ]);
 
     autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
-        startY: 30,
+        startY: 55,
+        margin: { top: 55 },
+        theme: "grid",
+        headStyles: {
+            fillColor: [79, 70, 229],
+            textColor: 255
+        },
+        styles: {
+            fontSize: 8
+        },
+        didDrawPage: (data) => {
+            drawHeader(doc, societyName, qrDataUrl, title);
+        }
     });
 
-    doc.save("Journal_Entries.pdf");
+    // --- Totals Summary Footer ---
+    const finalY = doc.lastAutoTable.finalY + 8;
+
+    // Income box (green)
+    doc.setFillColor(220, 252, 231);
+    doc.roundedRect(14, finalY, 57, 18, 2, 2, 'F');
+    doc.setTextColor(22, 163, 74);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL INCOME", 16, finalY + 6);
+    doc.setFontSize(10);
+    doc.text(`${totalIncome.toLocaleString()} Fbu`, 16, finalY + 14);
+
+    // Expenses box (red)
+    doc.setFillColor(254, 226, 226);
+    doc.roundedRect(76, finalY, 57, 18, 2, 2, 'F');
+    doc.setTextColor(220, 38, 38);
+    doc.setFontSize(7);
+    doc.text("TOTAL EXPENSES", 78, finalY + 6);
+    doc.setFontSize(10);
+    doc.text(`${totalExpense.toLocaleString()} Fbu`, 78, finalY + 14);
+
+    // Net box (indigo/orange)
+    const netPositive = netBalance >= 0;
+    doc.setFillColor(...(netPositive ? [224, 231, 255] : [255, 237, 213]));
+    doc.roundedRect(138, finalY, 57, 18, 2, 2, 'F');
+    doc.setTextColor(...(netPositive ? [79, 70, 229] : [234, 88, 12]));
+    doc.setFontSize(7);
+    doc.text("NET MOVEMENT", 140, finalY + 6);
+    doc.setFontSize(10);
+    doc.text(`${netPositive ? '+' : ''}${netBalance.toLocaleString()} Fbu`, 140, finalY + 14);
+
+    // Page numbers
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, 105, 285, null, null, "center");
+    }
+
+    doc.save(`Journal_${new Date().toISOString().split('T')[0]}.pdf`);
 };
