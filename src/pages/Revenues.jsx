@@ -152,11 +152,18 @@ const Revenues = () => {
                                 <TableRow key={rev.id} className="hover:bg-gray-50/50 text-sm">
                                     <TableCell className="text-gray-500 font-medium">{rev.date}</TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-1.5 text-gray-600 font-medium">
-                                            <RefreshCw size={12} className="text-emerald-500" /> {rev.source_table}
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-1.5 text-gray-600 font-medium">
+                                                <RefreshCw size={12} className="text-emerald-500" /> {rev.source_table}
+                                            </div>
+                                            {rev.Candidate && (
+                                                <div className="text-[10px] text-brand-600 font-bold mt-0.5 uppercase tracking-tight">
+                                                    Candidate: {rev.Candidate.name}
+                                                </div>
+                                            )}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="font-bold text-gray-900">{rev.candidate_name || <span className="text-gray-400 font-normal italic">System Gen</span>}</TableCell>
+                                    <TableCell className="font-bold text-gray-900">{rev.Candidate?.name || <span className="text-gray-400 font-normal italic">System Gen</span>}</TableCell>
                                     <TableCell className="font-medium text-gray-600">{rev.account_name}</TableCell>
                                     <TableCell>
                                         <span className="font-mono font-bold text-emerald-600 text-base">
