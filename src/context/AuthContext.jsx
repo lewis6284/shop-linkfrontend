@@ -57,8 +57,20 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const updateProfile = async (profileData) => {
+        try {
+            const { data } = await api.put('/users/profile', profileData);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            setUser(data.user);
+            return data.user;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, logout, updateProfile, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );

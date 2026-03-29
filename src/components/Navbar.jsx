@@ -168,8 +168,11 @@ const Navbar = ({ toggleSidebar }) => {
                 <div className="h-8 w-px bg-gray-100 dark:bg-gray-700 mx-1 hidden sm:block"></div>
 
                 {/* User Profile */}
-                <div className="relative group">
-                    <div className="flex items-center gap-3 pl-2 cursor-pointer">
+                <div 
+                    className="relative group cursor-pointer"
+                    onClick={() => navigate('/profile')}
+                >
+                    <div className="flex items-center gap-3 pl-2">
                         <div className="text-right hidden sm:block">
                             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                                 {user?.name}
@@ -178,7 +181,7 @@ const Navbar = ({ toggleSidebar }) => {
                                 {user?.role}
                             </p>
                         </div>
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white shadow-lg shadow-brand-100 dark:shadow-none">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white shadow-lg shadow-brand-100 dark:shadow-none transition-transform group-hover:scale-105 active:scale-95">
                             <User size={20} />
                         </div>
                     </div>
