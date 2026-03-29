@@ -25,12 +25,11 @@ const Candidates = () => {
 
     // Form States
     const initialFormState = {
-        name: '', phone: '', email: '', gender: 'MALE', marital_status: 'SINGLE',
+        name: '', phone: '', gender: 'MALE', marital_status: 'SINGLE',
         nationality: '', position_applied: '', national_id: '',
-        passport_number: '', passport_status: 'AVAILABLE',
-        passport_issue_date: '', passport_expiry_date: '',
+        passport_number: '',
         agency_id: user?.agency_id || '',
-        package_amount: '', status: 'PENDING'
+        package_amount: ''
     };
     const [candidateForm, setCandidateForm] = useState(initialFormState);
     const [paymentData, setPaymentData] = useState({
@@ -108,18 +107,14 @@ const Candidates = () => {
         setCandidateForm({
             name: candidate.name,
             phone: candidate.phone || '',
-            email: candidate.email || '',
             gender: candidate.gender || 'MALE',
             marital_status: candidate.marital_status || 'SINGLE',
             nationality: candidate.nationality || '',
             position_applied: candidate.position_applied || '',
             national_id: candidate.national_id || '',
             passport_number: candidate.passport_number || '',
-            passport_status: candidate.passport_status || 'AVAILABLE',
-            package_amount: candidate.package_amount || '',
-            status: candidate.status || 'PENDING',
-            passport_issue_date: candidate.passport_issue_date ? candidate.passport_issue_date.split('T')[0] : '',
-            passport_expiry_date: candidate.passport_expiry_date ? candidate.passport_expiry_date.split('T')[0] : ''
+            agency_id: candidate.agency_id || '',
+            package_amount: candidate.package_amount || ''
         });
         setFormTab('personal');
         setIsEditModalOpen(true);
@@ -294,10 +289,6 @@ const Candidates = () => {
                                         <input type="text" className="input-field" value={candidateForm.phone} onChange={e => setCandidateForm({ ...candidateForm, phone: e.target.value })} />
                                     </div>
                                     <div>
-                                        <label className="label">Email</label>
-                                        <input type="email" className="input-field" value={candidateForm.email} onChange={e => setCandidateForm({ ...candidateForm, email: e.target.value })} />
-                                    </div>
-                                    <div>
                                         <label className="label">Agency Assignment</label>
                                         <div className="relative">
                                             <Building2 className="absolute left-3 top-3 text-gray-400" size={18} />
@@ -355,24 +346,6 @@ const Candidates = () => {
                                                 <input type="text" className="input-field pl-10" value={candidateForm.passport_number} onChange={e => setCandidateForm({ ...candidateForm, passport_number: e.target.value })} />
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="label">Passport Status</label>
-                                                <select className="input-field" value={candidateForm.passport_status} onChange={e => setCandidateForm({ ...candidateForm, passport_status: e.target.value })}>
-                                                    <option value="AVAILABLE">Available</option>
-                                                    <option value="EXPIRED">Expired</option>
-                                                    <option value="MISSING">Missing</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="label">Issue Date</label>
-                                                <input type="date" className="input-field" value={candidateForm.passport_issue_date} onChange={e => setCandidateForm({ ...candidateForm, passport_issue_date: e.target.value })} />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="label">Expiry Date</label>
-                                            <input type="date" className="input-field" value={candidateForm.passport_expiry_date} onChange={e => setCandidateForm({ ...candidateForm, passport_expiry_date: e.target.value })} />
-                                        </div>
 
                                     </div>
                                 </div>
@@ -382,60 +355,51 @@ const Candidates = () => {
                         <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Additional Details</h3>
                             <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="label">Marital Status</label>
-                                        <select className="input-field" value={candidateForm.marital_status} onChange={e => setCandidateForm({ ...candidateForm, marital_status: e.target.value })}>
-                                            <option value="SINGLE">Single</option>
-                                            <option value="MARRIED">Married</option>
-                                            <option value="DIVORCED">Divorced</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="label">Candidate Status</label>
-                                        <select className="input-field" value={candidateForm.status} onChange={e => setCandidateForm({ ...candidateForm, status: e.target.value })}>
-                                            <option value="PENDING">Pending</option>
-                                            <option value="APPROVED">Approved</option>
-                                            <option value="REJECTED">Rejected</option>
-                                            <option value="PAID">Paid</option>
-                                            <option value="READY">Ready</option>
-                                            <option value="DEPLOYED">Deployed</option>
-                                            <option value="CANCELLED">Cancelled</option>
-                                        </select>
-                                    </div>
+                                <div>
+                                    <label className="label">Marital Status</label>
+                                    <select className="input-field" value={candidateForm.marital_status} onChange={e => setCandidateForm({ ...candidateForm, marital_status: e.target.value })}>
+                                        <option value="SINGLE">Single</option>
+                                        <option value="MARRIED">Married</option>
+                                        <option value="DIVORCED">Divorced</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
 
                         {/* Section 4: Expected Package Payment */}
                         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mt-6">
-                                <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                    <DollarSign className="text-brand-500" size={18} />
-                                    Expected Package
-                                </h3>
-                                <div className="space-y-4">
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-semibold text-gray-700">Package Total Amount</label>
-                                        <div className="relative group">
-                                            <div className="absolute left-3 top-2.5 text-gray-400 group-focus-within:text-brand-500 transition-colors">
-                                                <span className="text-sm font-bold">FBU</span>
-                                            </div>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="w-full text-lg font-black rounded-xl border-gray-300 border focus:border-brand-500 focus:ring-brand-500 pl-12 pr-4 py-3 text-right text-brand-700 bg-gray-50/50"
-                                                placeholder="0.00"
-                                                value={candidateForm.package_amount}
-                                                onChange={e => setCandidateForm({ ...candidateForm, package_amount: e.target.value })}
-                                            />
+                            <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <DollarSign className="text-brand-500" size={18} />
+                                Expected Package
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-sm font-semibold text-gray-700">Package Total Amount</label>
+                                    <div className="relative group">
+                                        <div className="absolute left-3 top-2.5 text-gray-400 group-focus-within:text-brand-500 transition-colors">
+                                            <span className="text-sm font-bold">FBU</span>
                                         </div>
-                                        <p className="text-xs text-gray-400 font-medium italic">
-                                            This represents the total global expected payment for this candidate's registration.
-                                        </p>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            disabled={isEditModalOpen && user?.role !== 'ADMIN'}
+                                            className={`w-full text-lg font-black rounded-xl border-gray-300 border focus:border-brand-500 focus:ring-brand-500 pl-12 pr-4 py-3 text-right text-brand-700 ${isEditModalOpen && user?.role !== 'ADMIN' ? 'bg-gray-100 cursor-not-allowed opacity-75' : 'bg-gray-50/50'}`}
+                                            placeholder="0.00"
+                                            value={candidateForm.package_amount ? Number(candidateForm.package_amount).toLocaleString() : ''}
+                                            onChange={e => {
+                                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                                setCandidateForm({ ...candidateForm, package_amount: val });
+                                            }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-400 font-medium italic">
+                                        {isEditModalOpen && user?.role !== 'ADMIN' 
+                                            ? "Only an administrator can modify the total package amount."
+                                            : "This represents the total global expected payment for this candidate's registration."}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                     <div className="pt-6 border-t border-gray-100 mt-6 pb-2">
