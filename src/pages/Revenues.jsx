@@ -145,25 +145,18 @@ const Revenues = () => {
                             ))}
                         </Table>
                     ) : (
-                        <Table headers={['Date', 'Source Module', 'Candidate', 'Account', 'Amount', 'Actions']}>
+                        <Table headers={['Date', 'Candidate Name', 'Account', 'Amount', 'Actions']}>
                             {automaticRevenues.length === 0 ? (
-                                <TableRow><TableCell colSpan={6} className="text-center py-10 text-gray-400">No automatic logs found.</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={5} className="text-center py-10 text-gray-400">No automatic logs found.</TableCell></TableRow>
                             ) : automaticRevenues.map((rev) => (
                                 <TableRow key={rev.id} className="hover:bg-gray-50/50 text-sm">
                                     <TableCell className="text-gray-500 font-medium">{rev.date}</TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <div className="flex items-center gap-1.5 text-gray-600 font-medium">
-                                                <RefreshCw size={12} className="text-emerald-500" /> {rev.source_table}
-                                            </div>
-                                            {rev.Candidate && (
-                                                <div className="text-[10px] text-brand-600 font-bold mt-0.5 uppercase tracking-tight">
-                                                    Candidate: {rev.Candidate.name}
-                                                </div>
-                                            )}
+                                    <TableCell className="text-gray-900 font-bold">
+                                        <div className="flex items-center gap-2">
+                                            <TrendingUp size={14} className="text-emerald-500" />
+                                            {rev.candidate_name || <span className="text-gray-400 font-normal italic">System Gen</span>}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="font-bold text-gray-900">{rev.Candidate?.name || <span className="text-gray-400 font-normal italic">System Gen</span>}</TableCell>
                                     <TableCell className="font-medium text-gray-600">{rev.account_name}</TableCell>
                                     <TableCell>
                                         <span className="font-mono font-bold text-emerald-600 text-base">
