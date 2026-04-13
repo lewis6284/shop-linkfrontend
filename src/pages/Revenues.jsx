@@ -75,8 +75,8 @@ const Revenues = () => {
         <div className="pb-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Revenues</h1>
-                    <p className="text-gray-500 text-sm mt-1 flex items-center gap-1">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Revenues</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 flex items-center gap-1">
                         <TrendingUp size={14} className="text-emerald-500" />
                         Monitor income streams and receivables
                     </p>
@@ -92,17 +92,17 @@ const Revenues = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div className="flex border-b border-gray-100 bg-gray-50/30">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
+                <div className="flex border-b border-gray-100 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-900/30">
                     <button
-                        className={`px-8 py-4 text-sm font-bold transition-all relative ${activeTab === 'manual' ? 'text-emerald-600 bg-white' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                        className={`px-8 py-4 text-sm font-bold transition-all relative ${activeTab === 'manual' ? 'text-emerald-600 bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                         onClick={() => setActiveTab('manual')}
                     >
                         Manual Entries
                         {activeTab === 'manual' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />}
                     </button>
                     <button
-                        className={`px-8 py-4 text-sm font-bold transition-all relative ${activeTab === 'automatic' ? 'text-emerald-600 bg-white' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                        className={`px-8 py-4 text-sm font-bold transition-all relative ${activeTab === 'automatic' ? 'text-emerald-600 bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                         onClick={() => setActiveTab('automatic')}
                     >
                         Automatic Logs
@@ -116,15 +116,15 @@ const Revenues = () => {
                             {manualRevenues.length === 0 ? (
                                 <TableRow><TableCell colSpan={6} className="text-center py-10 text-gray-400">No manual entries found.</TableCell></TableRow>
                             ) : manualRevenues.map((rev) => (
-                                <TableRow key={rev.id} className="hover:bg-gray-50/50 text-sm">
-                                    <TableCell className="text-gray-500 font-medium">{rev.date}</TableCell>
-                                    <TableCell className="font-bold text-gray-900">{rev.revenue_name}</TableCell>
+                                <TableRow key={rev.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 text-sm">
+                                    <TableCell className="text-gray-500 dark:text-gray-400 font-medium">{rev.date}</TableCell>
+                                    <TableCell className="font-bold text-gray-900 dark:text-gray-100">{rev.revenue_name}</TableCell>
                                     <TableCell>
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50">
                                             {rev.revenue_type_name || 'General'}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="font-medium text-gray-600">{rev.account_name}</TableCell>
+                                    <TableCell className="font-medium text-gray-600 dark:text-gray-300">{rev.account_name}</TableCell>
                                     <TableCell>
                                         <span className="font-mono font-bold text-emerald-600 text-base">
                                             +{rev.amount?.toLocaleString()} Fbu
@@ -134,7 +134,7 @@ const Revenues = () => {
                                         <div className="flex items-center gap-3">
                                             <button
                                                 onClick={() => { setSelectedRevenue({ ...rev, type: 'MANUAL' }); setIsQRModalOpen(true); }}
-                                                className="text-gray-400 hover:text-brand-600 p-1.5 rounded-lg hover:bg-brand-50 transition-colors"
+                                                className="text-gray-400 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 p-1.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-colors"
                                                 title="View QR Code"
                                             >
                                                 <QrCode size={18} />
@@ -149,15 +149,15 @@ const Revenues = () => {
                             {automaticRevenues.length === 0 ? (
                                 <TableRow><TableCell colSpan={5} className="text-center py-10 text-gray-400">No automatic logs found.</TableCell></TableRow>
                             ) : automaticRevenues.map((rev) => (
-                                <TableRow key={rev.id} className="hover:bg-gray-50/50 text-sm">
-                                    <TableCell className="text-gray-500 font-medium">{rev.date}</TableCell>
-                                    <TableCell className="text-gray-900 font-bold">
+                                <TableRow key={rev.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 text-sm">
+                                    <TableCell className="text-gray-500 dark:text-gray-400 font-medium">{rev.date}</TableCell>
+                                    <TableCell className="text-gray-900 dark:text-gray-100 font-bold">
                                         <div className="flex items-center gap-2">
                                             <TrendingUp size={14} className="text-emerald-500" />
                                             {rev.candidate_name || <span className="text-gray-400 font-normal italic">System Gen</span>}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="font-medium text-gray-600">{rev.account_name}</TableCell>
+                                    <TableCell className="font-medium text-gray-600 dark:text-gray-300">{rev.account_name}</TableCell>
                                     <TableCell>
                                         <span className="font-mono font-bold text-emerald-600 text-base">
                                             +{rev.amount?.toLocaleString()} Fbu
@@ -167,7 +167,7 @@ const Revenues = () => {
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => { setSelectedRevenue({ ...rev, type: 'AUTO' }); setIsQRModalOpen(true); }}
-                                                className="text-gray-400 hover:text-brand-600 p-1.5 rounded-lg hover:bg-brand-50 transition-colors"
+                                                className="text-gray-400 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 p-1.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-colors"
                                                 title="View QR Code"
                                             >
                                                 <QrCode size={18} />
@@ -184,25 +184,25 @@ const Revenues = () => {
             {/* Add Revenue Modal */}
             <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Record Manual Revenue" maxWidth="max-w-xl">
                 <form onSubmit={handleCreateRevenue} className="space-y-6 pt-2">
-                    <div className="bg-gradient-to-r from-emerald-50 to-transparent border-l-4 border-emerald-500 p-4 rounded-r-lg">
-                        <p className="text-emerald-800 text-sm font-medium leading-relaxed">
-                            This will record an <span className="font-bold text-emerald-900 italic uppercase">Entry</span> transaction.
+                    <div className="bg-gradient-to-r from-emerald-50 to-transparent dark:from-emerald-900/20 dark:to-transparent border-l-4 border-emerald-500 p-4 rounded-r-lg">
+                        <p className="text-emerald-800 dark:text-emerald-300 text-sm font-medium leading-relaxed">
+                            This will record an <span className="font-bold text-emerald-900 dark:text-emerald-100 italic uppercase">Entry</span> transaction.
                             Funds will be immediately added to the selected account.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <DollarSign size={14} className="text-gray-400" /> Revenue Name
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <DollarSign size={14} className="text-gray-400 dark:text-gray-500" /> Revenue Name
                             </label>
-                            <input type="text" required className="input-field" value={revenueForm.revenue_name} onChange={e => setRevenueForm({ ...revenueForm, revenue_name: e.target.value })} placeholder="e.g. Project Payment" />
+                            <input type="text" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={revenueForm.revenue_name} onChange={e => setRevenueForm({ ...revenueForm, revenue_name: e.target.value })} placeholder="e.g. Project Payment" />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <Tag size={14} className="text-gray-400" /> Revenue Type
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <Tag size={14} className="text-gray-400 dark:text-gray-500" /> Revenue Type
                             </label>
-                            <select className="input-field" value={revenueForm.revenue_type_id} onChange={e => setRevenueForm({ ...revenueForm, revenue_type_id: e.target.value })} required>
+                            <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={revenueForm.revenue_type_id} onChange={e => setRevenueForm({ ...revenueForm, revenue_type_id: e.target.value })} required>
                                 <option value="">Select Type</option>
                                 {revenueTypes.map(type => (
                                     <option key={type.id} value={type.id}>{type.name}</option>
@@ -212,32 +212,32 @@ const Revenues = () => {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                            <FileText size={14} className="text-gray-400" /> Description
+                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                            <FileText size={14} className="text-gray-400 dark:text-gray-500" /> Description
                         </label>
-                        <textarea className="input-field min-h-[80px] resize-none" value={revenueForm.description} onChange={e => setRevenueForm({ ...revenueForm, description: e.target.value })} placeholder="Optional details..."></textarea>
+                        <textarea className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 min-h-[80px] resize-none" value={revenueForm.description} onChange={e => setRevenueForm({ ...revenueForm, description: e.target.value })} placeholder="Optional details..."></textarea>
                     </div>
 
                     <div className="grid grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <Calendar size={14} className="text-gray-400" /> Date
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <Calendar size={14} className="text-gray-400 dark:text-gray-500" /> Date
                             </label>
-                            <input type="date" required className="input-field" value={revenueForm.date} onChange={e => setRevenueForm({ ...revenueForm, date: e.target.value })} />
+                            <input type="date" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={revenueForm.date} onChange={e => setRevenueForm({ ...revenueForm, date: e.target.value })} />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <Hash size={14} className="text-gray-400" /> Amount (Fbu)
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <Hash size={14} className="text-gray-400 dark:text-gray-500" /> Amount (Fbu)
                             </label>
-                            <input type="number" step="0.01" required className="input-field font-mono font-bold" value={revenueForm.amount} onChange={e => setRevenueForm({ ...revenueForm, amount: e.target.value })} />
+                            <input type="number" step="0.01" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 font-mono font-bold" value={revenueForm.amount} onChange={e => setRevenueForm({ ...revenueForm, amount: e.target.value })} />
                         </div>
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                            <Wallet size={14} className="text-gray-400" /> Deposit To Account
+                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                            <Wallet size={14} className="text-gray-400 dark:text-gray-500" /> Deposit To Account
                         </label>
-                        <select className="input-field" value={revenueForm.account_id} onChange={e => setRevenueForm({ ...revenueForm, account_id: e.target.value })} required>
+                        <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={revenueForm.account_id} onChange={e => setRevenueForm({ ...revenueForm, account_id: e.target.value })} required>
                             <option value="">Select Account</option>
                             {accounts.map(acc => (
                                 <option key={acc.id} value={acc.id}>{acc.name} ({acc.type})</option>
@@ -258,8 +258,8 @@ const Revenues = () => {
 
             {/* QR Code Modal */}
             <Modal isOpen={isQRModalOpen} onClose={() => setIsQRModalOpen(false)} title="Revenue Receipt QR">
-                <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-xl m-2">
-                    <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 mb-6">
+                <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900 rounded-xl m-2">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 mb-6">
                         <QRCodeGenerator
                             value={`REV:${selectedRevenue?.type}:${selectedRevenue?.id}:${selectedRevenue?.amount}`}
                             size={200}

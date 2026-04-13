@@ -81,8 +81,8 @@ const Suppliers = () => {
         <>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Suppliers</h1>
-                    <p className="text-sm text-gray-500">Manage external suppliers</p>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Suppliers</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Manage external suppliers</p>
                 </div>
                 <button
                     onClick={() => {
@@ -97,24 +97,24 @@ const Suppliers = () => {
 
             <Table headers={['Supplier Name', 'Phone', 'Email', 'Actions']}>
                 {suppliers.map(item => (
-                    <TableRow key={item.id}>
-                        <TableCell className="font-medium text-gray-800 flex items-center gap-2">
-                            <Truck size={16} className="text-brand-500" /> {item.name}
+                    <TableRow key={item.id} className="dark:hover:bg-gray-700/50">
+                        <TableCell className="font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                            <Truck size={16} className="text-brand-500 dark:text-brand-400" /> {item.name}
                         </TableCell>
-                        <TableCell className="text-gray-500">{item.phone || '-'}</TableCell>
-                        <TableCell className="text-gray-500">{item.email || '-'}</TableCell>
+                        <TableCell className="text-gray-500 dark:text-gray-400">{item.phone || '-'}</TableCell>
+                        <TableCell className="text-gray-500 dark:text-gray-400">{item.email || '-'}</TableCell>
                         <TableCell>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => handleEditClick(item)}
-                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                    className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded"
                                     title="Edit"
                                 >
                                     <Pencil size={18} />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(item.id)}
-                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                    className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
                                     title="Delete"
                                 >
                                     <Trash2 size={18} />

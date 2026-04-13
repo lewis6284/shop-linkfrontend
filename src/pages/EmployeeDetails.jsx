@@ -135,13 +135,13 @@ const EmployeeDetails = () => {
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
-            <button onClick={() => navigate('/employees')} className="flex items-center text-gray-500 hover:text-brand-600 transition-colors font-medium">
+            <button onClick={() => navigate('/employees')} className="flex items-center text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors font-medium">
                 <ArrowLeft size={20} className="mr-2" /> Back to Staff
             </button>
 
             {/* Premium Header */}
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-8 items-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-50 rounded-full -mr-32 -mt-32 opacity-50" />
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col lg:flex-row gap-8 items-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-50 dark:bg-brand-900/20 rounded-full -mr-32 -mt-32 opacity-50" />
                 
                 <div className="w-24 h-24 bg-brand-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-brand-200 shrink-0 z-10">
                     {employee.name.charAt(0)}
@@ -149,45 +149,45 @@ const EmployeeDetails = () => {
                 
                 <div className="flex-1 text-center lg:text-left z-10">
                     <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 mb-2">
-                        <h1 className="text-3xl font-black text-gray-900">{employee.name}</h1>
+                        <h1 className="text-3xl font-black text-gray-900 dark:text-gray-100">{employee.name}</h1>
                         <StatusBadge status={employee.status} />
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest
-                            ${employee.status_month === 'PAID' ? 'bg-emerald-100 text-emerald-700' : employee.status_month === 'PARTIAL' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400'}`}>
+                            ${employee.status_month === 'PAID' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : employee.status_month === 'PARTIAL' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
                             {employee.status_month || 'UNPAID'}
                         </span>
                     </div>
-                    <div className="text-gray-500 flex flex-wrap justify-center lg:justify-start gap-4 items-center text-sm font-medium">
-                        <span className="bg-gray-100 px-3 py-1 rounded-lg text-brand-700 font-mono">{employee.employee_code}</span>
+                    <div className="text-gray-500 dark:text-gray-400 flex flex-wrap justify-center lg:justify-start gap-4 items-center text-sm font-medium">
+                        <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg text-brand-700 dark:text-brand-400 font-mono">{employee.employee_code}</span>
                         <div className="flex items-center gap-1.5"><Briefcase size={16} /> {employee.job_function}</div>
                         <div className="flex items-center gap-1.5"><Building2 size={16} /> {employee.Agency?.name}</div>
                     </div>
                 </div>
 
                 <div className="flex flex-col items-center lg:items-end gap-2 z-10">
-                    <div className="text-xs text-gray-400 uppercase font-black tracking-widest">Monthly Salary</div>
-                    <div className="text-3xl font-black text-brand-600 font-mono">
-                        {(parseFloat(employee?.monthly_salary) || 0).toLocaleString()} <span className="text-sm text-gray-400">Fbu</span>
+                    <div className="text-xs text-gray-400 dark:text-gray-500 uppercase font-black tracking-widest">Monthly Salary</div>
+                    <div className="text-3xl font-black text-brand-600 dark:text-brand-400 font-mono">
+                        {(parseFloat(employee?.monthly_salary) || 0).toLocaleString()} <span className="text-sm text-gray-400 dark:text-gray-500">Fbu</span>
                     </div>
                 </div>
             </div>
 
             {/* Dashboard Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Wallet size={24} /></div>
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl"><Wallet size={24} /></div>
                         <div className="text-right">
-                           <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Salary Base</div>
-                           <div className="text-xl font-black text-gray-800 font-mono">{summary?.total_salary.toLocaleString()}</div>
+                           <div className="text-xs text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Salary Base</div>
+                           <div className="text-xl font-black text-gray-800 dark:text-gray-100 font-mono">{summary?.total_salary.toLocaleString()}</div>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><TrendingDown size={24} /></div>
+                        <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl"><TrendingDown size={24} /></div>
                         <div className="text-right">
-                           <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Deductions</div>
-                           <div className="text-xl font-black text-amber-600 font-mono">-{ (parseFloat(summary?.total_advances || 0) + parseFloat(summary?.total_payments || 0) + parseFloat(summary?.total_loan_deductions || 0)).toLocaleString() }</div>
+                           <div className="text-xs text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Total Deductions</div>
+                           <div className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono">-{ (parseFloat(summary?.total_advances || 0) + parseFloat(summary?.total_payments || 0) + parseFloat(summary?.total_loan_deductions || 0)).toLocaleString() }</div>
                         </div>
                     </div>
                 </div>
@@ -204,7 +204,7 @@ const EmployeeDetails = () => {
             </div>
 
             {/* Tabs Navigation */}
-            <div className="flex gap-4 border-b border-gray-100 overflow-x-auto pb-px">
+            <div className="flex gap-4 border-b border-gray-100 dark:border-gray-700 overflow-x-auto pb-px">
                 {[
                     { id: 'financials', label: 'Financial Management', icon: CreditCard },
                     { id: 'history', label: 'Transaction History', icon: History },
@@ -215,8 +215,8 @@ const EmployeeDetails = () => {
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all border-b-2 whitespace-nowrap
                             ${activeTab === tab.id 
-                                ? 'border-brand-600 text-brand-600 bg-brand-50/50 rounded-t-xl' 
-                                : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                ? 'border-brand-600 text-brand-600 bg-brand-50/50 dark:bg-brand-900/30 rounded-t-xl' 
+                                : 'border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
                     >
                         <tab.icon size={18} />
                         {tab.label}
@@ -230,9 +230,9 @@ const EmployeeDetails = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Control Panel */}
                         <div className="lg:col-span-1 space-y-6">
-                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                                <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    <CalendarDays size={18} className="text-brand-600" /> Selective Month
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <h3 className="text-sm font-black text-gray-800 dark:text-gray-100 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <CalendarDays size={18} className="text-brand-600 dark:text-brand-400" /> Selective Month
                                 </h3>
                                 <input 
                                     type="month" 
@@ -240,13 +240,13 @@ const EmployeeDetails = () => {
                                     value={selectedMonth}
                                     onChange={(e) => setSelectedMonth(e.target.value)}
                                 />
-                                <div className="mt-4 p-3 bg-brand-50 rounded-xl text-xs text-brand-700 leading-relaxed">
+                                <div className="mt-4 p-3 bg-brand-50 dark:bg-brand-900/30 rounded-xl text-xs text-brand-700 dark:text-brand-300 leading-relaxed">
                                     Calculations automatically adjust based on the selected month and year.
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                                <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider mb-4">Quick Actions</h3>
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <h3 className="text-sm font-black text-gray-800 dark:text-gray-100 uppercase tracking-wider mb-4">Quick Actions</h3>
                                 <div className="grid gap-3">
                                     <button 
                                         onClick={() => openModal('PAYMENT')}
@@ -273,25 +273,25 @@ const EmployeeDetails = () => {
                         {/* Summary View */}
                         <div className="lg:col-span-2 space-y-8">
                              {/* Loan Management Card */}
-                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                                    <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
-                                        <TrendingDown size={18} className="text-amber-600" /> Active Loans Balance
+                             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                                <div className="p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 flex justify-between items-center">
+                                    <h3 className="text-sm font-black text-gray-800 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
+                                        <TrendingDown size={18} className="text-amber-600 dark:text-amber-400" /> Active Loans Balance
                                     </h3>
                                     <div className="text-right">
-                                        <div className="text-lg font-black text-gray-900 font-mono">{(loans?.remaining_loan_balance || 0).toLocaleString()} Fbu</div>
-                                        <div className="text-[10px] text-gray-400 uppercase font-black">Across {loans?.active_loans?.length || 0} loans</div>
+                                        <div className="text-lg font-black text-gray-900 dark:text-gray-100 font-mono">{(loans?.remaining_loan_balance || 0).toLocaleString()} Fbu</div>
+                                        <div className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-black">Across {loans?.active_loans?.length || 0} loans</div>
                                     </div>
                                 </div>
                                 <div className="p-0">
                                     {loans?.active_loans?.length > 0 ? (
                                         <Table headers={['Loan Date', 'Amount', 'Paid', 'Balance', 'Action']}>
                                             {loans.active_loans.map(loan => (
-                                                <TableRow key={`loan-${loan.id}`}>
-                                                    <TableCell className="text-xs font-medium">{new Date(loan.date).toLocaleDateString()}</TableCell>
-                                                    <TableCell className="font-mono">{(loan.amount || 0).toLocaleString()}</TableCell>
-                                                    <TableCell className="font-mono text-emerald-600">-{(loan.repaid || 0).toLocaleString()}</TableCell>
-                                                    <TableCell className="font-mono font-bold">{(loan.balance || 0).toLocaleString()}</TableCell>
+                                                <TableRow key={`loan-${loan.id}`} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                                                    <TableCell className="text-xs font-medium dark:text-gray-300">{new Date(loan.date).toLocaleDateString()}</TableCell>
+                                                    <TableCell className="font-mono dark:text-gray-200">{(loan.amount || 0).toLocaleString()}</TableCell>
+                                                    <TableCell className="font-mono text-emerald-600 dark:text-emerald-400">-{(loan.repaid || 0).toLocaleString()}</TableCell>
+                                                    <TableCell className="font-mono font-bold dark:text-white">{(loan.balance || 0).toLocaleString()}</TableCell>
                                                     <TableCell>
                                                         <button 
                                                             onClick={() => openModal('REPAYMENT', loan.id)}
@@ -310,48 +310,48 @@ const EmployeeDetails = () => {
                              </div>
 
                              {/* Monthly Breakdown */}
-                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-gray-100">
-                                    <h3 className="text-lg font-black text-gray-800">Current Month Breakdown</h3>
+                             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                                <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+                                    <h3 className="text-lg font-black text-gray-800 dark:text-gray-100">Current Month Breakdown</h3>
                                 </div>
                                 <div className="p-6">
                                     <div className="space-y-4">
-                                        <div className="flex justify-between items-center py-3 border-b border-gray-50">
-                                            <span className="text-gray-500 font-medium">Monthly Contract Salary</span>
-                                            <span className="font-mono font-bold text-gray-900">{(summary?.total_salary || 0).toLocaleString()} Fbu</span>
+                                        <div className="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-700/50">
+                                            <span className="text-gray-500 dark:text-gray-400 font-medium">Monthly Contract Salary</span>
+                                            <span className="font-mono font-bold text-gray-900 dark:text-gray-100">{(summary?.total_salary || 0).toLocaleString()} Fbu</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-3 border-b border-gray-50">
+                                        <div className="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-700/50">
                                             <div className="flex flex-col">
-                                                <span className="text-gray-500 font-medium">Monthly Advances</span>
-                                                <span className="text-[10px] text-gray-400">Immediate salary deductions</span>
+                                                <span className="text-gray-500 dark:text-gray-400 font-medium">Monthly Advances</span>
+                                                <span className="text-[10px] text-gray-400 dark:text-gray-500">Immediate salary deductions</span>
                                             </div>
-                                            <span className="font-mono font-bold text-rose-500">-{(summary?.total_advances || 0).toLocaleString()} Fbu</span>
+                                            <span className="font-mono font-bold text-rose-500 dark:text-rose-400">-{(summary?.total_advances || 0).toLocaleString()} Fbu</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-3 border-b border-gray-50">
+                                        <div className="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-700/50">
                                             <div className="flex flex-col">
-                                                <span className="text-gray-500 font-medium">Loan Repayments</span>
-                                                <span className="text-[10px] text-gray-400">Scheduled/One-off repayments</span>
+                                                <span className="text-gray-500 dark:text-gray-400 font-medium">Loan Repayments</span>
+                                                <span className="text-[10px] text-gray-400 dark:text-gray-500">Scheduled/One-off repayments</span>
                                             </div>
-                                            <span className="font-mono font-bold text-rose-500">-{(summary?.total_loan_deductions || 0).toLocaleString()} Fbu</span>
+                                            <span className="font-mono font-bold text-rose-500 dark:text-rose-400">-{(summary?.total_loan_deductions || 0).toLocaleString()} Fbu</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-3 border-b border-gray-50">
-                                            <span className="text-gray-500 font-medium">Salary Payments Made</span>
-                                            <span className="font-mono font-bold text-rose-500">-{(summary?.total_payments || 0).toLocaleString()} Fbu</span>
+                                        <div className="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-700/50">
+                                            <span className="text-gray-500 dark:text-gray-400 font-medium">Salary Payments Made</span>
+                                            <span className="font-mono font-bold text-rose-500 dark:text-rose-400">-{(summary?.total_payments || 0).toLocaleString()} Fbu</span>
                                         </div>
                                         <div className="flex justify-between items-center py-6">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-gray-900 font-black text-xl">Remaining to Pay</span>
+                                                <span className="text-gray-900 dark:text-gray-100 font-black text-xl">Remaining to Pay</span>
                                                 {summary?.remaining_salary === 0 ? (
-                                                    <span className="flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-black uppercase"><CheckCircle2 size={12}/> Fully Paid</span>
+                                                    <span className="flex items-center gap-1 text-[10px] bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-full font-black uppercase"><CheckCircle2 size={12}/> Fully Paid</span>
                                                 ) : (
-                                                    <span className="flex items-center gap-1 text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-black uppercase"><AlertCircle size={12}/> Partial</span>
+                                                    <span className="flex items-center gap-1 text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full font-black uppercase"><AlertCircle size={12}/> Partial</span>
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-2xl font-black text-emerald-600 font-mono">
+                                                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
                                                     {(summary?.remaining_salary || 0).toLocaleString()} Fbu
                                                 </div>
-                                                <div className="text-[10px] text-gray-400 uppercase tracking-tighter">Valid for {selectedMonth}</div>
+                                                <div className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-tighter">Valid for {selectedMonth}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -362,73 +362,73 @@ const EmployeeDetails = () => {
                 )}
 
                 {activeTab === 'history' && (
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="p-8 border-b border-gray-100 flex justify-between items-center">
-                            <h2 className="text-xl font-black text-gray-800 flex items-center gap-2">
-                                <History className="text-brand-600" /> Transaction Audit Trail
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                        <div className="p-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <h2 className="text-xl font-black text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                                <History className="text-brand-600 dark:text-brand-400" /> Transaction Audit Trail
                             </h2>
                         </div>
                         <div className="p-0">
                             <Table headers={['Date', 'Transaction Type', 'Amount', 'Reference', 'Account']}>
                                 {/* Show Payments */}
-                                {details.payments.map(p => (
-                                    <TableRow key={`pay-${p.id}`} className="hover:bg-gray-50/50">
-                                        <TableCell className="text-sm font-medium text-gray-500">{new Date(p.payment_date).toLocaleDateString()}</TableCell>
+                                 {details.payments.map(p => (
+                                    <TableRow key={`pay-${p.id}`} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                                        <TableCell className="text-sm font-medium text-gray-500 dark:text-gray-400">{new Date(p.payment_date).toLocaleDateString()}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><BadgeDollarSign size={14} /></div>
+                                                <div className="p-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg"><BadgeDollarSign size={14} /></div>
                                                 <div>
-                                                    <div className="font-bold text-gray-900">Salary Payment</div>
-                                                    <div className="text-[10px] text-gray-400 uppercase font-black">{p.payment_type}</div>
+                                                    <div className="font-bold text-gray-900 dark:text-gray-100">Salary Payment</div>
+                                                    <div className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-black">{p.payment_type}</div>
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="font-mono font-bold text-rose-600">-{parseFloat(p.amount).toLocaleString()}</TableCell>
-                                        <TableCell><span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono uppercase">{p.month}</span></TableCell>
-                                        <TableCell className="text-sm text-gray-500">{accounts.find(a => a.id === p.account_id)?.name || 'Account'}</TableCell>
+                                        <TableCell className="font-mono font-bold text-rose-600 dark:text-rose-400">-{parseFloat(p.amount).toLocaleString()}</TableCell>
+                                        <TableCell><span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded font-mono uppercase">{p.month}</span></TableCell>
+                                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">{accounts.find(a => a.id === p.account_id)?.name || 'Account'}</TableCell>
                                     </TableRow>
                                 ))}
                                 {/* Show Advances */}
-                                {details.advances.map(a => (
-                                    <TableRow key={`adv-${a.id}`} className="hover:bg-gray-50/50">
-                                        <TableCell className="text-sm font-medium text-gray-500">{new Date(a.date).toLocaleDateString()}</TableCell>
+                                 {details.advances.map(a => (
+                                    <TableRow key={`adv-${a.id}`} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                                        <TableCell className="text-sm font-medium text-gray-500 dark:text-gray-400">{new Date(a.date).toLocaleDateString()}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                <div className={`p-1.5 rounded-lg ${a.type === 'LOAN' ? 'bg-amber-50 text-amber-600' : 'bg-brand-50 text-brand-600'}`}>
+                                                <div className={`p-1.5 rounded-lg ${a.type === 'LOAN' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400'}`}>
                                                     <TrendingDown size={14} />
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-gray-900">{a.type}</div>
-                                                    <div className="text-[10px] text-gray-400 uppercase font-black truncate max-w-[150px]">{a.description || 'Employee Advance'}</div>
+                                                    <div className="font-bold text-gray-900 dark:text-gray-100">{a.type}</div>
+                                                    <div className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-black truncate max-w-[150px]">{a.description || 'Employee Advance'}</div>
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="font-mono font-bold text-rose-600">-{parseFloat(a.amount).toLocaleString()}</TableCell>
+                                        <TableCell className="font-mono font-bold text-rose-600 dark:text-rose-400">-{parseFloat(a.amount).toLocaleString()}</TableCell>
                                         <TableCell>
                                             {a.is_repaid ? (
-                                                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-black uppercase">Settled</span>
+                                                <span className="text-[10px] bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-black uppercase">Settled</span>
                                             ) : (
-                                                <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-black uppercase">Active {a.type}</span>
+                                                <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-black uppercase">Active {a.type}</span>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-sm text-gray-400">N/A</TableCell>
                                     </TableRow>
                                 ))}
                                 {/* Show Repayments */}
-                                {details.repayments.map(r => (
-                                    <TableRow key={`rep-${r.id}`} className="hover:bg-gray-50/50">
-                                        <TableCell className="text-sm font-medium text-gray-500">{new Date(r.date).toLocaleDateString()}</TableCell>
+                                 {details.repayments.map(r => (
+                                    <TableRow key={`rep-${r.id}`} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                                        <TableCell className="text-sm font-medium text-gray-500 dark:text-gray-400">{new Date(r.date).toLocaleDateString()}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><CheckCircle2 size={14} /></div>
+                                                <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg"><CheckCircle2 size={14} /></div>
                                                 <div>
-                                                    <div className="font-bold text-gray-900">Loan Repayment</div>
-                                                    <div className="text-[10px] text-gray-400 uppercase font-black">Ref: #{r.employee_advance_id}</div>
+                                                    <div className="font-bold text-gray-900 dark:text-gray-100">Loan Repayment</div>
+                                                    <div className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-black">Ref: #{r.employee_advance_id}</div>
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="font-mono font-bold text-emerald-600">-{parseFloat(r.amount).toLocaleString()}</TableCell>
-                                        <TableCell><span className="text-[10px] text-gray-400 uppercase font-black">{r.description || 'Monthly Repayment'}</span></TableCell>
+                                        <TableCell className="font-mono font-bold text-emerald-600 dark:text-emerald-400">-{parseFloat(r.amount).toLocaleString()}</TableCell>
+                                        <TableCell><span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-black">{r.description || 'Monthly Repayment'}</span></TableCell>
                                         <TableCell className="text-sm text-gray-400">N/A</TableCell>
                                     </TableRow>
                                 ))}
@@ -441,36 +441,36 @@ const EmployeeDetails = () => {
                     </div>
                 )}
 
-                {activeTab === 'profile' && (
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+                 {activeTab === 'profile' && (
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm p-8">
                         <div className="max-w-2xl">
-                             <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">Staff Profile Identity</h3>
+                             <h3 className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-6">Staff Profile Identity</h3>
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                                 <div className="space-y-1">
-                                    <label className="text-xs text-brand-600 font-black uppercase tracking-tighter">Legal Full Name</label>
-                                    <div className="text-lg font-bold text-gray-900">{employee.name}</div>
+                                    <label className="text-xs text-brand-600 dark:text-brand-400 font-black uppercase tracking-tighter">Legal Full Name</label>
+                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{employee.name}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-brand-600 font-black uppercase tracking-tighter">Phone Contact</label>
-                                    <div className="text-lg font-bold text-gray-900 flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-lg border border-gray-100 w-fit">
-                                        <Phone size={16} className="text-gray-400" /> {employee.phone || 'N/A'}
+                                    <label className="text-xs text-brand-600 dark:text-brand-400 font-black uppercase tracking-tighter">Phone Contact</label>
+                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 px-3 py-1 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-700 w-fit">
+                                        <Phone size={16} className="text-gray-400 dark:text-gray-500" /> {employee.phone || 'N/A'}
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-brand-600 font-black uppercase tracking-tighter">Date of Hire</label>
-                                    <div className="text-lg font-bold text-gray-900">{new Date(employee.hire_date).toLocaleDateString()}</div>
+                                    <label className="text-xs text-brand-600 dark:text-brand-400 font-black uppercase tracking-tighter">Date of Hire</label>
+                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{new Date(employee.hire_date).toLocaleDateString()}</div>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs text-brand-600 font-black uppercase tracking-tighter">Agency Assignment</label>
-                                    <div className="text-lg font-bold text-gray-900">{employee.Agency?.name || 'Main Center'}</div>
+                                    <label className="text-xs text-brand-600 dark:text-brand-400 font-black uppercase tracking-tighter">Agency Assignment</label>
+                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{employee.Agency?.name || 'Main Center'}</div>
                                 </div>
                              </div>
 
-                             <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 flex gap-4">
-                                <div className="text-amber-600 mt-1"><Info size={20} /></div>
+                             <div className="p-6 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-900/30 flex gap-4">
+                                <div className="text-amber-600 dark:text-amber-400 mt-1"><Info size={20} /></div>
                                 <div>
-                                    <div className="font-bold text-amber-900">Privacy Notice</div>
-                                    <p className="text-sm text-amber-800 leading-relaxed mt-1">
+                                    <div className="font-bold text-amber-900 dark:text-amber-300">Privacy Notice</div>
+                                    <p className="text-sm text-amber-800 dark:text-amber-400 leading-relaxed mt-1">
                                         Employee financial data is strictly confidential. Ensure you are authorized to view this information according to agency policy.
                                     </p>
                                 </div>
@@ -483,12 +483,12 @@ const EmployeeDetails = () => {
             {/* Action Modal */}
             <Modal isOpen={isActionModalOpen} onClose={() => setIsActionModalOpen(false)} title={`${actionType === 'PAYMENT' ? 'Record Salary Payment' : actionType === 'REPAYMENT' ? 'Record Loan Repayment' : `Issue ${actionType}`}`}>
                 <form onSubmit={handleAction} className="space-y-5">
-                    <div className="bg-brand-50 rounded-2xl p-5 border border-brand-100 flex justify-between items-center">
+                    <div className="bg-brand-50 dark:bg-brand-900/30 rounded-2xl p-5 border border-brand-100 dark:border-gray-700 flex justify-between items-center">
                         <div>
-                            <div className="text-xs text-brand-600 font-black uppercase tracking-widest mb-1">
+                            <div className="text-xs text-brand-600 dark:text-brand-400 font-black uppercase tracking-widest mb-1">
                                 {actionType === 'REPAYMENT' ? 'Remaining Loan' : 'Available Salary'}
                             </div>
-                            <div className="text-lg font-black font-mono text-brand-900">
+                            <div className="text-lg font-black font-mono text-brand-900 dark:text-brand-100">
                                 {actionType === 'REPAYMENT' 
                                     ? (loans?.active_loans?.find(l => l.id === selectedLoanId)?.balance || 0).toLocaleString() 
                                     : (summary?.remaining_salary || 0).toLocaleString()
@@ -496,8 +496,8 @@ const EmployeeDetails = () => {
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Period</div>
-                            <div className="text-sm font-bold text-gray-700">{selectedMonth}</div>
+                            <div className="text-xs text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest mb-1">Period</div>
+                            <div className="text-sm font-bold text-gray-700 dark:text-gray-300">{selectedMonth}</div>
                         </div>
                     </div>
 

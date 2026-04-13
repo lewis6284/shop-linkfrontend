@@ -15,15 +15,15 @@ const CandidateStatus = ({ candidate, handleStatusUpdate }) => {
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Status & Notes</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Status & Notes</h2>
 
             {!hasActivePayments && (
-                <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-                    <AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 mb-6">
+                    <AlertTriangle size={18} className="text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
                     <div>
-                        <p className="text-sm font-semibold text-amber-800">No Active Payments</p>
-                        <p className="text-sm text-amber-700 mt-0.5">
+                        <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">No Active Payments</p>
+                        <p className="text-sm text-amber-700 dark:text-amber-400/80 mt-0.5">
                             This candidate has no active payments. <strong>Approved</strong> and <strong>Deployed</strong> statuses are locked until at least one payment is recorded.
                         </p>
                     </div>
@@ -31,9 +31,9 @@ const CandidateStatus = ({ candidate, handleStatusUpdate }) => {
             )}
 
             <div className="max-w-md">
-                <label className="label mb-2">Change Status</label>
+                <label className="label dark:text-gray-300 mb-2">Change Status</label>
                 <select
-                    className="input-field mb-4"
+                    className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 mb-4"
                     value={candidate.status}
                     onChange={handleChange}
                 >
@@ -54,7 +54,7 @@ const CandidateStatus = ({ candidate, handleStatusUpdate }) => {
                         Deployed{!hasActivePayments ? ' (locked — no payments)' : ''}
                     </option>
                 </select>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                     Changing the status will update the candidate&apos;s journey progress.
                     'Deployed' indicates the candidate has successfully been placed.
                 </p>

@@ -84,8 +84,8 @@ const Agencies = () => {
         <div className="pb-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Agencies</h1>
-                    <p className="text-gray-500 text-sm mt-1 flex items-center gap-1">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Agencies</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 flex items-center gap-1">
                         <Building2 size={14} className="text-brand-500" />
                         Manage business agencies and branches
                     </p>
@@ -98,7 +98,7 @@ const Agencies = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <Table headers={['Agency Name', 'Code', 'Location', 'Address', 'Country', 'Currency', 'Actions']}>
                     {agencies.length === 0 ? (
                         <TableRow>
@@ -107,25 +107,25 @@ const Agencies = () => {
                             </TableCell>
                         </TableRow>
                     ) : agencies.map((agency) => (
-                        <TableRow key={agency.id} className="hover:bg-gray-50/50">
+                        <TableRow key={agency.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
                             <TableCell>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-xs">
+                                    <div className="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs">
                                         {agency.name.substring(0, 1).toUpperCase()}
                                     </div>
-                                    <span className="font-semibold text-gray-900">{agency.name}</span>
+                                    <span className="font-semibold text-gray-900 dark:text-gray-100">{agency.name}</span>
                                 </div>
                             </TableCell>
-                            <TableCell className="font-mono text-xs font-bold text-gray-400">{agency.code || '-'}</TableCell>
-                            <TableCell className="text-sm text-gray-500">
+                            <TableCell className="font-mono text-xs font-bold text-gray-400 dark:text-gray-500">{agency.code || '-'}</TableCell>
+                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">
                                 <div className="flex items-center gap-1.5">
                                     <MapPin size={14} className="text-gray-400" /> {agency.location || '-'}
                                 </div>
                             </TableCell>
-                            <TableCell className="text-sm text-gray-500">{agency.address || '-'}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{agency.country || '-'}</TableCell>
+                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">{agency.address || '-'}</TableCell>
+                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">{agency.country || '-'}</TableCell>
                             <TableCell>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
                                     {agency.currency}
                                 </span>
                             </TableCell>

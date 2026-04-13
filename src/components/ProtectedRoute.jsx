@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
 
     return (
-        <div className="flex h-screen bg-[#f8fafc] overflow-hidden font-sans">
+        <div className="flex h-screen bg-[#f8fafc] dark:bg-gray-900 transition-colors duration-300 overflow-hidden font-sans text-gray-900 dark:text-gray-100">
             {/* Sidebar Navigation */}
             <Sidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
 

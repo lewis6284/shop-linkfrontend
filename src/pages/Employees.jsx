@@ -134,8 +134,8 @@ const Employees = () => {
         <>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Employees</h1>
-                    <p className="text-gray-500 text-sm">Manage staff, salaries, and payments</p>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Employees</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Manage staff, salaries, and payments</p>
                 </div>
                 <button
                     onClick={() => {
@@ -150,42 +150,42 @@ const Employees = () => {
 
             <Table headers={['Code', 'Name', 'Job Function', 'Salary', 'Hire Date', 'Status', 'Actions']}>
                 {employees.map((employee) => (
-                    <TableRow key={employee.id}>
-                        <TableCell className="font-mono text-brand-600 font-semibold">{employee.employee_code || 'PENDING'}</TableCell>
+                    <TableRow key={employee.id} className="dark:hover:bg-gray-700/50">
+                        <TableCell className="font-mono text-brand-600 dark:text-brand-400 font-semibold">{employee.employee_code || 'PENDING'}</TableCell>
                         <TableCell>
-                            <div className="font-medium text-gray-800">{employee.name}</div>
-                            {employee.phone && <div className="text-xs text-gray-500 flex items-center gap-1"><Phone size={10} /> {employee.phone}</div>}
+                            <div className="font-medium text-gray-800 dark:text-gray-200">{employee.name}</div>
+                            {employee.phone && <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"><Phone size={10} /> {employee.phone}</div>}
                         </TableCell>
-                        <TableCell>{employee.job_function}</TableCell>
-                        <TableCell className="font-mono">{employee.monthly_salary?.toLocaleString()} Fbu</TableCell>
-                        <TableCell className="text-sm text-gray-500">{employee.hire_date}</TableCell>
+                        <TableCell className="dark:text-gray-300">{employee.job_function}</TableCell>
+                        <TableCell className="font-mono dark:text-gray-200">{employee.monthly_salary?.toLocaleString()} Fbu</TableCell>
+                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">{employee.hire_date}</TableCell>
                         <TableCell><StatusBadge status={employee.status} /></TableCell>
                         <TableCell>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => navigate(`/employees/${employee.id}`)}
-                                    className="text-brand-600 hover:bg-brand-50 p-2 rounded-lg transition-colors border border-transparent hover:border-brand-100"
+                                    className="text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 p-2 rounded-lg transition-colors border border-transparent hover:border-brand-100 dark:hover:border-brand-800"
                                     title="Financial Dashboard"
                                 >
                                     <ExternalLink size={18} />
                                 </button>
                                 <button
                                     onClick={() => { setSelectedEmployee(employee); setIsQRModalOpen(true); }}
-                                    className="text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors"
+                                    className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors"
                                     title="View QR Code"
                                 >
                                     <QrCode size={18} />
                                 </button>
                                 <button
                                     onClick={() => openEditModal(employee)}
-                                    className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors"
+                                    className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 p-2 rounded-lg transition-colors"
                                     title="Edit"
                                 >
                                     <Edit size={18} />
                                 </button>
                                 <button
                                     onClick={() => { setSelectedEmployee(employee); setIsDeleteModalOpen(true); }}
-                                    className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                    className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition-colors"
                                     title="Deactivate"
                                 >
                                     <Trash2 size={18} />
@@ -200,26 +200,26 @@ const Employees = () => {
             <Modal status={isAddModalOpen || isEditModalOpen} isOpen={isAddModalOpen || isEditModalOpen} onClose={() => { setIsAddModalOpen(false); setIsEditModalOpen(false); }} title={isEditModalOpen ? "Edit Employee" : "New Employee"}>
                 <form onSubmit={isEditModalOpen ? handleUpdateEmployee : handleCreateEmployee} className="space-y-4">
                     <div>
-                        <label className="label text-xs font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
+                        <label className="label text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Full Name</label>
                         <div className="relative">
-                            <User className="absolute left-3 top-3 text-gray-400" size={18} />
-                            <input type="text" required className="input-field pl-10" value={employeeForm.name} onChange={e => setEmployeeForm({ ...employeeForm, name: e.target.value })} placeholder="e.g. John Doe" />
+                            <User className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                            <input type="text" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={employeeForm.name} onChange={e => setEmployeeForm({ ...employeeForm, name: e.target.value })} placeholder="e.g. John Doe" />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                            <label className="label text-xs font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
+                            <label className="label text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Phone Number</label>
                             <div className="relative">
-                                <Phone className="absolute left-3 top-3 text-gray-400" size={18} />
-                                <input type="text" className="input-field pl-10" value={employeeForm.phone} onChange={e => setEmployeeForm({ ...employeeForm, phone: e.target.value })} placeholder="+257..." />
+                                <Phone className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                <input type="text" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={employeeForm.phone} onChange={e => setEmployeeForm({ ...employeeForm, phone: e.target.value })} placeholder="+257..." />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="label text-xs font-bold text-gray-400 uppercase tracking-widest">Agency Assignment</label>
+                            <label className="label text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Agency Assignment</label>
                             <div className="relative">
-                                <Building2 className="absolute left-3 top-3 text-gray-400" size={18} />
-                                <select className="input-field pl-10" value={employeeForm.agency_id} onChange={e => setEmployeeForm({ ...employeeForm, agency_id: e.target.value })} required>
+                                <Building2 className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={employeeForm.agency_id} onChange={e => setEmployeeForm({ ...employeeForm, agency_id: e.target.value })} required>
                                     <option value="">Select Agency</option>
                                     {agencies.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                                 </select>
@@ -229,32 +229,32 @@ const Employees = () => {
 
                     <div className="grid grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                            <label className="label text-xs font-bold text-gray-400 uppercase tracking-widest">Hire Date</label>
+                            <label className="label text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Hire Date</label>
                             <div className="relative">
-                                <Calendar className="absolute left-3 top-3 text-gray-400" size={18} />
-                                <input type="date" required className="input-field pl-10" value={employeeForm.hire_date} onChange={e => setEmployeeForm({ ...employeeForm, hire_date: e.target.value })} />
+                                <Calendar className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                <input type="date" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={employeeForm.hire_date} onChange={e => setEmployeeForm({ ...employeeForm, hire_date: e.target.value })} />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="label text-xs font-bold text-gray-400 uppercase tracking-widest">Job Function</label>
+                            <label className="label text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Job Function</label>
                             <div className="relative">
-                                <Briefcase className="absolute left-3 top-3 text-gray-400" size={18} />
-                                <input type="text" className="input-field pl-10" value={employeeForm.job_function} onChange={e => setEmployeeForm({ ...employeeForm, job_function: e.target.value })} placeholder="e.g. Accountant" />
+                                <Briefcase className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                <input type="text" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={employeeForm.job_function} onChange={e => setEmployeeForm({ ...employeeForm, job_function: e.target.value })} placeholder="e.g. Accountant" />
                             </div>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                            <label className="label text-xs font-bold text-gray-400 uppercase tracking-widest">Monthly Salary (Fbu)</label>
+                            <label className="label text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Monthly Salary (Fbu)</label>
                             <div className="relative">
-                                <DollarSign className="absolute left-3 top-3 text-gray-400" size={18} />
-                                <input type="number" required className="input-field pl-10 font-mono font-bold" value={employeeForm.monthly_salary} onChange={e => setEmployeeForm({ ...employeeForm, monthly_salary: e.target.value })} placeholder="0.00" />
+                                <DollarSign className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                <input type="number" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10 font-mono font-bold" value={employeeForm.monthly_salary} onChange={e => setEmployeeForm({ ...employeeForm, monthly_salary: e.target.value })} placeholder="0.00" />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="label text-xs font-bold text-gray-400 uppercase tracking-widest">Employment Status</label>
-                            <select className="input-field" value={employeeForm.status} onChange={e => setEmployeeForm({ ...employeeForm, status: e.target.value })}>
+                            <label className="label text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Employment Status</label>
+                            <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={employeeForm.status} onChange={e => setEmployeeForm({ ...employeeForm, status: e.target.value })}>
                                 <option value="ACTIVE">Active</option>
                                 <option value="INACTIVE">Inactive</option>
                                 <option value="SUSPENDED">Suspended</option>
@@ -274,7 +274,7 @@ const Employees = () => {
                         value={`EMP:${selectedEmployee?.employee_code || selectedEmployee?.id}`}
                         size={200}
                     />
-                    <p className="mt-4 text-center text-gray-500">
+                    <p className="mt-4 text-center text-gray-500 dark:text-gray-400">
                         Scan for employee ID verification.
                     </p>
                     <button
@@ -288,7 +288,7 @@ const Employees = () => {
 
             {/* Delete Confirmation Modal */}
             <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Confirm Deactivation">
-                <p className="text-gray-600 mb-6">Are you sure you want to deactivate <strong>{selectedEmployee?.name}</strong>? This will set their status to INACTIVE.</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to deactivate <strong>{selectedEmployee?.name}</strong>? This will set their status to INACTIVE.</p>
                 <div className="flex gap-4">
                     <button onClick={() => setIsDeleteModalOpen(false)} className="btn-secondary w-full">Cancel</button>
                     <button onClick={handleDeleteEmployee} className="btn-primary bg-red-600 hover:bg-red-700 w-full text-white">Deactivate</button>

@@ -107,8 +107,8 @@ const Accounts = () => {
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Financial Accounts</h1>
-                    <p className="text-gray-500 text-sm">Manage your cash, bank and mobile money accounts</p>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Financial Accounts</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Manage your cash, bank and mobile money accounts</p>
                 </div>
                 <button
                     onClick={() => { setAccountForm({ name: '', type: 'CASH', balance: 0, currency: 'FBu', agency_id: user?.agency_id || '', bank_id: '' }); setIsAddModalOpen(true); }}
@@ -120,29 +120,29 @@ const Accounts = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {accounts.map(acc => (
-                    <div key={acc.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-all group relative overflow-hidden">
+                    <div key={acc.id} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between hover:shadow-md transition-all group relative overflow-hidden">
                         <div className={`absolute top-0 right-0 w-16 h-16 opacity-5 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform`}>
                             {getIcon(acc.type)}
                         </div>
                         <div className="flex items-start justify-between mb-4">
-                            <div className={`p-3 rounded-xl ${getColor(acc.type)} border`}>
+                             <div className={`p-3 rounded-xl ${getColor(acc.type).replace('bg-brand-50', 'bg-brand-50 dark:bg-brand-900/30').replace('bg-emerald-50', 'bg-emerald-50 dark:bg-emerald-900/30').replace('bg-blue-50', 'bg-blue-50 dark:bg-blue-900/30').replace('text-brand-600', 'text-brand-600 dark:text-brand-400').replace('text-emerald-600', 'text-emerald-600 dark:text-emerald-400').replace('text-blue-600', 'text-blue-600 dark:text-blue-400')} border dark:border-gray-700`}>
                                 {getIcon(acc.type)}
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{acc.type}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">{acc.type}</span>
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-gray-800 mb-1">{acc.name}</p>
-                            <p className="text-2xl font-black text-gray-900">{acc.balance.toLocaleString()} <span className="text-xs font-normal text-gray-400">{acc.currency || 'FBu'}</span></p>
+                            <p className="text-sm font-bold text-gray-800 dark:text-gray-100 mb-1">{acc.name}</p>
+                            <p className="text-2xl font-black text-gray-900 dark:text-white">{acc.balance.toLocaleString()} <span className="text-xs font-normal text-gray-400 dark:text-gray-500">{acc.currency || 'FBu'}</span></p>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <Table headers={['Account Name', 'Type', 'Status', 'Balance', 'Actions']}>
                     {accounts.map(acc => (
-                        <TableRow key={acc.id}>
-                            <TableCell className="font-bold text-gray-800">{acc.name}</TableCell>
+                        <TableRow key={acc.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                            <TableCell className="font-bold text-gray-800 dark:text-gray-100">{acc.name}</TableCell>
                             <TableCell>
                                 <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${getColor(acc.type)} border`}>
                                     {acc.type}
@@ -154,13 +154,13 @@ const Accounts = () => {
                                     ACTIVE
                                 </span>
                             </TableCell>
-                            <TableCell className="font-mono font-bold text-gray-900">{acc.balance.toLocaleString()} {acc.currency || 'FBu'}</TableCell>
+                            <TableCell className="font-mono font-bold text-gray-900 dark:text-gray-100">{acc.balance.toLocaleString()} {acc.currency || 'FBu'}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => openEditModal(acc)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-xl transition-colors" title="Edit">
+                                    <button onClick={() => openEditModal(acc)} className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-2 rounded-xl transition-colors" title="Edit">
                                         <Edit size={16} />
                                     </button>
-                                    <button onClick={() => { setSelectedAccount(acc); setIsDeleteModalOpen(true); }} className="text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition-colors" title="Delete">
+                                    <button onClick={() => { setSelectedAccount(acc); setIsDeleteModalOpen(true); }} className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 p-2 rounded-xl transition-colors" title="Delete">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>

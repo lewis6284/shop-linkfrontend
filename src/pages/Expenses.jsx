@@ -78,8 +78,8 @@ const Expenses = () => {
         <div className="pb-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
-                    <p className="text-gray-500 text-sm mt-1 flex items-center gap-1">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Expenses</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 flex items-center gap-1">
                         <TrendingDown size={14} className="text-rose-500" />
                         Track and manage company expenditures
                     </p>
@@ -95,7 +95,7 @@ const Expenses = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <Table headers={['Date', 'Category', 'Beneficiary', 'Account', 'Description', 'Amount', 'Actions']}>
                     {expenses.length === 0 ? (
                         <TableRow>
@@ -104,23 +104,23 @@ const Expenses = () => {
                             </TableCell>
                         </TableRow>
                     ) : expenses.map((exp) => (
-                        <TableRow key={exp.id} className="hover:bg-gray-50/50">
-                            <TableCell className="text-gray-500 font-medium">{exp.date}</TableCell>
+                        <TableRow key={exp.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                            <TableCell className="text-gray-500 dark:text-gray-400 font-medium">{exp.date}</TableCell>
                             <TableCell>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
                                     {exp.category_name}
                                 </span>
                             </TableCell>
                             <TableCell>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-semibold text-gray-900">{exp.beneficiary_name || 'Other'}</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{exp.beneficiary_name || 'Other'}</span>
                                     <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
                                         {exp.beneficiary_type}
                                     </span>
                                 </div>
                             </TableCell>
-                            <TableCell className="text-sm font-medium text-gray-600">{exp.account_name}</TableCell>
-                            <TableCell className="text-sm text-gray-500 max-w-xs truncate" title={exp.description}>
+                            <TableCell className="text-sm font-medium text-gray-600 dark:text-gray-300">{exp.account_name}</TableCell>
+                            <TableCell className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate" title={exp.description}>
                                 {exp.description || <span className="italic opacity-50">No description</span>}
                             </TableCell>
                             <TableCell>
@@ -132,7 +132,7 @@ const Expenses = () => {
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => { setSelectedExpense(exp); setIsQRModalOpen(true); }}
-                                        className="text-gray-400 hover:text-brand-600 p-1.5 rounded-lg hover:bg-brand-50 transition-colors"
+                                        className="text-gray-400 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400 p-1.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-colors"
                                         title="View QR Code"
                                     >
                                         <QrCode size={18} />
@@ -147,24 +147,24 @@ const Expenses = () => {
             {/* Add Expense Modal */}
             <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Record New Expense" maxWidth="max-w-xl">
                 <form onSubmit={handleCreateExpense} className="space-y-6 pt-2">
-                    <div className="bg-gradient-to-r from-rose-50 to-transparent border-l-4 border-rose-500 p-4 rounded-r-lg">
-                        <p className="text-rose-800 text-sm font-medium leading-relaxed">
+                    <div className="bg-gradient-to-r from-rose-50 to-transparent dark:from-rose-900/20 dark:to-transparent border-l-4 border-rose-500 p-4 rounded-r-lg">
+                        <p className="text-rose-800 dark:text-rose-300 text-sm font-medium leading-relaxed">
                             This transaction will be recorded as an <span className="font-bold">EXIT</span> in the general journal and immediately affect your account balance.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <Calendar size={14} className="text-gray-400" /> Transaction Date
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <Calendar size={14} className="text-gray-400 dark:text-gray-500" /> Transaction Date
                             </label>
-                            <input type="date" required className="input-field" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} />
+                            <input type="date" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={expenseForm.date} onChange={e => setExpenseForm({ ...expenseForm, date: e.target.value })} />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <Tag size={14} className="text-gray-400" /> Category
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <Tag size={14} className="text-gray-400 dark:text-gray-500" /> Category
                             </label>
-                            <select className="input-field" value={expenseForm.category_id} onChange={e => setExpenseForm({ ...expenseForm, category_id: e.target.value })} required>
+                            <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={expenseForm.category_id} onChange={e => setExpenseForm({ ...expenseForm, category_id: e.target.value })} required>
                                 <option value="">Select Category</option>
                                 {expenseCategories.map(cat => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -175,10 +175,10 @@ const Expenses = () => {
 
                     <div className="grid grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <Users size={14} className="text-gray-400" /> Beneficiary Type
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <Users size={14} className="text-gray-400 dark:text-gray-500" /> Beneficiary Type
                             </label>
-                            <select className="input-field" value={expenseForm.beneficiary_type} onChange={e => setExpenseForm({ ...expenseForm, beneficiary_type: e.target.value, beneficiary_id: '' })}>
+                            <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={expenseForm.beneficiary_type} onChange={e => setExpenseForm({ ...expenseForm, beneficiary_type: e.target.value, beneficiary_id: '' })}>
                                 <option value="OTHER">Other / General</option>
                                 <option value="EMPLOYEE">Employee</option>
                                 <option value="SUPPLIER">Supplier</option>
@@ -187,10 +187,10 @@ const Expenses = () => {
 
                         {expenseForm.beneficiary_type === 'EMPLOYEE' && (
                             <div className="space-y-1.5 animate-in slide-in-from-left-2 duration-200">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                    <User size={14} className="text-gray-400" /> Employee
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                    <User size={14} className="text-gray-400 dark:text-gray-500" /> Employee
                                 </label>
-                                <select className="input-field" value={expenseForm.beneficiary_id} onChange={e => setExpenseForm({ ...expenseForm, beneficiary_id: e.target.value })} required>
+                                <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={expenseForm.beneficiary_id} onChange={e => setExpenseForm({ ...expenseForm, beneficiary_id: e.target.value })} required>
                                     <option value="">Select Employee</option>
                                     {employees.map(emp => (
                                         <option key={emp.id} value={emp.id}>{emp.name} {emp.job_function ? `(${emp.job_function})` : ''}</option>
@@ -201,10 +201,10 @@ const Expenses = () => {
 
                         {expenseForm.beneficiary_type === 'SUPPLIER' && (
                             <div className="space-y-1.5 animate-in slide-in-from-left-2 duration-200">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                    <Truck size={14} className="text-gray-400" /> Supplier
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                    <Truck size={14} className="text-gray-400 dark:text-gray-500" /> Supplier
                                 </label>
-                                <select className="input-field" value={expenseForm.beneficiary_id} onChange={e => setExpenseForm({ ...expenseForm, beneficiary_id: e.target.value })} required>
+                                <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={expenseForm.beneficiary_id} onChange={e => setExpenseForm({ ...expenseForm, beneficiary_id: e.target.value })} required>
                                     <option value="">Select Supplier</option>
                                     {suppliers.map(sup => (
                                         <option key={sup.id} value={sup.id}>{sup.name}</option>
@@ -215,26 +215,26 @@ const Expenses = () => {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                            <FileText size={14} className="text-gray-400" /> Description
+                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                            <FileText size={14} className="text-gray-400 dark:text-gray-500" /> Description
                         </label>
-                        <textarea className="input-field min-h-[80px] resize-none" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} placeholder="What was this expense for?"></textarea>
+                        <textarea className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 min-h-[80px] resize-none" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} placeholder="What was this expense for?"></textarea>
                     </div>
 
                     <div className="grid grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <Hash size={14} className="text-gray-400" /> Amount (Fbu)
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <Hash size={14} className="text-gray-400 dark:text-gray-500" /> Amount (Fbu)
                             </label>
                             <div className="relative">
-                                <input type="number" step="0.01" required className="input-field font-mono font-bold" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} />
+                                <input type="number" step="0.01" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 font-mono font-bold" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                                <CreditCard size={14} className="text-gray-400" /> Payment Account
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                <CreditCard size={14} className="text-gray-400 dark:text-gray-500" /> Payment Account
                             </label>
-                            <select className="input-field" value={expenseForm.account_id} onChange={e => setExpenseForm({ ...expenseForm, account_id: e.target.value })} required>
+                            <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={expenseForm.account_id} onChange={e => setExpenseForm({ ...expenseForm, account_id: e.target.value })} required>
                                 <option value="">Select Account</option>
                                 {accounts.map(acc => (
                                     <option key={acc.id} value={acc.id}>{acc.name} ({acc.type})</option>
@@ -263,8 +263,8 @@ const Expenses = () => {
 
             {/* QR Code Modal */}
             <Modal isOpen={isQRModalOpen} onClose={() => setIsQRModalOpen(false)} title="Expense Voucher QR">
-                <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-xl m-2">
-                    <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 mb-6">
+                <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900 rounded-xl m-2">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 mb-6">
                         <QRCodeGenerator
                             value={`EXP:${selectedExpense?.id}:${selectedExpense?.amount}:${selectedExpense?.date}`}
                             size={200}

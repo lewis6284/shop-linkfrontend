@@ -25,22 +25,22 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-100 to-purple-100">
-            <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50 backdrop-blur-sm">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-100 dark:from-brand-900/20 to-purple-100 dark:to-gray-950 transition-colors duration-500">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-gray-700/50 backdrop-blur-sm">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-brand-900">Accounting System</h1>
-                    <p className="text-gray-500 mt-2">Create a new account</p>
+                    <h1 className="text-3xl font-bold text-brand-900 dark:text-brand-100">Accounting System</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">Create a new account</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
                         <div className="relative">
-                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
                             <input
                                 type="text"
                                 required
-                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900/30 outline-none transition-all"
                                 placeholder="John Doe"
                                 value={name} onChange={e => setName(e.target.value)}
                             />
@@ -48,13 +48,13 @@ const Register = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
                         <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
                             <input
                                 type="email"
                                 required
-                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900/30 outline-none transition-all"
                                 placeholder="you@company.com"
                                 value={email} onChange={e => setEmail(e.target.value)}
                             />
@@ -62,13 +62,13 @@ const Register = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
                             <input
                                 type="password"
                                 required
-                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900/30 outline-none transition-all"
                                 placeholder="••••••••"
                                 value={password} onChange={e => setPassword(e.target.value)}
                             />
@@ -76,11 +76,11 @@ const Register = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
                         <div className="relative">
-                            <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
                             <select
-                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all bg-white"
+                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900/30 outline-none transition-all"
                                 value={role} onChange={e => setRole(e.target.value)}
                             >
                                 <option value="accountant">Accountant</option>

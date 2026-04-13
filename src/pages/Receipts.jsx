@@ -47,23 +47,23 @@ const Receipts = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Receipts Archive</h1>
-                    <p className="text-gray-500 text-sm">Official records of all income and payments</p>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Receipts Archive</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Official records of all income and payments</p>
                 </div>
             </div>
 
-            <div className="flex bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
+            <div className="flex bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 gap-4">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
                     <input
                         type="text"
                         placeholder="Search by receipt number or payer..."
-                        className="input-field pl-10 py-2 text-sm"
+                        className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10 py-2 text-sm"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <button className="btn-secondary flex items-center gap-2 text-sm">
+                <button className="btn-secondary dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 flex items-center gap-2 text-sm">
                     <Filter size={16} /> Filters
                 </button>
             </div>
@@ -73,23 +73,23 @@ const Receipts = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                     <Table headers={['Receipt #', 'Date', 'Payer Entity', 'Amount', 'Status', 'Actions']}>
                         {filteredReceipts.map((receipt) => (
-                            <TableRow key={receipt.id}>
-                                <TableCell className="font-mono text-brand-600 font-black text-sm">{receipt.receipt_number}</TableCell>
-                                <TableCell className="text-sm text-gray-600">{receipt.date}</TableCell>
+                            <TableRow key={receipt.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                                <TableCell className="font-mono text-brand-600 dark:text-brand-400 font-black text-sm">{receipt.receipt_number}</TableCell>
+                                <TableCell className="text-sm text-gray-600 dark:text-gray-400">{receipt.date}</TableCell>
                                 <TableCell>
                                     <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-tighter">{receipt.payer_type}</span>
-                                        <span className="font-medium text-gray-800">Entity ID: {receipt.payer_id}</span>
+                                        <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-tighter">{receipt.payer_type}</span>
+                                        <span className="font-medium text-gray-800 dark:text-gray-200">Entity ID: {receipt.payer_id}</span>
                                     </div>
                                 </TableCell>
-                                <TableCell className="font-mono font-bold text-gray-900">
-                                    {receipt.amount.toLocaleString()} <span className="text-[10px] font-normal">{receipt.currency || 'Fbu'}</span>
+                                <TableCell className="font-mono font-bold text-gray-900 dark:text-gray-100">
+                                    {receipt.amount.toLocaleString()} <span className="text-[10px] font-normal text-gray-500 dark:text-gray-400">{receipt.currency || 'Fbu'}</span>
                                 </TableCell>
                                 <TableCell>
-                                    <span className="flex items-center gap-1.5 text-emerald-600 text-[10px] font-black tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 italic">
+                                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-[10px] font-black tracking-widest bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-900/40 italic">
                                         <FileCheck size={12} /> VERIFIED
                                     </span>
                                 </TableCell>
@@ -135,27 +135,27 @@ const Receipts = () => {
             <Modal isOpen={!!selectedReceipt} onClose={() => setSelectedReceipt(null)} title="Official Receipt Preview">
                 {selectedReceipt && (
                     <div className="space-y-6">
-                        <div className="flex flex-col items-center bg-gray-50 p-6 rounded-2xl border border-dashed border-gray-300">
-                            <QRCodeGenerator value={`REC:${selectedReceipt.receipt_number}|VAL:${selectedReceipt.amount}|DATE:${selectedReceipt.date}`} />
-                            <p className="mt-4 font-mono text-xs font-black text-gray-400">{selectedReceipt.receipt_number}</p>
+                        <div className="flex flex-col items-center bg-gray-50 dark:bg-gray-900 p-6 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                             <QRCodeGenerator value={`REC:${selectedReceipt.receipt_number}|VAL:${selectedReceipt.amount}|DATE:${selectedReceipt.date}`} />
+                             <p className="mt-4 font-mono text-xs font-black text-gray-400 dark:text-gray-500">{selectedReceipt.receipt_number}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-y-4 text-sm bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="grid grid-cols-2 gap-y-4 text-sm bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
                             <div>
-                                <p className="text-gray-400 font-bold text-[10px] uppercase">Transaction Date</p>
-                                <p className="font-bold text-gray-800">{selectedReceipt.date}</p>
+                                <p className="text-gray-400 dark:text-gray-500 font-bold text-[10px] uppercase">Transaction Date</p>
+                                <p className="font-bold text-gray-800 dark:text-gray-100">{selectedReceipt.date}</p>
                             </div>
                             <div>
-                                <p className="text-gray-400 font-bold text-[10px] uppercase">Currency Unit</p>
-                                <p className="font-bold text-gray-800">{selectedReceipt.currency || 'Fbu'}</p>
+                                <p className="text-gray-400 dark:text-gray-500 font-bold text-[10px] uppercase">Currency Unit</p>
+                                <p className="font-bold text-gray-800 dark:text-gray-100">{selectedReceipt.currency || 'Fbu'}</p>
                             </div>
                             <div>
-                                <p className="text-gray-400 font-bold text-[10px] uppercase">Payer Information</p>
-                                <p className="font-bold text-gray-800">{selectedReceipt.payer_type} #{selectedReceipt.payer_id}</p>
+                                <p className="text-gray-400 dark:text-gray-500 font-bold text-[10px] uppercase">Payer Information</p>
+                                <p className="font-bold text-gray-800 dark:text-gray-100">{selectedReceipt.payer_type} #{selectedReceipt.payer_id}</p>
                             </div>
                             <div>
-                                <p className="text-gray-400 font-bold text-[10px] uppercase">Total Value</p>
-                                <p className="font-bold text-brand-600 text-lg">{selectedReceipt.amount.toLocaleString()} Fbu</p>
+                                <p className="text-gray-400 dark:text-gray-500 font-bold text-[10px] uppercase">Total Value</p>
+                                <p className="font-bold text-brand-600 dark:text-brand-400 text-lg">{selectedReceipt.amount.toLocaleString()} Fbu</p>
                             </div>
                         </div>
 

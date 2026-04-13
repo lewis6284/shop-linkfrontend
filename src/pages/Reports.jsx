@@ -160,9 +160,10 @@ const Reports = () => {
                         <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} />
                         <Tooltip
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', backgroundColor: '#1F2937', color: '#F3F4F6' }}
+                            itemStyle={{ color: '#F3F4F6' }}
                         />
-                        <Area type="monotone" dataKey="revenue" stackId="1" stroke="#10B981" fill="#D1FAE5" />
-                        <Area type="monotone" dataKey="expenses" stackId="1" stroke="#F43F5E" fill="#FFE4E6" />
+                        <Area type="monotone" dataKey="revenue" stackId="1" stroke="#10B981" fill="#10B981" fillOpacity={0.2} />
+                        <Area type="monotone" dataKey="expenses" stackId="1" stroke="#F43F5E" fill="#F43F5E" fillOpacity={0.2} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>

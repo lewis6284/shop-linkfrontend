@@ -82,8 +82,8 @@ const Banks = () => {
         <div className="pb-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Banks</h1>
-                    <p className="text-gray-500 text-sm mt-1 flex items-center gap-1">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Banks</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 flex items-center gap-1">
                         <Landmark size={14} className="text-indigo-500" />
                         Manage registered banking institutions
                     </p>
@@ -96,7 +96,7 @@ const Banks = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <Table headers={['Bank Name', 'SWIFT/Code', 'Address', 'Country', 'Actions']}>
                     {banks.length === 0 ? (
                         <TableRow>
@@ -105,18 +105,18 @@ const Banks = () => {
                             </TableCell>
                         </TableRow>
                     ) : banks.map((bank) => (
-                        <TableRow key={bank.id} className="hover:bg-gray-50/50">
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase">
-                                        {bank.name.substring(0, 2)}
-                                    </div>
-                                    <span className="font-semibold text-gray-900">{bank.name}</span>
-                                </div>
-                            </TableCell>
-                            <TableCell className="font-mono text-xs font-bold text-gray-400">{bank.code || <span className="italic opacity-50 font-normal">No Code</span>}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{bank.address || '-'}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{bank.country || '-'}</TableCell>
+                        <TableRow key={bank.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                             <TableCell>
+                                 <div className="flex items-center gap-3">
+                                     <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs uppercase">
+                                         {bank.name.substring(0, 2)}
+                                     </div>
+                                     <span className="font-semibold text-gray-900 dark:text-gray-100">{bank.name}</span>
+                                 </div>
+                             </TableCell>
+                            <TableCell className="font-mono text-xs font-bold text-gray-400 dark:text-gray-500">{bank.code || <span className="italic opacity-50 font-normal">No Code</span>}</TableCell>
+                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">{bank.address || '-'}</TableCell>
+                            <TableCell className="text-sm text-gray-500 dark:text-gray-400">{bank.country || '-'}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                     <button

@@ -11,9 +11,10 @@ import { globalSearch } from '../services/searchService';
 const Navbar = ({ toggleSidebar }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const [darkMode, setDarkMode] = useState(
-        localStorage.getItem('theme') === 'dark'
-    );
+    const [darkMode, setDarkMode] = useState(() => {
+        const saved = localStorage.getItem('theme');
+        return saved ? saved === 'dark' : true; // Default to true if not set
+    });
 
     // Global Search State
     const [searchQuery, setSearchQuery] = useState('');

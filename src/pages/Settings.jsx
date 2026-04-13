@@ -23,8 +23,8 @@ const Settings = () => {
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900 border-b pb-4">Settings</h1>
-                <p className="text-gray-500 mt-2">Manage system configurations and administrative options</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 border-b dark:border-gray-800 pb-4">Settings</h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">Manage system configurations and administrative options</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -32,18 +32,18 @@ const Settings = () => {
                     <Link
                         key={index}
                         to={item.path}
-                        className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-all duration-200 group flex flex-col items-start"
+                        className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-brand-200 dark:hover:border-brand-900 transition-all duration-200 group flex flex-col items-start"
                     >
-                        <div className="bg-brand-50 p-3 rounded-xl mb-4 text-brand-600 group-hover:bg-brand-100 group-hover:text-brand-700 transition-colors">
+                        <div className="bg-brand-50 dark:bg-brand-900/20 p-3 rounded-xl mb-4 text-brand-600 dark:text-brand-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-900/40 transition-colors">
                             {React.cloneElement(item.icon, { className: 'w-6 h-6' })}
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">{item.name}</h3>
-                        <p className="text-sm text-gray-500">{item.description}</p>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">{item.name}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{item.description}</p>
                     </Link>
                 ))}
                 
                 {visibleItems.length === 0 && (
-                    <div className="col-span-full py-12 text-center text-gray-500 bg-white rounded-2xl border border-gray-100">
+                    <div className="col-span-full py-12 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
                         You do not have permission to view any settings.
                     </div>
                 )}

@@ -55,14 +55,14 @@ const SalaryPayments = () => {
         <>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Salary Payments</h1>
-                    <p className="text-sm text-gray-500">Manage employee salaries</p>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Salary Payments</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Manage employee salaries</p>
                 </div>
 
                 <div className="flex gap-4 items-center">
-                    <div className="bg-rose-50 px-4 py-2 rounded-xl border border-rose-100">
-                        <span className="text-xs text-rose-600 font-bold uppercase tracking-wider">Total (This Month)</span>
-                        <div className="text-xl font-black text-rose-700">{totalThisMonth.toLocaleString()}</div>
+                    <div className="bg-rose-50 dark:bg-rose-900/20 px-4 py-2 rounded-xl border border-rose-100 dark:border-rose-900/30">
+                        <span className="text-xs text-rose-600 dark:text-rose-400 font-bold uppercase tracking-wider">Total (This Month)</span>
+                        <div className="text-xl font-black text-rose-700 dark:text-rose-300">{totalThisMonth.toLocaleString()}</div>
                     </div>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
@@ -75,19 +75,19 @@ const SalaryPayments = () => {
 
             <Table headers={['Date', 'Employee', 'Month', 'Amount', 'Account', 'QR']}>
                 {salaryPayments.map(p => (
-                    <TableRow key={p.id}>
-                        <TableCell className="text-sm text-gray-500">{p.payment_date}</TableCell>
+                    <TableRow key={p.id} className="dark:hover:bg-gray-700/50">
+                        <TableCell className="text-sm text-gray-500 dark:text-gray-400">{p.payment_date}</TableCell>
                         <TableCell>
-                            <div className="font-bold text-gray-800">{p.Employee?.name}</div>
-                            <div className="text-[10px] text-rose-600 font-bold">{p.Employee?.employee_code}</div>
+                            <div className="font-bold text-gray-800 dark:text-gray-200">{p.Employee?.name}</div>
+                            <div className="text-[10px] text-rose-600 dark:text-rose-400 font-bold">{p.Employee?.employee_code}</div>
                         </TableCell>
-                        <TableCell className="text-sm font-medium">
+                        <TableCell className="text-sm font-medium dark:text-gray-300">
                             {p.month}
                         </TableCell>
-                        <TableCell className="font-mono font-bold text-rose-600">-{parseFloat(p.amount).toLocaleString()} <span className="text-[10px]">{p.currency || 'USD'}</span></TableCell>
-                        <TableCell className="text-sm">{p.Account?.name}</TableCell>
+                        <TableCell className="font-mono font-bold text-rose-600 dark:text-rose-400">-{parseFloat(p.amount).toLocaleString()} <span className="text-[10px]">{p.currency || 'USD'}</span></TableCell>
+                        <TableCell className="text-sm dark:text-gray-300">{p.Account?.name}</TableCell>
                         <TableCell>
-                            <button onClick={() => { setSelectedPayment(p); setIsQRModalOpen(true); }} className="text-gray-400 hover:text-brand-600"><QrCode size={18} /></button>
+                            <button onClick={() => { setSelectedPayment(p); setIsQRModalOpen(true); }} className="text-gray-400 dark:text-gray-500 hover:text-brand-600 dark:hover:text-brand-400"><QrCode size={18} /></button>
                         </TableCell>
                     </TableRow>
                 ))}
@@ -102,29 +102,29 @@ const SalaryPayments = () => {
             <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Record Salary Payment">
                 <form onSubmit={handleSalaryPayment} className="space-y-4">
                     <div>
-                        <label className="label">Employee</label>
-                        <select className="input-field" value={salaryPayForm.employee_id} onChange={e => setSalaryPayForm({ ...salaryPayForm, employee_id: e.target.value })} required>
+                        <label className="label dark:text-gray-300 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1 block">Employee</label>
+                        <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={salaryPayForm.employee_id} onChange={e => setSalaryPayForm({ ...salaryPayForm, employee_id: e.target.value })} required>
                             <option value="">Select Employee</option>
                             {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
                         </select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="label">Month</label>
-                            <input type="month" className="input-field" value={salaryPayForm.month} onChange={e => setSalaryPayForm({ ...salaryPayForm, month: e.target.value })} required />
+                            <label className="label dark:text-gray-300 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1 block">Month</label>
+                            <input type="month" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={salaryPayForm.month} onChange={e => setSalaryPayForm({ ...salaryPayForm, month: e.target.value })} required />
                         </div>
                         <div>
-                            <label className="label">Date</label>
-                            <input type="date" className="input-field" value={salaryPayForm.payment_date} onChange={e => setSalaryPayForm({ ...salaryPayForm, payment_date: e.target.value })} required />
+                            <label className="label dark:text-gray-300 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1 block">Date</label>
+                            <input type="date" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={salaryPayForm.payment_date} onChange={e => setSalaryPayForm({ ...salaryPayForm, payment_date: e.target.value })} required />
                         </div>
                     </div>
                     <div>
-                        <label className="label">Amount</label>
-                        <input type="number" className="input-field" value={salaryPayForm.amount} onChange={e => setSalaryPayForm({ ...salaryPayForm, amount: e.target.value })} required />
+                        <label className="label dark:text-gray-300 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1 block">Amount</label>
+                        <input type="number" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 font-mono font-bold" value={salaryPayForm.amount} onChange={e => setSalaryPayForm({ ...salaryPayForm, amount: e.target.value })} required />
                     </div>
                     <div>
-                        <label className="label">Account</label>
-                        <select className="input-field" value={salaryPayForm.account_id} onChange={e => setSalaryPayForm({ ...salaryPayForm, account_id: e.target.value })} required>
+                        <label className="label dark:text-gray-300 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1 block">Account</label>
+                        <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={salaryPayForm.account_id} onChange={e => setSalaryPayForm({ ...salaryPayForm, account_id: e.target.value })} required>
                             <option value="">Select Account</option>
                             {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
                         </select>
@@ -137,7 +137,7 @@ const SalaryPayments = () => {
             <Modal isOpen={isQRModalOpen} onClose={() => setIsQRModalOpen(false)} title="Salary Payment QR">
                 <div className="flex flex-col items-center p-6">
                     <QRCodeGenerator value={`PAY:SAL:${selectedPayment?.id}:${selectedPayment?.amount}`} size={200} />
-                    <p className="mt-4 text-gray-500 text-sm text-center">Scan to verify salary payment</p>
+                    <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm text-center">Scan to verify salary payment</p>
                     <button onClick={() => setIsQRModalOpen(false)} className="mt-6 btn-secondary">Close</button>
                 </div>
             </Modal>

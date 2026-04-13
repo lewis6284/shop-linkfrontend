@@ -23,22 +23,22 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-100 to-purple-100">
-            <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50 backdrop-blur-sm">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-100 to-purple-100 dark:from-gray-950 dark:to-brand-950">
+            <div className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50 dark:border-gray-800 backdrop-blur-sm">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-brand-900">Accounting System</h1>
-                    <p className="text-gray-500 mt-2">Sign in to your account</p>
+                    <h1 className="text-3xl font-bold text-brand-900 dark:text-brand-500">Accounting System</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">Sign in to your account</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
                         <div className="relative">
                             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                             <input
                                 type="email"
                                 required
-                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900/40 outline-none transition-all"
                                 placeholder="you@company.com"
                                 value={email} onChange={e => setEmail(e.target.value)}
                             />
@@ -46,13 +46,13 @@ const Login = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
                         <div className="relative">
                             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                             <input
                                 type="password"
                                 required
-                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                className="pl-10 w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900/40 outline-none transition-all"
                                 placeholder="••••••••"
                                 value={password} onChange={e => setPassword(e.target.value)}
                             />

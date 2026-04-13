@@ -181,8 +181,8 @@ const Candidates = () => {
         <>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Candidates</h1>
-                    <p className="text-gray-500 text-sm">Manage candidate registrations and payments</p>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Candidates</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Manage candidate registrations and payments</p>
                 </div>
                 <button
                     onClick={() => {
@@ -198,24 +198,24 @@ const Candidates = () => {
             <Table headers={['Code', 'Name', 'Agency', 'Identity', 'Status', 'Actions']}>
                 {candidates.map((candidate) => (
                     <TableRow key={candidate.id}>
-                        <TableCell className="font-mono text-brand-600 font-semibold text-sm">
-                            {candidate.candidate_code || <span className="text-gray-400 italic">Pending</span>}
+                        <TableCell className="font-mono text-brand-600 dark:text-brand-400 font-semibold text-sm">
+                            {candidate.candidate_code || <span className="text-gray-400 dark:text-gray-500 italic">Pending</span>}
                         </TableCell>
                         <TableCell>
                             <div className="flex flex-col">
-                                <span className="font-bold text-gray-900">{candidate.name}</span>
-                                <span className="text-xs text-gray-500">{candidate.position_applied}</span>
+                                <span className="font-bold text-gray-900 dark:text-gray-100">{candidate.name}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">{candidate.position_applied}</span>
                             </div>
                         </TableCell>
                         <TableCell>
-                            <span className="text-sm font-medium text-gray-600">
-                                {candidate.Agency?.name || <span className="text-gray-400 italic">None</span>}
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                {candidate.Agency?.name || <span className="text-gray-400 dark:text-gray-500 italic">None</span>}
                             </span>
                         </TableCell>
                         <TableCell className="text-sm">
                             <div className="space-y-1">
-                                <div className="text-xs text-gray-500 flex items-center gap-1"><span className="uppercase font-bold text-gray-400">Nat:</span> {candidate.nationality}</div>
-                                <div className="text-xs text-gray-500 flex items-center gap-1"><span className="uppercase font-bold text-gray-400">Pass:</span> {candidate.passport_number || '-'}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"><span className="uppercase font-bold text-gray-400 dark:text-gray-500">Nat:</span> {candidate.nationality}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"><span className="uppercase font-bold text-gray-400 dark:text-gray-500">Pass:</span> {candidate.passport_number || '-'}</div>
                             </div>
                         </TableCell>
                         <TableCell><StatusBadge status={candidate.status} /></TableCell>
@@ -223,35 +223,35 @@ const Candidates = () => {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => navigate(`/candidates/${candidate.id}`)}
-                                    className="text-brand-600 hover:bg-brand-50 p-2 rounded-lg transition-colors"
+                                    className="text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 p-2 rounded-lg transition-colors"
                                     title="View Profile"
                                 >
                                     <User size={18} />
                                 </button>
                                 <button
                                     onClick={() => { setSelectedCandidate(candidate); setIsQRModalOpen(true); }}
-                                    className="text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors"
+                                    className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors"
                                     title="View QR Code"
                                 >
                                     <QrCode size={18} />
                                 </button>
                                 <button
                                     onClick={() => openPayModal(candidate)}
-                                    className="text-green-600 hover:bg-green-50 p-2 rounded-lg transition-colors"
+                                    className="text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 p-2 rounded-lg transition-colors"
                                     title="Record Payment"
                                 >
                                     <DollarSign size={18} />
                                 </button>
                                 <button
                                     onClick={() => openEditModal(candidate)}
-                                    className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors"
+                                    className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 p-2 rounded-lg transition-colors"
                                     title="Edit"
                                 >
                                     <Edit size={18} />
                                 </button>
                                 <button
                                     onClick={() => { setSelectedCandidate(candidate); setIsDeleteModalOpen(true); }}
-                                    className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                    className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition-colors"
                                     title="Delete"
                                 >
                                     <Trash2 size={18} />
@@ -273,26 +273,26 @@ const Candidates = () => {
                     <div className="flex-1 overflow-y-auto pr-2 space-y-6 custom-scrollbar p-1">
 
                         {/* Section 1: Personal Info */}
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Personal & Agency Information</h3>
+                        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                            <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Personal & Agency Information</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="label">Full Name <span className="text-red-500">*</span></label>
+                                    <label className="label dark:text-gray-300">Full Name <span className="text-red-500">*</span></label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-3 text-gray-400" size={18} />
-                                        <input type="text" required className="input-field pl-10" value={candidateForm.name} onChange={e => setCandidateForm({ ...candidateForm, name: e.target.value })} />
+                                        <User className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                        <input type="text" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={candidateForm.name} onChange={e => setCandidateForm({ ...candidateForm, name: e.target.value })} />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="label">Phone</label>
-                                        <input type="text" className="input-field" value={candidateForm.phone} onChange={e => setCandidateForm({ ...candidateForm, phone: e.target.value })} />
+                                        <label className="label dark:text-gray-300">Phone</label>
+                                        <input type="text" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={candidateForm.phone} onChange={e => setCandidateForm({ ...candidateForm, phone: e.target.value })} />
                                     </div>
                                     <div>
-                                        <label className="label">Agency Assignment</label>
+                                        <label className="label dark:text-gray-300">Agency Assignment</label>
                                         <div className="relative">
-                                            <Building2 className="absolute left-3 top-3 text-gray-400" size={18} />
-                                            <select className="input-field pl-10" value={candidateForm.agency_id} onChange={e => setCandidateForm({ ...candidateForm, agency_id: e.target.value })} required>
+                                            <Building2 className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                            <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={candidateForm.agency_id} onChange={e => setCandidateForm({ ...candidateForm, agency_id: e.target.value })} required>
                                                 <option value="">Select Agency</option>
                                                 {agencies.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                                             </select>
@@ -301,18 +301,18 @@ const Candidates = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="label">Gender</label>
-                                        <select className="input-field" value={candidateForm.gender} onChange={e => setCandidateForm({ ...candidateForm, gender: e.target.value })}>
+                                        <label className="label dark:text-gray-300">Gender</label>
+                                        <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={candidateForm.gender} onChange={e => setCandidateForm({ ...candidateForm, gender: e.target.value })}>
                                             <option value="MALE">Male</option>
                                             <option value="FEMALE">Female</option>
                                             <option value="OTHER">Other</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="label">Nationality</label>
+                                        <label className="label dark:text-gray-300">Nationality</label>
                                         <div className="relative">
-                                            <Globe className="absolute left-3 top-3 text-gray-400" size={18} />
-                                            <input type="text" className="input-field pl-10" value={candidateForm.nationality} onChange={e => setCandidateForm({ ...candidateForm, nationality: e.target.value })} />
+                                            <Globe className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                            <input type="text" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={candidateForm.nationality} onChange={e => setCandidateForm({ ...candidateForm, nationality: e.target.value })} />
                                         </div>
                                     </div>
                                 </div>
@@ -320,30 +320,30 @@ const Candidates = () => {
                         </div>
 
                         {/* Section 2: Identity & Passport */}
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Identity & Passport</h3>
+                        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                            <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Identity & Passport</h3>
                             <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="label">Position Applied For</label>
+                                        <label className="label dark:text-gray-300">Position Applied For</label>
                                         <div className="relative">
-                                            <Briefcase className="absolute left-3 top-3 text-gray-400" size={18} />
-                                            <input type="text" className="input-field pl-10" value={candidateForm.position_applied} onChange={e => setCandidateForm({ ...candidateForm, position_applied: e.target.value })} />
+                                            <Briefcase className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                            <input type="text" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={candidateForm.position_applied} onChange={e => setCandidateForm({ ...candidateForm, position_applied: e.target.value })} />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="label">National ID</label>
-                                        <input type="text" className="input-field" value={candidateForm.national_id} onChange={e => setCandidateForm({ ...candidateForm, national_id: e.target.value })} />
+                                        <label className="label dark:text-gray-300">National ID</label>
+                                        <input type="text" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={candidateForm.national_id} onChange={e => setCandidateForm({ ...candidateForm, national_id: e.target.value })} />
                                     </div>
                                 </div>
 
                                 <div className="border-t border-gray-200 pt-4 mt-2">
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="label">Passport Number</label>
+                                            <label className="label dark:text-gray-300">Passport Number</label>
                                             <div className="relative">
-                                                <FileText className="absolute left-3 top-3 text-gray-400" size={18} />
-                                                <input type="text" className="input-field pl-10" value={candidateForm.passport_number} onChange={e => setCandidateForm({ ...candidateForm, passport_number: e.target.value })} />
+                                                <FileText className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" size={18} />
+                                                <input type="text" className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 pl-10" value={candidateForm.passport_number} onChange={e => setCandidateForm({ ...candidateForm, passport_number: e.target.value })} />
                                             </div>
                                         </div>
 
@@ -352,12 +352,12 @@ const Candidates = () => {
                             </div>
                         </div>
 
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Additional Details</h3>
+                        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                            <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Additional Details</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="label">Marital Status</label>
-                                    <select className="input-field" value={candidateForm.marital_status} onChange={e => setCandidateForm({ ...candidateForm, marital_status: e.target.value })}>
+                                    <label className="label dark:text-gray-300">Marital Status</label>
+                                    <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={candidateForm.marital_status} onChange={e => setCandidateForm({ ...candidateForm, marital_status: e.target.value })}>
                                         <option value="SINGLE">Single</option>
                                         <option value="MARRIED">Married</option>
                                         <option value="DIVORCED">Divorced</option>
@@ -367,23 +367,23 @@ const Candidates = () => {
                         </div>
 
                         {/* Section 4: Expected Package Payment */}
-                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mt-6">
-                            <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm mt-6">
+                            <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
                                 <DollarSign className="text-brand-500" size={18} />
                                 Expected Package
                             </h3>
                             <div className="space-y-4">
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-semibold text-gray-700">Package Total Amount</label>
+                                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Package Total Amount</label>
                                     <div className="relative group">
-                                        <div className="absolute left-3 top-2.5 text-gray-400 group-focus-within:text-brand-500 transition-colors">
+                                        <div className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500 group-focus-within:text-brand-500 transition-colors">
                                             <span className="text-sm font-bold">FBU</span>
                                         </div>
                                         <input
                                             type="text"
                                             inputMode="numeric"
                                             disabled={isEditModalOpen && user?.role !== 'ADMIN'}
-                                            className={`w-full text-lg font-black rounded-xl border-gray-300 border focus:border-brand-500 focus:ring-brand-500 pl-12 pr-4 py-3 text-right text-brand-700 ${isEditModalOpen && user?.role !== 'ADMIN' ? 'bg-gray-100 cursor-not-allowed opacity-75' : 'bg-gray-50/50'}`}
+                                            className={`w-full text-lg font-black rounded-xl border-gray-300 dark:border-gray-600 border focus:border-brand-500 focus:ring-brand-500 pl-12 pr-4 py-3 text-right text-brand-700 dark:text-brand-400 ${isEditModalOpen && user?.role !== 'ADMIN' ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-75' : 'bg-gray-50/50 dark:bg-gray-700/30'}`}
                                             placeholder="0.00"
                                             value={candidateForm.package_amount ? Number(candidateForm.package_amount).toLocaleString() : ''}
                                             onChange={e => {
@@ -392,7 +392,7 @@ const Candidates = () => {
                                             }}
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-400 font-medium italic">
+                                    <p className="text-xs text-gray-400 dark:text-gray-500 font-medium italic">
                                         {isEditModalOpen && user?.role !== 'ADMIN' 
                                             ? "Only an administrator can modify the total package amount."
                                             : "This represents the total global expected payment for this candidate's registration."}
@@ -402,10 +402,10 @@ const Candidates = () => {
                         </div>
                     </div>
 
-                    <div className="pt-6 border-t border-gray-100 mt-6 pb-2">
+                    <div className="pt-6 border-t border-gray-100 dark:border-gray-700 mt-6 pb-2">
                         <button
                             type="submit"
-                            className="w-full py-4 text-white font-bold rounded-2xl bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-100 transition-all active:scale-95 flex items-center justify-center gap-2"
+                            className="w-full py-4 text-white font-bold rounded-2xl bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-100 dark:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                             {isEditModalOpen ? (
                                 <>
@@ -424,12 +424,12 @@ const Candidates = () => {
             {/* Payment Modal */}
             <Modal isOpen={isPayModalOpen} onClose={() => setIsPayModalOpen(false)} title={`Record Payment: ${selectedCandidate?.name}`}>
                 <form onSubmit={handlePayment} className="space-y-4">
-                    <div className="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm mb-4">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-3 rounded-lg text-sm mb-4">
                         Recording this payment will automatically generate a receipt and a journal entry (ENTRY).
                     </div>
                     <div>
-                        <label className="label">Payment Type</label>
-                        <select className="input-field" value={paymentData.payment_type_id} onChange={e => setPaymentData({ ...paymentData, payment_type_id: e.target.value })} required>
+                        <label className="label dark:text-gray-300">Payment Type</label>
+                        <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={paymentData.payment_type_id} onChange={e => setPaymentData({ ...paymentData, payment_type_id: e.target.value })} required>
                             <option value="">Select Type</option>
                             {candidatePaymentTypes.map(type => (
                                 <option key={type.id} value={type.id}>{type.name}</option>
@@ -437,16 +437,16 @@ const Candidates = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="label">Date</label>
-                        <input type="date" required className="input-field" value={paymentData.payment_date} onChange={e => setPaymentData({ ...paymentData, payment_date: e.target.value })} />
+                        <label className="label dark:text-gray-300">Date</label>
+                        <input type="date" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={paymentData.payment_date} onChange={e => setPaymentData({ ...paymentData, payment_date: e.target.value })} />
                     </div>
                     <div>
-                        <label className="label">Amount</label>
-                        <input type="number" step="0.01" required className="input-field" value={paymentData.amount} onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })} />
+                        <label className="label dark:text-gray-300">Amount</label>
+                        <input type="number" step="0.01" required className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 font-mono font-bold" value={paymentData.amount} onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })} />
                     </div>
                     <div>
-                        <label className="label">Deposit To Account</label>
-                        <select className="input-field" value={paymentData.account_id} onChange={e => setPaymentData({ ...paymentData, account_id: e.target.value })} required>
+                        <label className="label dark:text-gray-300">Deposit To Account</label>
+                        <select className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" value={paymentData.account_id} onChange={e => setPaymentData({ ...paymentData, account_id: e.target.value })} required>
                             <option value="">Select Account</option>
                             {accounts.map(acc => (
                                 <option key={acc.id} value={acc.id}>{acc.name} ({acc.type})</option>
@@ -466,7 +466,7 @@ const Candidates = () => {
                         value={`CAND:${selectedCandidate?.candidate_code || selectedCandidate?.id}`}
                         size={200}
                     />
-                    <p className="mt-4 text-center text-gray-500">
+                    <p className="mt-4 text-center text-gray-500 dark:text-gray-400">
                         Scan to view candidate details or verify identity.
                     </p>
                     <button
@@ -480,7 +480,7 @@ const Candidates = () => {
 
             {/* Delete Confirmation Modal */}
             <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Cancel Registration">
-                <p className="text-gray-600 mb-6 font-medium">Are you sure you want to cancel the registration for <strong>{selectedCandidate?.name}</strong>? <br /> This will update their status to <strong>CANCELLED</strong>.</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-6 font-medium">Are you sure you want to cancel the registration for <strong>{selectedCandidate?.name}</strong>? <br /> This will update their status to <strong>CANCELLED</strong>.</p>
                 <div className="flex gap-4">
                     <button onClick={() => setIsDeleteModalOpen(false)} className="btn-secondary w-full">Abort</button>
                     <button onClick={handleDeleteCandidate} className="btn-primary bg-rose-600 hover:bg-rose-700 w-full text-white font-bold">Confirm Cancellation</button>
