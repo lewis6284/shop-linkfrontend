@@ -1,7 +1,7 @@
 import api from './api';
 
-export const getSalarySummary = async (employee_id, month) => {
-    const response = await api.get(`/salary/summary/${employee_id}/${month}`);
+export const getSalarySummary = async (employeeId, month) => {
+    const response = await api.get(`/salary/summary/${employeeId}/${month}`);
     return response.data;
 };
 
