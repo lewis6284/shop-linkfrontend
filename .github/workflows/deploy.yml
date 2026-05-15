@@ -1,4 +1,4 @@
-name: Deploy Accounting Frontend via FTP
+name: Deploy Shoplink via FTP
 
 on:
   push:
