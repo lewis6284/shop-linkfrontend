@@ -2,20 +2,135 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --safe-area-top: env(safe-area-inset-top);
+    --safe-area-bottom: env(safe-area-inset-bottom);
+    --safe-area-left: env(safe-area-inset-left);
+    --safe-area-right: env(safe-area-inset-right);
+  }
+
+  body {
+    @apply select-none touch-pan-y overscroll-none bg-white dark:bg-gray-900;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 @layer components {
   .btn-primary {
-    @apply bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors font-medium shadow-sm hover:shadow-md;
+    @apply bg-brand-600 text-white px-4 py-3 rounded-xl hover:bg-brand-700 active:scale-95 transition-all font-bold shadow-sm active:shadow-none;
   }
 
   .btn-secondary {
-    @apply bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium;
+    @apply bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all font-bold;
   }
 
   .input-field {
-    @apply mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-brand-500 focus:ring-brand-500 px-4 py-2 border transition-colors;
+    @apply mt-1 block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-brand-500 focus:ring-brand-500 focus:bg-white dark:focus:bg-gray-800 px-4 py-3 border transition-all outline-none;
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+    @apply block text-sm font-bold text-gray-600 dark:text-gray-400 mb-1 ml-1;
   }
+
+  /* Safe Area Utilities */
+  .pt-safe { padding-top: var(--safe-area-top); }
+  .pb-safe { padding-bottom: var(--safe-area-bottom); }
+  .mt-safe { margin-top: var(--safe-area-top); }
+  .mb-safe { margin-bottom: var(--safe-area-bottom); }
+}
+
+/* Scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-200 dark:bg-gray-700 rounded-full;
+}
+
+@keyframes spotlight {
+  0% { transform: rotate(0deg) translate(100px) scale(1); }
+  50% { transform: rotate(180deg) translate(-100px) scale(1.2); }
+  100% { transform: rotate(360deg) translate(100px) scale(1); }
+}
+
+.animate-spotlight {
+  animation: spotlight 10s linear infinite;
+}
+
+.animate-spotlight-fast {
+  animation: spotlight 5s linear infinite;
+}
+
+@keyframes twinkling {
+  0% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.3; transform: scale(1); }
+}
+
+.animate-twinkle {
+  animation: twinkling 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(150%) skewX(-20deg); }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 4s infinite;
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animation-delay-6000 {
+  animation-delay: 6s;
+}
+
+@keyframes premium-float {
+  0% { transform: translateY(0px) scale(1) rotate(0deg); }
+  33% { transform: translateY(-10px) scale(1.02) rotate(1deg); }
+  66% { transform: translateY(-5px) scale(1.01) rotate(-1deg); }
+  100% { transform: translateY(0px) scale(1) rotate(0deg); }
+}
+
+.animate-float {
+  animation: premium-float 6s ease-in-out infinite;
 }

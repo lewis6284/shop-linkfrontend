@@ -1,171 +1,203 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
-import { GlobalProvider } from './context/GlobalContext';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-
-import Dashboard from './pages/Dashboard';
-import Candidates from './pages/Candidates';
-import CandidateDetails from './pages/CandidateDetails';
-import Employees from './pages/Employees';
-import EmployeeDetails from './pages/EmployeeDetails';
-import Accounts from './pages/Accounts';
-import Payments from './pages/Payments'; // now restricted to Candidate Payments
-import SalaryPayments from './pages/SalaryPayments';
-import Revenues from './pages/Revenues';
-import Expenses from './pages/Expenses';
-import Journal from './pages/Journal';
-import Receipts from './pages/Receipts';
-import ExpenseCategories from './pages/ExpenseCategories';
-import CandidatePaymentTypes from './pages/CandidatePaymentTypes';
-import RevenueTypes from './pages/RevenueTypes';
-import Suppliers from './pages/Suppliers';
-import Reports from './pages/Reports';
-import Agencies from './pages/Agencies';
-import Banks from './pages/Banks';
-import Settings from './pages/Settings';
-import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
-import { useEffect } from 'react';
+import Layout from './components/Layout';
 
-function App() {
-  useEffect(() => {
-    const saved = localStorage.getItem('theme');
-    const isDark = saved ? saved === 'dark' : true;
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Shops from './pages/Shops';
+import POS from './pages/POS';
+import Expenses from './pages/Expenses';
+import AuditLogs from './pages/AuditLogs';
+import Users from './pages/Users';
+import Products from './pages/Products';
+import Stock from './pages/Stock';
+import Sales from './pages/Sales';
+import Customers from './pages/Customers';
+import Suppliers from './pages/Suppliers';
+import Report from './pages/Report';
+import Unauthorized from './pages/Unauthorized';
 
-  return (
-    <AuthProvider>
-      <GlobalProvider>
-        <Router basename='/accounting-app'>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+const App = () => {
+    return (
+        <AuthProvider>
+            <Router>
+                <Toaster position="top-right" />
+                <Routes>
+                    {/* Public routes */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/unauthorized" element={<Unauthorized />} />
 
+                    {/* Shops Management — now inside Layout */}
+                    <Route
+                        path="/shops"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner']} skipShopGuard>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Shops />} />
+                    </Route>
 
-            {/* Protected Routes */}
+                    {/* POS — now inside Layout */}
+                    <Route
+                        path="/pos"
+                        element={
+                            <ProtectedRoute allowedRoles={['cashier', 'manager', 'owner']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<POS />} />
+                    </Route>
 
-            <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
+                    {/* Admin Dashboard (Owner) — nested inside Layout */}
+                    <Route
+                        path="/dashboard/admin"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Dashboard />} />
+                        <Route path="report" element={<Report />} />
+                    </Route>
 
-            <Route path="/candidates" element={
-              <ProtectedRoute>
-                <Candidates />
-              </ProtectedRoute>
-            } />
-            <Route path="/candidates/:id" element={
-              <ProtectedRoute>
-                <CandidateDetails />
-              </ProtectedRoute>
-            } />
-            <Route path="/employees" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
-                <Employees />
-              </ProtectedRoute>
-            } />
-            <Route path="/employees/:id" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
-                <EmployeeDetails />
-              </ProtectedRoute>
-            } />
-            <Route path="/payments" element={
-              <ProtectedRoute>
-                <Payments />
-              </ProtectedRoute>
-            } />
-            <Route path="/salary-payments" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
-                <SalaryPayments />
-              </ProtectedRoute>
-            } />
-            <Route path="/accounts" element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
-                <Accounts />
-              </ProtectedRoute>
-            } />
-            <Route path="/revenues" element={
-              <ProtectedRoute>
-                <Revenues />
-              </ProtectedRoute>
-            } />
-            <Route path="/expenses" element={
-              <ProtectedRoute>
-                <Expenses />
-              </ProtectedRoute>
-            } />
-            <Route path="/journal" element={
-              <ProtectedRoute>
-                <Journal />
-              </ProtectedRoute>
-            } />
-            <Route path="/receipts" element={
-              <ProtectedRoute>
-                <Receipts />
-              </ProtectedRoute>
-            } />
-            <Route path="/suppliers" element={
-              <ProtectedRoute>
-                <Suppliers />
-              </ProtectedRoute>
-            } />
-            <Route path="/reports" element={
-              <ProtectedRoute>
-                <Reports />
-              </ProtectedRoute>
-            } />
-            <Route path="/expense-categories" element={
-              <ProtectedRoute>
-                <ExpenseCategories />
-              </ProtectedRoute>
-            } />
-            <Route path="/candidate-payment-types" element={
-              <ProtectedRoute>
-                <CandidatePaymentTypes />
-              </ProtectedRoute>
-            } />
-            <Route path="/revenue-types" element={
-              <ProtectedRoute>
-                <RevenueTypes />
-              </ProtectedRoute>
-            } />
-            <Route path="/agencies" element={
-              <ProtectedRoute>
-                <Agencies />
-              </ProtectedRoute>
-            } />
-            <Route path="/banks" element={
-              <ProtectedRoute>
-                <Banks />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
+                    {/* Shop Dashboard (Manager) — nested inside Layout */}
+                    <Route
+                        path="/dashboard/shop"
+                        element={
+                            <ProtectedRoute allowedRoles={['manager']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Dashboard />} />
+                        <Route path="report" element={<Report />} />
+                    </Route>
 
-          </Routes>
-        </Router>
-        <Toaster position="top-right" />
-      </GlobalProvider>
-    </AuthProvider>
-  );
-}
+                    <Route
+                        path="/users"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Users />} />
+                    </Route>
+
+                    <Route
+                        path="/products"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner', 'manager', 'cashier']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Products />} />
+                    </Route>
+
+                    <Route
+                        path="/stock"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Stock />} />
+                    </Route>
+
+                    <Route
+                        path="/sales"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner', 'manager', 'cashier']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Sales />} />
+                    </Route>
+
+                    <Route
+                        path="/customers"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner', 'manager', 'cashier']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Customers />} />
+                    </Route>
+
+                    {/* Generic /dashboard — redirects to correct role route */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Dashboard />} />
+                    </Route>
+
+                    <Route
+                        path="/expenses"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Expenses />} />
+                    </Route>
+
+                    <Route
+                        path="/audit-logs"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<AuditLogs />} />
+                    </Route>
+
+                    <Route
+                        path="/reports"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Report />} />
+                    </Route>
+
+                    <Route
+                        path="/suppliers"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Suppliers />} />
+                    </Route>
+
+                    {/* Fallback */}
+                    <Route path="/" element={<Navigate to="/login" replace />} />
+                    <Route path="*" element={<Navigate to="/unauthorized" replace />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
+    );
+};
 
 export default App;

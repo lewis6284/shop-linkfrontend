@@ -2,15 +2,42 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
     Bell, Search, User, LogOut, Settings as SettingsIcon,
-    Menu, Plus, DollarSign, TrendingDown, Lock, Moon, Sun,
-    Loader2, X, ChevronDown
+    Menu, Moon, Sun,
+    Loader2, X, PanelLeftOpen
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
-import { globalSearch } from '../services/searchService';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
-const Navbar = ({ toggleSidebar }) => {
-    const { user, logout } = useAuth();
+const getPageTitle = (pathname) => {
+    if (pathname === '/dashboard/admin') return '';
+    if (pathname === '/dashboard/shop') return '';
+    if (pathname === '/dashboard') return '';
+    if (pathname.includes('/pos')) return '';
+    if (pathname.includes('/products')) return 'Products';
+    if (pathname.includes('/sales')) return 'Sales Management';
+    if (pathname.includes('/stock')) return 'Stock Management';
+    if (pathname.includes('/transfers')) return 'Transfers';
+    if (pathname.includes('/expenses')) return 'Shop Expenses';
+    if (pathname.includes('/reports')) return 'Financial Reports';
+    if (pathname.includes('/shops')) return 'Manage Shops';
+    if (pathname.includes('/audit-logs')) return 'Security Logs';
+    if (pathname.includes('/users')) return 'Staff Management';
+    if (pathname.includes('/profile')) return 'My Profile';
+    if (pathname.includes('/settings')) return 'Settings';
+    return 'ShopLink';
+};
+
+// Stub: replace with real api call in LOT 2
+const globalSearch = async (query) => [];
+
+const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
+    const { user, logout, shop } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const pageTitle = getPageTitle(location.pathname);
+
+    // Fallback logo: first letter of shop name or 'S'
+    const shopInitial = shop?.name?.charAt(0).toUpperCase() || 'S';
+
     const [darkMode, setDarkMode] = useState(() => {
         const saved = localStorage.getItem('theme');
         return saved ? saved === 'dark' : true; // Default to true if not set
@@ -22,7 +49,7 @@ const Navbar = ({ toggleSidebar }) => {
     const [isSearching, setIsSearching] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-    
+
     const searchRef = useRef(null);
 
     useEffect(() => {
@@ -75,24 +102,61 @@ const Navbar = ({ toggleSidebar }) => {
     };
 
     return (
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 h-16 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 transition-all duration-200">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 h-16 shrink-0 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 transition-all duration-200">
             <div className={`flex items-center gap-4 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
+                {/* Mobile Menu Toggle */}
                 <button
                     onClick={toggleSidebar}
-                    className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg lg:hidden text-gray-500 dark:text-gray-400 transition-colors"
+                    className="md:hidden p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 transition-colors"
                 >
                     <Menu size={20} />
                 </button>
 
-                <Link to="/dashboard" className="hidden xs:flex items-center gap-2 group">
-                    <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-black text-lg">A</div>
-                </Link>
+                {/* Desktop Floating Toggle (only visible when sidebar is closed) */}
+                {!isSidebarOpen && (
+                    <div className="hidden md:flex items-center gap-3">
+                        <button
+                            onClick={toggleSidebar}
+                            className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 transition-colors"
+                            title="Open Sidebar"
+                        >
+                            <PanelLeftOpen size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
+                                <img 
+                                    src={shop?.logo_url || '/logo.png'} 
+                                    alt={shop?.name || 'ShopLink'} 
+                                    className="w-full h-full object-contain p-1" 
+                                />
+                            </div>
+                            <span className="font-black text-xs text-gray-900 dark:text-white truncate max-w-[100px]">{shop?.name}</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
+            {/* Mobile Shop Branding / Page Title Center */}
+            {!isSearchExpanded && (
+                <div className="md:hidden absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2">
+                    <div className="w-7 h-7 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
+                        <img 
+                            src={shop?.logo_url || '/logo.png'} 
+                            alt={shop?.name || 'ShopLink'} 
+                            className="w-full h-full object-contain p-0.5" 
+                        />
+                    </div>
+                    <span className="font-black text-gray-900 dark:text-white tracking-tight truncate max-w-[120px]">
+                        {shop?.name || pageTitle}
+                    </span>
+                </div>
+            )}
+
             {/* Global Search */}
-            <div 
+            <div
                 ref={searchRef}
-                className={`flex-1 transition-all duration-300 ease-in-out relative ${isSearchExpanded ? 'mx-0 sm:mx-8 max-w-full' : 'max-w-xl mx-2 sm:mx-8'}`}
+                className={`flex-1 transition-all duration-300 ease-in-out relative ${isSearchExpanded ? 'mx-0 sm:mx-8 max-w-full' : 'max-w-xl mx-2 sm:mx-8'} z-10`}
             >
                 <div className={`relative group w-full ${!isSearchExpanded && 'hidden md:block'}`}>
                     {isSearching ? (
@@ -116,7 +180,7 @@ const Navbar = ({ toggleSidebar }) => {
 
                 {/* Mobile Search Trigger */}
                 {!isSearchExpanded && (
-                    <button 
+                    <button
                         onClick={() => setIsSearchExpanded(true)}
                         className="md:hidden p-2 text-gray-400 hover:text-brand-500 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
                     >
@@ -128,8 +192,8 @@ const Navbar = ({ toggleSidebar }) => {
                 {isSearchExpanded && (
                     <div className="md:hidden flex items-center gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
                         <div className="relative flex-1">
-                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-500" size={18} />
-                             <input
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-500" size={18} />
+                            <input
                                 autoFocus
                                 type="text"
                                 value={searchQuery}
@@ -138,7 +202,7 @@ const Navbar = ({ toggleSidebar }) => {
                                 className="w-full bg-gray-50 dark:bg-gray-900 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-0 outline-none text-gray-700 dark:text-gray-200"
                             />
                         </div>
-                        <button 
+                        <button
                             onClick={() => { setIsSearchExpanded(false); setSearchQuery(''); }}
                             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                         >
@@ -178,7 +242,7 @@ const Navbar = ({ toggleSidebar }) => {
 
             {/* Right Actions */}
             <div className={`flex items-center gap-1 sm:gap-2 ${isSearchExpanded ? 'hidden sm:flex' : 'flex'}`}>
-                
+
                 {/* Dark Mode Toggle - Direct Icon */}
                 <button
                     onClick={() => setDarkMode(!darkMode)}
@@ -219,7 +283,7 @@ const Navbar = ({ toggleSidebar }) => {
                     onClick={() => navigate('/profile')}
                 >
                     <div className="text-right hidden sm:block">
-                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-brand-600 transition-colors">{user?.name}</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-brand-600 transition-colors">{user?.full_name}</p>
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{user?.role}</p>
                     </div>
                     <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-100 dark:shadow-none transition-transform group-hover:scale-105">

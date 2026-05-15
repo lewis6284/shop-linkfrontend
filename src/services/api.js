@@ -1,45 +1,47 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/accounting-app/api',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api', // Adjust base URL as needed
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Add a request interceptor to inject the token and log data
+// Request interceptor to add token and active shop id
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
+        const activeShopId = localStorage.getItem('activeShopId');
+
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
 
-        // Debugging: Log all outgoing requests
-        console.log(`🚀 [API Request] ${config.method.toUpperCase()} ${config.url}`, config.data || 'No data');
+        if (activeShopId) {
+            config.headers['X-Shop-Id'] = activeShopId;
+        }
 
         return config;
     },
     (error) => {
-        console.error('❌ [API Request Error]', error);
         return Promise.reject(error);
     }
 );
 
-// Add a response interceptor to handle errors globally
+// Response interceptor to handle 401 Unauthorized globally
 api.interceptors.response.use(
     (response) => {
         return response;
     },
     (error) => {
         if (error.response && error.response.status === 401) {
-            console.warn('❌ [API Response] 401 Unauthorized - Clearing session and redirecting...');
+            // Token expired or invalid
             localStorage.removeItem('token');
-            localStorage.removeItem('user');
-
-            // Force redirect to login page if we're not already there
-            if (window.location.pathname !== '/accounting-app/login') {
-                window.location.href = '/accounting-app/login';
+            localStorage.removeItem('activeShopId');
+            
+            // Redirect to login only if we are not already on it
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
             }
         }
         return Promise.reject(error);

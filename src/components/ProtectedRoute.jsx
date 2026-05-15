@@ -4,8 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
-    const { user, loading } = useAuth();
+/**
+ * ProtectedRoute — enforces:
+ *  1. Authentication (token + user present)
+ *  2. Role-Based Access Control (allowedRoles)
+ *  3. Shop-First Rule: Owner must have activeShopId before accessing dashboard
+ *     (bypass with skipShopGuard={true} for /shops page itself)
+ */
+const ProtectedRoute = ({ children, allowedRoles, skipShopGuard = false }) => {
+    const { user, loading, activeShopId } = useAuth();
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -16,40 +23,28 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         }
     }, [location.pathname]);
 
+    // 1. Wait for auth to resolve
     if (loading) {
         return (
-            <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
+            <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
             </div>
         );
     }
 
+    // 2. Must be authenticated
     if (!user) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
+    // 3. Role check
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-        return <Navigate to="/dashboard" replace />;
+        return <Navigate to="/unauthorized" replace />;
     }
 
-    return (
-        <div className="flex h-screen bg-[#f8fafc] dark:bg-gray-900 transition-colors duration-300 overflow-hidden font-sans text-gray-900 dark:text-gray-100">
-            {/* Sidebar Navigation */}
-            <Sidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-                {/* Top Header */}
-                <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-
-                {/* Main Content Area */}
-                <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar scroll-smooth">
-                    <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
-                        {children}
-                    </div>
-                </main>
-            </div>
-        </div>
-    );
+    // 4. (Removed) Owners can view the Global Dashboard without selecting a specific shop.
+    // 5. Render — children may be a standalone page (POS, Shops) or a Layout with Outlet
+    return <>{children}</>;
 };
 
 export default ProtectedRoute;
