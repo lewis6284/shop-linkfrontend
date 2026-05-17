@@ -23,7 +23,7 @@ import Unauthorized from './pages/Unauthorized';
 const App = () => {
     return (
         <AuthProvider>
-            <Router>
+            <Router basename='shoplink'>
                 <Toaster position="top-right" />
                 <Routes>
                     {/* Public routes */}
