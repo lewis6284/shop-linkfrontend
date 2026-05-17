@@ -37,7 +37,9 @@ api.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             // Token expired or invalid
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             localStorage.removeItem('activeShopId');
+            localStorage.removeItem('activeShopData');
             
             // Redirect to login only if we are not already on it
             if (window.location.pathname !== '/login') {

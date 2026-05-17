@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -7,11 +7,23 @@ import BackgroundWatermark from '../components/BackgroundWatermark';
 import api from '../services/api';
 
 const Login = () => {
-    const { login, shop } = useAuth();
+    const { login, user, isAuthenticated, shop } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            if (user.role === 'owner') {
+                navigate('/dashboard/admin', { replace: true });
+            } else if (user.role === 'manager') {
+                navigate('/dashboard/shop', { replace: true });
+            } else {
+                navigate('/dashboard', { replace: true });
+            }
+        }
+    }, [isAuthenticated, user, navigate]);
 
     // Fallback logo: first letter of shop name or 'S'
     const shopInitial = shop?.name?.charAt(0).toUpperCase() || 'S';

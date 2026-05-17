@@ -4,7 +4,10 @@ import api from '../services/api';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser) : null;
+    });
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [activeShopId, setActiveShopId] = useState(localStorage.getItem('activeShopId'));
     const [shop, setShop] = useState(() => {
@@ -43,10 +46,14 @@ export const AuthProvider = ({ children }) => {
                 }
 
                 const response = await api.get('/auth/me');
-                setUser(response.data.data);
+                const userData = response.data.data;
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
             } catch (error) {
                 console.error("Token verification failed:", error);
-                logout();
+                if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+                    logout();
+                }
             } finally {
                 setLoading(false);
             }
@@ -59,6 +66,7 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setToken(jwtToken);
         localStorage.setItem('token', jwtToken);
+        localStorage.setItem('user', JSON.stringify(userData));
         api.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
 
         if (userData.ShopId) {
@@ -72,6 +80,7 @@ export const AuthProvider = ({ children }) => {
         setActiveShopId(null);
         setShop(null);
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         localStorage.removeItem('activeShopId');
         localStorage.removeItem('activeShopData');
         delete api.defaults.headers.common['Authorization'];
