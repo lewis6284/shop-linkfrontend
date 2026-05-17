@@ -35,20 +35,22 @@ const Users = () => {
     });
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (currentUser) {
+            fetchData();
+        }
+    }, [currentUser, activeShopId]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
             const [usersData, shopsData] = await Promise.all([
                 userService.getUsers(),
-                currentUser?.role === 'owner' ? userService.getShops() : Promise.resolve([])
+                (currentUser?.role === 'owner' || currentUser?.role === 'manager') ? userService.getShops() : Promise.resolve([])
             ]);
             
             // Defensive data handling
-            const usersList = Array.isArray(usersData) ? usersData : (usersData?.users || []);
-            const shopsList = Array.isArray(shopsData) ? shopsData : (shopsData?.shops || []);
+            const usersList = Array.isArray(usersData) ? usersData : (usersData?.data || usersData?.users || []);
+            const shopsList = Array.isArray(shopsData) ? shopsData : (shopsData?.data || shopsData?.shops || []);
             
             setUsers(usersList);
             setShops(shopsList);
