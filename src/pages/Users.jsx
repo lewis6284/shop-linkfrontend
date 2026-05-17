@@ -4,7 +4,7 @@ import userService from '../services/userService';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
-import { UserPlus, Search, Edit2, Trash2, Shield, Filter, Mail, Phone, Lock, User as UserIcon, Store } from 'lucide-react';
+import { UserPlus, Search, Edit2, Trash2, Shield, Filter, Mail, Phone, Lock, User as UserIcon, Store, UserCheck, UserMinus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Users = () => {
@@ -118,14 +118,15 @@ const Users = () => {
         }
     };
 
-    const handleDisable = async (id) => {
-        if (window.confirm("Are you sure you want to disable this user?")) {
+    const handleToggleStatus = async (userToToggle) => {
+        const action = userToToggle.is_active ? 'deactivate' : 'activate';
+        if (window.confirm(`Are you sure you want to ${action} ${userToToggle.full_name}?`)) {
             try {
-                await userService.disableUser(id);
-                toast.success("User disabled successfully");
+                await userService.updateUser(userToToggle.id, { is_active: !userToToggle.is_active });
+                toast.success(`User ${action}d successfully`);
                 fetchData();
             } catch (error) {
-                toast.error("Failed to disable user");
+                toast.error(`Failed to ${action} user`);
             }
         }
     };
@@ -252,7 +253,33 @@ const Users = () => {
                             </div>
                         </TableCell>
                         <TableCell>
-                            <StatusBadge status={u.is_active ? 'ACTIVE' : 'INACTIVE'} />
+                            {u.id !== currentUser.id && canEdit(u) ? (
+                                <div className="flex items-center gap-3">
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={u.is_active} 
+                                            onChange={() => handleToggleStatus(u)} 
+                                            className="sr-only peer" 
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 transition-colors"></div>
+                                    </label>
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        {u.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3 opacity-60">
+                                    <div className="relative inline-flex items-center">
+                                        <div className={`w-11 h-6 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 ${
+                                            u.is_active ? 'bg-emerald-500 after:translate-x-full after:border-white' : 'bg-gray-200 dark:bg-gray-700'
+                                        }`}></div>
+                                    </div>
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        {u.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                            )}
                         </TableCell>
                         <TableCell className="text-xs font-medium">
                             {u.last_login ? new Date(u.last_login).toLocaleString() : 'Never'}
@@ -264,15 +291,21 @@ const Users = () => {
                                         <button 
                                             onClick={() => handleOpenModal(u)}
                                             className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                            title="Edit User"
                                         >
                                             <Edit2 size={16} />
                                         </button>
-                                        {u.is_active && u.id !== currentUser.id && (
+                                        {u.id !== currentUser.id && (
                                             <button 
-                                                onClick={() => handleDisable(u.id)}
-                                                className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                                                onClick={() => handleToggleStatus(u)}
+                                                className={`p-2 rounded-lg transition-colors ${
+                                                    u.is_active 
+                                                        ? 'text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20' 
+                                                        : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                                                }`}
+                                                title={u.is_active ? 'Deactivate User' : 'Activate User'}
                                             >
-                                                <Trash2 size={16} />
+                                                {u.is_active ? <UserMinus size={16} /> : <UserCheck size={16} />}
                                             </button>
                                         )}
                                     </>

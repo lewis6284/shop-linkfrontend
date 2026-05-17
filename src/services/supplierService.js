@@ -14,7 +14,7 @@ export const supplierService = {
         return response.data.data || response.data;
     },
     update: async (id, data) => {
-        const response = await api.put(`/suppliers/${id}`, data);
+        const response = await api.patch(`/suppliers/${id}`, data);
         return response.data.data || response.data;
     },
     delete: async (id) => {

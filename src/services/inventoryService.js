@@ -14,7 +14,7 @@ export const productService = {
         return response.data.data || response.data;
     },
     update: async (id, data) => {
-        const response = await api.put(`/products/${id}`, data);
+        const response = await api.patch(`/products/${id}`, data);
         return response.data.data || response.data;
     },
     delete: async (id) => {
@@ -33,7 +33,7 @@ export const categoryService = {
         return response.data.data || response.data;
     },
     update: async (id, data) => {
-        const response = await api.put(`/categories/${id}`, data);
+        const response = await api.patch(`/categories/${id}`, data);
         return response.data.data || response.data;
     },
     delete: async (id) => {
@@ -52,7 +52,7 @@ export const brandService = {
         return response.data.data || response.data;
     },
     update: async (id, data) => {
-        const response = await api.put(`/brands/${id}`, data);
+        const response = await api.patch(`/brands/${id}`, data);
         return response.data.data || response.data;
     },
     delete: async (id) => {

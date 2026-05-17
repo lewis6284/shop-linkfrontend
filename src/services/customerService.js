@@ -10,7 +10,7 @@ export const customerService = {
         return response.data.data || response.data;
     },
     update: async (id, data) => {
-        const response = await api.put(`/customers/${id}`, data);
+        const response = await api.patch(`/customers/${id}`, data);
         return response.data.data || response.data;
     },
     delete: async (id) => {

@@ -66,7 +66,7 @@ const Shops = () => {
     const handleToggleStatus = async (shop) => {
         const newStatus = shop.status === 'active' ? 'inactive' : 'active';
         try {
-            await api.put(`/shops/${shop.id}`, { status: newStatus });
+            await api.patch(`/shops/${shop.id}`, { status: newStatus });
             toast.success(`Shop ${newStatus === 'active' ? 'activated' : 'deactivated'}`);
             fetchShops();
         } catch (error) {
@@ -108,7 +108,7 @@ const Shops = () => {
 
             if (editingShop) {
                 // Update
-                await api.put(`/shops/${editingShop.id}`, {
+                await api.patch(`/shops/${editingShop.id}`, {
                     ...formData,
                     logo_url: finalLogoUrl || '/logo.png'
                 });

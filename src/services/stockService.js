@@ -22,7 +22,7 @@ export const stockService = {
         return response.data;
     },
     approveTransfer: async (id) => {
-        const response = await api.put(`/stock/transfers/${id}/approve`);
+        const response = await api.patch(`/stock/transfers/${id}/approve`);
         return response.data;
     }
 };

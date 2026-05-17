@@ -12,12 +12,12 @@ const userService = {
     },
     
     updateUser: async (id, userData) => {
-        const response = await api.put(`/users/${id}`, userData);
+        const response = await api.patch(`/users/${id}`, userData);
         return response.data;
     },
     
     disableUser: async (id) => {
-        const response = await api.put(`/users/${id}`, { is_active: false });
+        const response = await api.patch(`/users/${id}`, { is_active: false });
         return response.data;
     },
     
