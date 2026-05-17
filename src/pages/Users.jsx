@@ -4,6 +4,7 @@ import userService from '../services/userService';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
+import ConfirmModal from '../components/ConfirmModal';
 import { UserPlus, Search, Edit2, Trash2, Shield, Filter, Mail, Phone, Lock, User as UserIcon, Store, UserCheck, UserMinus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -20,6 +21,21 @@ const Users = () => {
     const [roleFilter, setRoleFilter] = useState('');
     const [shopFilter, setShopFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+
+    // Confirmation Modal state
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+        type: 'info'
+    });
+
+    const closeConfirmModal = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+    };
 
     // Form state
     const [formData, setFormData] = useState({
@@ -118,17 +134,27 @@ const Users = () => {
         }
     };
 
-    const handleToggleStatus = async (userToToggle) => {
+    const handleToggleStatus = (userToToggle) => {
         const action = userToToggle.is_active ? 'deactivate' : 'activate';
-        if (window.confirm(`Are you sure you want to ${action} ${userToToggle.full_name}?`)) {
-            try {
-                await userService.updateUser(userToToggle.id, { is_active: !userToToggle.is_active });
-                toast.success(`User ${action}d successfully`);
-                fetchData();
-            } catch (error) {
-                toast.error(`Failed to ${action} user`);
+        setConfirmConfig({
+            isOpen: true,
+            title: `${userToToggle.is_active ? 'Deactivate' : 'Activate'} Staff`,
+            message: `Are you sure you want to ${action} ${userToToggle.full_name}? This will update their active status in the shop database.`,
+            confirmText: userToToggle.is_active ? 'Deactivate' : 'Activate',
+            cancelText: 'Cancel',
+            type: userToToggle.is_active ? 'danger' : 'success',
+            onConfirm: async () => {
+                try {
+                    await userService.updateUser(userToToggle.id, { is_active: !userToToggle.is_active });
+                    toast.success(`User ${action}d successfully`);
+                    fetchData();
+                } catch (error) {
+                    toast.error(`Failed to ${action} user`);
+                } finally {
+                    closeConfirmModal();
+                }
             }
-        }
+        });
     };
 
     const filteredUsers = users.filter(u => {
@@ -255,15 +281,20 @@ const Users = () => {
                         <TableCell>
                             {u.id !== currentUser.id && canEdit(u) ? (
                                 <div className="flex items-center gap-3">
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={u.is_active} 
-                                            onChange={() => handleToggleStatus(u)} 
-                                            className="sr-only peer" 
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 transition-colors"></div>
-                                    </label>
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleToggleStatus(u)} 
+                                        title={`Click to ${u.is_active ? 'deactivate' : 'activate'} this user`}
+                                        className="relative inline-flex items-center cursor-pointer focus:outline-none"
+                                    >
+                                        <div className={`w-11 h-6 rounded-full transition-colors duration-200 relative ${
+                                            u.is_active ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'
+                                        }`}>
+                                            <div className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-transform duration-200 shadow-md ${
+                                                u.is_active ? 'translate-x-5' : 'translate-x-0'
+                                            }`}></div>
+                                        </div>
+                                    </button>
                                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                         {u.is_active ? 'Active' : 'Inactive'}
                                     </span>
@@ -271,9 +302,13 @@ const Users = () => {
                             ) : (
                                 <div className="flex items-center gap-3 opacity-60">
                                     <div className="relative inline-flex items-center">
-                                        <div className={`w-11 h-6 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 ${
-                                            u.is_active ? 'bg-emerald-500 after:translate-x-full after:border-white' : 'bg-gray-200 dark:bg-gray-700'
-                                        }`}></div>
+                                        <div className={`w-11 h-6 rounded-full transition-colors duration-200 relative ${
+                                            u.is_active ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'
+                                        }`}>
+                                            <div className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-transform duration-200 shadow-md ${
+                                                u.is_active ? 'translate-x-5' : 'translate-x-0'
+                                            }`}></div>
+                                        </div>
                                     </div>
                                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                         {u.is_active ? 'Active' : 'Inactive'}
@@ -459,6 +494,17 @@ const Users = () => {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmModal
+                isOpen={confirmConfig.isOpen}
+                onClose={closeConfirmModal}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                confirmText={confirmConfig.confirmText}
+                cancelText={confirmConfig.cancelText}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };
