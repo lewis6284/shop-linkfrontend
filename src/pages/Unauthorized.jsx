@@ -17,12 +17,28 @@ const Unauthorized = () => {
                 <p className="text-gray-500 mb-8">
                     You don't have permission to access this page. If you believe this is a mistake, contact your administrator.
                 </p>
-                <button
-                    onClick={() => navigate(-1)}
-                    className="w-full flex justify-center items-center gap-2 py-3 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-colors"
-                >
-                    <ArrowLeft size={20} /> Go Back
-                </button>
+                <div className="flex flex-col gap-3">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-full flex justify-center items-center gap-2 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                    >
+                        <ArrowLeft size={20} /> Go Back
+                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="flex-1 flex justify-center items-center gap-2 py-3 bg-brand-50 text-brand-700 rounded-xl font-medium hover:bg-brand-100 transition-colors"
+                        >
+                            Go to Login
+                        </button>
+                        <button
+                            onClick={() => navigate('/dashboard')}
+                            className="flex-1 flex justify-center items-center gap-2 py-3 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-colors"
+                        >
+                            Dashboard
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
