@@ -13,6 +13,10 @@ export const saleService = {
         const response = await api.post('/sales', data);
         return response.data.data || response.data;
     },
+    cancel: async (id, reason = 'Cashier Cancelled') => {
+        const response = await api.post(`/sales/${id}/cancel`, { reason });
+        return response.data.data || response.data;
+    },
     getInvoices: async (params) => {
         const response = await api.get('/sales/invoices', { params });
         return response.data.data || response.data;

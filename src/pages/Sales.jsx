@@ -3,7 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import { saleService } from '../services/saleService';
 import Table, { TableRow, TableCell } from '../components/Table';
 import StatusBadge from '../components/StatusBadge';
-import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, User as UserIcon } from 'lucide-react';
+import Modal from '../components/Modal';
+import ConfirmModal from '../components/ConfirmModal';
+import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, Trash2, User as UserIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Sales = () => {
@@ -13,6 +15,13 @@ const Sales = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSale, setSelectedSale] = useState(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+    // Custom built confirmation modal state (no native JS alert/confirm!)
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        saleId: null,
+        invoiceNumber: ''
+    });
 
     useEffect(() => {
         fetchSales();
@@ -28,6 +37,27 @@ const Sales = () => {
             setSales([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCancelClick = (sale) => {
+        setConfirmModal({
+            isOpen: true,
+            saleId: sale.id,
+            invoiceNumber: sale.invoice_number || `SAL-${sale.id.slice(0, 8)}`
+        });
+    };
+
+    const handleConfirmCancel = async () => {
+        const loadingMsg = toast.loading("Cancelling transaction...");
+        try {
+            await saleService.cancel(confirmModal.saleId, "Customer Return / Cancelled");
+            toast.success("Transaction successfully cancelled!", { id: loadingMsg });
+            setConfirmModal({ isOpen: false, saleId: null, invoiceNumber: '' });
+            fetchSales(); // Refresh the list
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to cancel sale.", { id: loadingMsg });
         }
     };
 
@@ -59,13 +89,13 @@ const Sales = () => {
                     <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:scale-110 transition-transform"><DollarSign size={80} /></div>
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Total Revenue</p>
                     <p className="text-3xl font-black text-gray-900 dark:text-white">
-                        {sales.reduce((sum, s) => sum + Number(s.totalAmount || s.total_amount || 0), 0).toLocaleString()} <span className="text-xs font-bold text-gray-400">FBU</span>
+                        {sales.reduce((sum, s) => sum + (s.status !== 'CANCELLED' ? Number(s.totalAmount || s.total_amount || 0) : 0), 0).toLocaleString()} <span className="text-xs font-bold text-gray-400">FBU</span>
                     </p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Total Tax (VAT)</p>
                     <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
-                        {sales.reduce((sum, s) => sum + Number(s.taxAmount || s.tax_amount || 0), 0).toLocaleString()} <span className="text-xs font-bold opacity-50">FBU</span>
+                        {sales.reduce((sum, s) => sum + (s.status !== 'CANCELLED' ? Number(s.taxAmount || s.tax_amount || 0) : 0), 0).toLocaleString()} <span className="text-xs font-bold opacity-50">FBU</span>
                     </p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
@@ -97,7 +127,7 @@ const Sales = () => {
                         <TableRow key={s.id}>
                             <TableCell>
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-xl">
+                                    <div className="p-2 bg-brand-5: dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-xl">
                                         <FileText size={20} />
                                     </div>
                                     <div>
@@ -126,7 +156,7 @@ const Sales = () => {
                             </TableCell>
                             <TableCell>
                                 <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block ${
-                                    s.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                                    s.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-55 text-rose-600 dark:bg-rose-950/20'
                                 }`}>
                                     {s.status || 'FINALIZED'}
                                 </div>
@@ -136,10 +166,20 @@ const Sales = () => {
                                     <button 
                                         onClick={() => openDetails(s)}
                                         className="p-3 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm"
+                                        title="View Details"
                                     >
                                         <Eye size={18} />
                                     </button>
-                                    <button className="p-3 bg-gray-50 dark:bg-gray-700 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm">
+                                    {s.status !== 'CANCELLED' && (
+                                        <button 
+                                            onClick={() => handleCancelClick(s)}
+                                            className="p-3 bg-gray-50 dark:bg-gray-700 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm"
+                                            title="Cancel Sale"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    )}
+                                    <button className="p-3 bg-gray-50 dark:bg-gray-700 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm" title="Download Invoice">
                                         <Download size={18} />
                                     </button>
                                 </div>
@@ -174,7 +214,7 @@ const Sales = () => {
                                             <p className="text-[10px] font-bold text-gray-400 uppercase">{item.quantity} x {Number(item.unitPrice).toLocaleString()}</p>
                                         </div>
                                         <div className="text-right font-black text-gray-900 dark:text-white">
-                                            {Number(item.total).toLocaleString()}
+                                            {Number(item.total || (item.quantity * item.unitPrice)).toLocaleString()}
                                         </div>
                                     </div>
                                 ))}
@@ -199,6 +239,16 @@ const Sales = () => {
                     </div>
                 )}
             </Modal>
+
+            {/* Custom Confirm Modal for Sale Cancellation */}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ isOpen: false, saleId: null, invoiceNumber: '' })}
+                onConfirm={handleConfirmCancel}
+                title="Cancel Sale Ledger Invoice"
+                message={`Are you sure you want to cancel the transaction ${confirmModal.invoiceNumber}? This will automatically restore shop-specific stock levels for all products in this transaction.`}
+                confirmText="Cancel Sale"
+            />
         </div>
     );
 };
