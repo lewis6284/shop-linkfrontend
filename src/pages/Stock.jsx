@@ -50,6 +50,7 @@ const Stock = () => {
     });
 
     const [filterShopId, setFilterShopId] = useState(activeShopId || 'ALL');
+    const [activeTab, setActiveTab] = useState('inventory');
 
     useEffect(() => {
         fetchAuxData();
@@ -111,10 +112,10 @@ const Stock = () => {
     const handleApprove = async (id) => {
         try {
             await stockService.approveTransfer(id);
-            toast.success("Transfer received and stock updated");
+            toast.success("Transfer completed — stock moved to destination warehouse!");
             fetchData();
         } catch (error) {
-            toast.error("Failed to process transfer");
+            toast.error(error.response?.data?.message || "Failed to complete transfer");
         }
     };
 
@@ -195,7 +196,7 @@ const Stock = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                <button onClick={() => setActiveTab('transfers')} className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm hover:border-brand-200 hover:shadow-md transition-all text-left w-full">
                     <div className="flex items-center gap-4">
                         <div className="p-4 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl"><ArrowLeftRight size={24} /></div>
                         <div>
@@ -203,33 +204,54 @@ const Stock = () => {
                             <p className="text-2xl font-black text-gray-900 dark:text-white">
                                 {transfers.filter(t => t.status === 'PENDING').length}
                             </p>
+                            <p className="text-[10px] text-brand-500 font-bold mt-1">Click to view →</p>
                         </div>
                     </div>
-                </div>
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Stock Table */}
-                <div className="lg:col-span-2">
-                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
-                        <div className="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
-                            <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Live Inventory Status</h3>
-                            <div className="flex items-center gap-3">
-                                {user?.role === 'owner' && (
-                                    <select
-                                        value={filterShopId}
-                                        onChange={(e) => setFilterShopId(e.target.value)}
-                                        className="text-xs font-bold bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-brand-500/20 text-gray-700 dark:text-gray-200"
-                                    >
-                                        <option value="ALL">All Warehouses</option>
-                                        {shops.map(shop => (
-                                            <option key={shop.id} value={shop.id}>{shop.name}</option>
-                                        ))}
-                                    </select>
-                                )}
-                                <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
-                            </div>
-                        </div>
+            {/* Tab Navigation */}
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl w-fit">
+                <button
+                    onClick={() => setActiveTab('inventory')}
+                    className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'inventory' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                >
+                    <Package size={14} /> Inventory
+                </button>
+                <button
+                    onClick={() => setActiveTab('transfers')}
+                    className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'transfers' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                >
+                    <ArrowLeftRight size={14} /> Transfers
+                    {transfers.filter(t => t.status === 'PENDING').length > 0 && (
+                        <span className="bg-amber-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
+                            {transfers.filter(t => t.status === 'PENDING').length}
+                        </span>
+                    )}
+                </button>
+            </div>
+
+            {/* Inventory Tab */}
+            {activeTab === 'inventory' && (
+            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+                <div className="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+                    <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Live Inventory</h3>
+                    <div className="flex items-center gap-3">
+                        {user?.role === 'owner' && (
+                            <select
+                                value={filterShopId}
+                                onChange={(e) => setFilterShopId(e.target.value)}
+                                className="text-xs font-bold bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-brand-500/20 text-gray-700 dark:text-gray-200"
+                            >
+                                <option value="ALL">All Warehouses</option>
+                                {shops.map(shop => (
+                                    <option key={shop.id} value={shop.id}>{shop.name}</option>
+                                ))}
+                            </select>
+                        )}
+                        <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
+                    </div>
+                </div>
                         <Table headers={['Product', 'Location', 'Stock Metrics', 'Total Value', 'Status', 'Actions']}>
                             {stocks.map(s => (
                                 <TableRow key={s.id}>
@@ -321,51 +343,79 @@ const Stock = () => {
                                 </TableRow>
                             ))}
                         </Table>
-                    </div>
-                </div>
-
-                {/* Recent Transfers */}
-                <div className="space-y-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
-                        <div className="p-6 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
-                            <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Internal Transfers</h3>
-                        </div>
-                        <div className="divide-y dark:divide-gray-700 max-h-[500px] overflow-y-auto custom-scrollbar">
-                            {transfers.length === 0 ? (
-                                <div className="p-12 text-center text-gray-400 text-sm italic">No transfers registered.</div>
-                            ) : transfers.map(t => (
-                                <div key={t.id} className="p-5 space-y-4 hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${
-                                                    t.status === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-                                                }`}>{t.status}</span>
-                                                <p className="text-[10px] font-mono text-gray-400">#{t.id.substring(0,6)}</p>
-                                            </div>
-                                            <p className="font-black text-sm text-gray-900 dark:text-white uppercase leading-tight">{t.Product?.name}</p>
-                                        </div>
-                                        <span className="font-black text-xl text-brand-600">x{t.quantity}</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-900 p-2 rounded-xl text-[10px] font-bold text-gray-500">
-                                        <span className="truncate flex-1">{t.FromShop?.name || 'Central'}</span>
-                                        <ArrowLeftRight size={10} className="text-brand-500" />
-                                        <span className="truncate flex-1 text-right">{t.ToShop?.name}</span>
-                                    </div>
-                                    {t.status === 'PENDING' && (user?.role === 'owner' || t.toShopId === activeShopId) && (
-                                        <button 
-                                            onClick={() => handleApprove(t.id)}
-                                            className="w-full py-3 bg-brand-600 text-white hover:bg-brand-700 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-500/10"
-                                        >
-                                            <CheckCircle size={14} /> Mark as Received
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
             </div>
+            )}
+
+            {/* Transfers Tab */}
+            {activeTab === 'transfers' && (
+            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+                <div className="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+                    <div>
+                        <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Stock Transfers</h3>
+                        <p className="text-[10px] text-gray-400 font-medium mt-0.5">Initiate, approve and track inter-warehouse transfers</p>
+                    </div>
+                    {isAuthorized && (
+                        <button
+                            onClick={() => setIsTransferModalOpen(true)}
+                            className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all"
+                        >
+                            <Plus size={14} /> New Transfer
+                        </button>
+                    )}
+                </div>
+                <Table headers={['Product', 'Route', 'Qty', 'Status', 'Date', 'Actions']}>
+                    {transfers.length === 0 ? (
+                        <TableRow>
+                            <TableCell><div className="py-10 text-center text-gray-400 text-sm italic col-span-6">No transfers registered yet.</div></TableCell>
+                        </TableRow>
+                    ) : transfers.map(t => (
+                        <TableRow key={t.id}>
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center border border-gray-100 dark:border-gray-600">
+                                        <Package size={16} className="text-gray-400" />
+                                    </div>
+                                    <p className="font-black text-sm text-gray-900 dark:text-white uppercase">{t.Product?.name}</p>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300">
+                                    <span className="truncate max-w-[80px]">{t.FromShop?.name || 'Central'}</span>
+                                    <ArrowLeftRight size={10} className="text-brand-500 shrink-0" />
+                                    <span className="truncate max-w-[80px]">{t.ToShop?.name || '—'}</span>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <span className="font-black text-lg text-brand-600">×{t.Quantity || t.quantity}</span>
+                            </TableCell>
+                            <TableCell>
+                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block ${
+                                    t.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                    t.status === 'APPROVED' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
+                                    t.status === 'IN_TRANSIT' ? 'bg-purple-50 text-purple-700 border border-purple-100' :
+                                    t.status === 'RECEIVED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                    'bg-gray-100 text-gray-500 border border-gray-200'
+                                }`}>{t.status}</span>
+                            </TableCell>
+                            <TableCell>
+                                <span className="text-[10px] font-mono text-gray-400">{new Date(t.createdAt).toLocaleDateString()}</span>
+                            </TableCell>
+                            <TableCell>
+                                {t.status === 'PENDING' && isAuthorized && (
+                                    <button
+                                        onClick={() => handleApprove(t.id)}
+                                        className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-1.5 shadow shadow-emerald-500/10"
+                                    >
+                                        <CheckCircle size={12} /> Complete Transfer
+                                    </button>
+                                )}
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </Table>
+            </div>
+            )}
+
 
             {/* Transfer Modal */}
             <Modal isOpen={isTransferModalOpen} onClose={() => setIsTransferModalOpen(false)} title="New Stock Transfer" maxWidth="max-w-xl">
