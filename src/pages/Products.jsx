@@ -625,22 +625,21 @@ const Products = () => {
                     </div>
 
                     {/* Table listing categories */}
-                    <Table headers={['Category ID', 'Category Name', 'Parent Category', 'Actions']}>
+                    <Table headers={['Category Name', 'Parent Category', 'Actions']}>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-20">
+                                <TableCell colSpan={3} className="text-center py-20">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
                                 </TableCell>
                             </TableRow>
                         ) : filteredCategories.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-20 text-gray-500">No categories found.</TableCell>
+                                <TableCell colSpan={3} className="text-center py-20 text-gray-500">No categories found.</TableCell>
                             </TableRow>
                         ) : filteredCategories.map((c) => {
                             const parent = categories.find(cat => cat.id === c.parent_id);
                             return (
                                 <TableRow key={c.id}>
-                                    <TableCell className="font-mono text-[11px] text-gray-400">{c.id}</TableCell>
                                     <TableCell className="font-bold text-gray-900 dark:text-white">{c.name}</TableCell>
                                     <TableCell>
                                         {parent ? (
@@ -691,20 +690,19 @@ const Products = () => {
                     </div>
 
                     {/* Table listing brands */}
-                    <Table headers={['Brand ID', 'Brand Name', 'Actions']}>
+                    <Table headers={['Brand Name', 'Actions']}>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={3} className="text-center py-20">
+                                <TableCell colSpan={2} className="text-center py-20">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
                                 </TableCell>
                             </TableRow>
                         ) : filteredBrands.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={3} className="text-center py-20 text-gray-500">No brands found.</TableCell>
+                                <TableCell colSpan={2} className="text-center py-20 text-gray-500">No brands found.</TableCell>
                             </TableRow>
                         ) : filteredBrands.map((b) => (
                             <TableRow key={b.id}>
-                                <TableCell className="font-mono text-[11px] text-gray-400">{b.id}</TableCell>
                                 <TableCell className="font-bold text-gray-900 dark:text-white">{b.name}</TableCell>
                                 <TableCell>
                                     {isAuthorized && (
@@ -745,20 +743,19 @@ const Products = () => {
                     </div>
 
                     {/* Table listing units */}
-                    <Table headers={['Unit ID', 'Unit Name', 'Abbreviation / Short Name', 'Actions']}>
+                    <Table headers={['Unit Name', 'Abbreviation / Short Name', 'Actions']}>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-20">
+                                <TableCell colSpan={3} className="text-center py-20">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
                                 </TableCell>
                             </TableRow>
                         ) : filteredUnits.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-20 text-gray-500">No units of measure found.</TableCell>
+                                <TableCell colSpan={3} className="text-center py-20 text-gray-500">No units of measure found.</TableCell>
                             </TableRow>
                         ) : filteredUnits.map((u) => (
                             <TableRow key={u.id}>
-                                <TableCell className="font-mono text-[11px] text-gray-400">{u.id}</TableCell>
                                 <TableCell className="font-bold text-gray-900 dark:text-white">{u.name}</TableCell>
                                 <TableCell>
                                     <span className="text-xs font-black bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 px-3 py-1 rounded-lg">
