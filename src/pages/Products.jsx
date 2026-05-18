@@ -792,65 +792,28 @@ const Products = () => {
                                 </h3>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Product Name</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        placeholder="e.g. Cold Soda 500ml"
-                                        value={productFormData.name}
-                                        onChange={e => setProductFormData({...productFormData, name: e.target.value})}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">SKU Identifier</label>
-                                    <input
-                                        type="text"
-                                        value={productFormData.sku}
-                                        onChange={e => setProductFormData({...productFormData, sku: e.target.value})}
-                                        className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl font-mono text-xs font-black uppercase text-gray-600 dark:text-gray-300"
-                                        readOnly={!editingProduct}
-                                    />
-                                </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Product Name</label>
+                                <input
+                                    required
+                                    type="text"
+                                    placeholder="e.g. Cold Soda 500ml"
+                                    value={productFormData.name}
+                                    onChange={e => setProductFormData({...productFormData, name: e.target.value})}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold"
+                                />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center justify-between">
-                                        <span>Barcode (Optional)</span>
-                                        <button 
-                                            type="button" 
-                                            onClick={() => setProductFormData({...productFormData, barcode: generateBarcode()})}
-                                            className="text-[9px] text-brand-600 hover:text-brand-700 font-bold flex items-center gap-0.5 lowercase hover:underline"
-                                        >
-                                            <RefreshCw size={9} /> generate
-                                        </button>
-                                    </label>
-                                    <div className="relative">
-                                        <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                                        <input
-                                            type="text"
-                                            placeholder="Leave blank or scan barcode"
-                                            value={productFormData.barcode}
-                                            onChange={e => setProductFormData({...productFormData, barcode: e.target.value})}
-                                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-mono text-sm"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Unit of Measure (UoM)</label>
-                                    <select
-                                        value={productFormData.unit_of_measure}
-                                        onChange={e => setProductFormData({...productFormData, unit_of_measure: e.target.value})}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none text-sm font-bold"
-                                    >
-                                        <option value="">Select Unit...</option>
-                                        {units.map(u => <option key={u.id} value={u.id}>{u.name} ({u.short_name})</option>)}
-                                    </select>
-                                </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Unit of Measure (UoM)</label>
+                                <select
+                                    value={productFormData.unit_of_measure}
+                                    onChange={e => setProductFormData({...productFormData, unit_of_measure: e.target.value})}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none text-sm font-bold"
+                                >
+                                    <option value="">Select Unit...</option>
+                                    {units.map(u => <option key={u.id} value={u.id}>{u.name} ({u.short_name})</option>)}
+                                </select>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
