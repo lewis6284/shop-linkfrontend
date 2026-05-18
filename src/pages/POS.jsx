@@ -4,6 +4,7 @@ import { productService } from "../services/inventoryService";
 import { customerService } from "../services/customerService";
 import { saleService } from "../services/saleService";
 import { getEffectivePrice } from "../utils/calculations";
+import Table, { TableRow, TableCell } from "../components/Table";
 
 import {
     ShoppingCart,
@@ -15,8 +16,7 @@ import {
     X,
     Loader2,
     Package,
-    Barcode,
-    ScanLine
+    Search
 } from "lucide-react";
 
 import toast from "react-hot-toast";
@@ -31,92 +31,55 @@ const POS = () => {
     const [customer, setCustomer] = useState(null);
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
     const [customerResults, setCustomerResults] = useState([]);
+    const [paymentMethod, setPaymentMethod] = useState("CASH");
 
     const searchRef = useRef(null);
-    const scannerBuffer = useRef("");
-    const lastKeyTime = useRef(Date.now());
 
     // ==========================================
-    // HIGH-SPEED GLOBAL SCANNER LISTENER
+    // SIMPLE CATALOG PRODUCT BROWSING & SEARCH
     // ==========================================
     useEffect(() => {
-        const handleGlobalKeyDown = (e) => {
-            const currentTime = Date.now();
-            
-            // If typing is very fast (hardware scanner), buffer it
-            if (currentTime - lastKeyTime.current < 30) {
-                if (e.key === "Enter") {
-                    const code = scannerBuffer.current;
-                    if (code) handleScan(code);
-                    scannerBuffer.current = "";
-                } else if (e.key.length === 1) {
-                    scannerBuffer.current += e.key;
-                }
-            } else {
-                // Regular typing or slow input
-                if (e.key === "Enter" && scannerBuffer.current.length > 5) {
-                    handleScan(scannerBuffer.current);
-                    scannerBuffer.current = "";
-                } else {
-                    scannerBuffer.current = e.key.length === 1 ? e.key : "";
-                }
-            }
-            lastKeyTime.current = currentTime;
-        };
-
-        window.addEventListener("keydown", handleGlobalKeyDown);
-        return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-    }, []);
-
-    const handleScan = async (barcode) => {
-        try {
-            const res = await productService.getAll({ search: barcode });
-            const products = Array.isArray(res) ? res : res?.products || [];
-            const exact = products.find(p => p.barcode === barcode);
-            
-            if (exact) {
-                addToCart(exact);
-                toast.success(`Scanned: ${exact.name}`, { position: 'top-center' });
-            } else {
-                setSearchQuery(barcode); // Fallback to manual search
-            }
-        } catch (err) {
-            console.error("Scanner error", err);
-        }
-    };
-
-    // =========================
-    // PRODUCT SEARCH
-    // =========================
-    useEffect(() => {
-        const fetch = async () => {
-            if (!searchQuery.trim() || searchQuery.length < 2) {
-                setSearchResults([]);
-                return;
-            }
-
+        const fetchProducts = async () => {
             setIsSearching(true);
             try {
-                const res = await productService.getAll({ search: searchQuery });
+                const params = {};
+                if (searchQuery.trim()) {
+                    params.search = searchQuery.trim();
+                }
+                const res = await productService.getAll(params);
                 const products = Array.isArray(res) ? res : res?.products || [];
                 setSearchResults(products);
             } catch (err) {
-                console.error(err);
+                console.error("Failed to fetch product catalog", err);
             } finally {
                 setIsSearching(false);
             }
         };
 
-        const t = setTimeout(fetch, 300);
+        const t = setTimeout(fetchProducts, searchQuery.trim() ? 300 : 0);
         return () => clearTimeout(t);
     }, [searchQuery]);
 
-    // =========================
-    // CART LOGIC
-    // =========================
+    // ==========================================
+    // CART & QUANTITY SAFETY LOGIC
+    // ==========================================
     const addToCart = (product) => {
+        const shopStock = Number(product.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
+
+        if (shopStock <= 0) {
+            toast.error(`${product.name} is currently out of stock.`, { position: 'top-center' });
+            return;
+        }
+
         setCart(prev => {
             const exist = prev.find(i => i.id === product.id);
+            const currentQty = exist ? exist.qty : 0;
+
+            if (currentQty >= shopStock) {
+                toast.error(`Cannot exceed available stock of ${shopStock} for ${product.name}`, { position: 'top-center' });
+                return prev;
+            }
+
             if (exist) {
                 return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
             }
@@ -126,7 +89,18 @@ const POS = () => {
     };
 
     const updateQty = (id, delta) => {
-        setCart(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i).filter(i => i.qty > 0));
+        setCart(prev => {
+            const item = prev.find(i => i.id === id);
+            if (!item) return prev;
+
+            const shopStock = Number(item.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
+            if (delta > 0 && item.qty >= shopStock) {
+                toast.error(`Cannot exceed available stock of ${shopStock} for ${item.name}`, { position: 'top-center' });
+                return prev;
+            }
+
+            return prev.map(i => i.id === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i).filter(i => i.qty > 0);
+        });
     };
 
     const totals = cart.reduce((acc, item) => {
@@ -138,9 +112,9 @@ const POS = () => {
         };
     }, { subtotal: 0, tax: 0, total: 0 });
 
-    // =========================
-    // CHECKOUT
-    // =========================
+    // ==========================================
+    // ROBUST CHECKOUT FLOW
+    // ==========================================
     const checkout = async () => {
         if (cart.length === 0) return;
         const loading = toast.loading("Finalizing sale...");
@@ -156,8 +130,9 @@ const POS = () => {
                         total: p.total
                     };
                 }),
-                paymentMethod: "CASH",
+                paymentMethod: paymentMethod,
                 ShopId: activeShopId,
+                customerType: customer?.customer_type || "retail",
                 status: 'COMPLETED'
             };
 
@@ -165,6 +140,13 @@ const POS = () => {
             setCart([]);
             setSearchQuery("");
             setCustomer(null);
+            setPaymentMethod("CASH");
+
+            // Reload products to immediately refresh stock numbers
+            const res = await productService.getAll();
+            const products = Array.isArray(res) ? res : res?.products || [];
+            setSearchResults(products);
+
             toast.success("Sale Successful!", { id: loading });
         } catch (e) {
             toast.error("Checkout failed. Check stock levels.", { id: loading });
@@ -176,18 +158,18 @@ const POS = () => {
     return (
         <div className="h-[calc(100vh-64px)] w-full flex flex-col lg:flex-row bg-white dark:bg-gray-950 overflow-hidden select-none">
             
-            {/* LEFT: Product Browser */}
+            {/* LEFT: Product Catalog Browser */}
             <div className={`flex-1 flex flex-col min-w-0 transition-all ${showCartMobile ? 'hidden' : 'flex'}`}>
-                {/* Search Bar */}
+                {/* Simple Search & Customer Bar */}
                 <div className="p-4 lg:p-6 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800">
                     <div className="flex flex-col md:flex-row gap-4 items-center">
                         <div className="relative flex-1 group w-full">
-                            <Barcode className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500" size={20} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500" size={20} />
                             <input
                                 ref={searchRef}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search products or scan barcode..."
+                                placeholder="Search products by name..."
                                 className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border-2 border-transparent focus:border-brand-500 outline-none font-black text-gray-900 dark:text-white transition-all shadow-inner"
                             />
                         </div>
@@ -207,42 +189,60 @@ const POS = () => {
                     </div>
                 </div>
 
-                {/* Results Grid */}
+                {/* Products Table (Instead of Cards) */}
                 <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar bg-gray-50/30 dark:bg-gray-950">
                     {isSearching ? (
                         <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-50">
                             <Loader2 className="animate-spin text-brand-600" size={48} />
-                            <p className="font-black text-xs uppercase tracking-widest">Searching Catalog...</p>
+                            <p className="font-black text-xs uppercase tracking-widest">Loading Catalog...</p>
                         </div>
                     ) : searchResults.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                            {searchResults.map(p => (
-                                <button
-                                    key={p.id}
-                                    onClick={() => addToCart(p)}
-                                    className="flex flex-col bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 group overflow-hidden h-[180px]"
-                                >
-                                    <div className="h-24 w-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                                        {p.image_url ? (
-                                            <img src={p.image_url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                                        ) : (
-                                            <Package size={32} className="text-gray-300" />
-                                        )}
-                                    </div>
-                                    <div className="p-3 flex-1 flex flex-col justify-between text-left">
-                                        <p className="text-xs font-black text-gray-900 dark:text-white line-clamp-2 leading-tight uppercase">{p.name}</p>
-                                        <div className="flex justify-between items-end">
-                                            <p className="text-[10px] font-black text-gray-400 font-mono">{p.sku || p.barcode.substring(0,8)}</p>
-                                            <p className="font-black text-brand-600 dark:text-brand-400">{Number(p.sellingPrice).toLocaleString()}</p>
-                                        </div>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
+                        <Table headers={['Product Preview', 'Selling Price', 'Shop Stock', 'Action']}>
+                            {searchResults.map(p => {
+                                const shopStock = Number(p.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
+                                return (
+                                    <TableRow key={p.id} className="cursor-pointer group" onClick={() => addToCart(p)}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm">
+                                                    {p.image_url ? (
+                                                        <img src={p.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                    ) : (
+                                                        <Package size={20} className="text-gray-300" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-black text-gray-900 dark:text-white uppercase group-hover:text-brand-600 transition-colors leading-tight mb-1">{p.name}</p>
+                                                    <p className="text-[10px] font-mono text-gray-400">{p.sku || p.barcode || p.product_code}</p>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <p className="font-black text-brand-600 dark:text-brand-400 text-base">{Number(p.sellingPrice).toLocaleString()} <span className="text-xs">Fbu</span></p>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className={`inline-block text-[10px] font-extrabold px-3 py-1 rounded-full shadow-sm ${shopStock <= 0 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400' : shopStock < 5 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'}`}>
+                                                {shopStock <= 0 ? 'OUT OF STOCK' : `${shopStock} IN STOCK`}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); addToCart(p); }}
+                                                disabled={shopStock <= 0}
+                                                className="px-4 py-2 bg-brand-55 hover:bg-brand-600 text-brand-600 hover:text-white dark:bg-brand-950/30 dark:hover:bg-brand-600 dark:text-brand-400 dark:hover:text-white disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-gray-800 dark:disabled:text-gray-600 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 active:scale-95 shadow-sm"
+                                            >
+                                                + Add
+                                            </button>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </Table>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center opacity-10">
-                            <ScanLine size={120} strokeWidth={1} />
-                            <p className="mt-6 text-2xl font-black uppercase tracking-[0.4em]">Ready to Scan</p>
+                        <div className="h-full flex flex-col items-center justify-center opacity-10 py-20">
+                            <Package size={120} strokeWidth={1} />
+                            <p className="mt-6 text-2xl font-black uppercase tracking-[0.4em]">No Products Available</p>
                         </div>
                     )}
                 </div>
@@ -306,6 +306,35 @@ const POS = () => {
 
                 {/* Bottom Summary */}
                 <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950">
+                    
+                    {/* Payment Method Segmented Picker */}
+                    <div className="mb-6">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">PAYMENT METHOD</label>
+                        <div className="grid grid-cols-3 gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl">
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod("CASH")}
+                                className={`py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 ${paymentMethod === 'CASH' ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50'}`}
+                            >
+                                Cash
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod("MOBILE_MONEY")}
+                                className={`py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 ${paymentMethod === 'MOBILE_MONEY' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50'}`}
+                            >
+                                M-Money
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPaymentMethod("CREDIT")}
+                                className={`py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 ${paymentMethod === 'CREDIT' ? 'bg-amber-600 text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50'}`}
+                            >
+                                Credit
+                            </button>
+                        </div>
+                    </div>
+
                     <div className="space-y-2 mb-6">
                         <div className="flex justify-between text-xs font-black text-gray-400 uppercase tracking-widest">
                             <span>Subtotal</span>
