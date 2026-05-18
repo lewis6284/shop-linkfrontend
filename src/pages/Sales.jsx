@@ -388,7 +388,7 @@ const Sales = () => {
                                             <Trash2 size={18} />
                                         </button>
                                     )}
-                                    <button className="p-3 bg-gray-50 dark:bg-gray-700 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm" title="Download Invoice">
+                                    <button onClick={() => handlePrintInvoice(s)} className="p-3 bg-gray-50 dark:bg-gray-700 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm" title="Download Invoice">
                                         <Download size={18} />
                                     </button>
                                 </div>
