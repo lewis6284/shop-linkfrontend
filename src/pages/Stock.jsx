@@ -65,7 +65,7 @@ const Stock = () => {
         description: ''
     });
 
-    const [filterShopId, setFilterShopId] = useState(activeShopId || 'ALL');
+    const [filterShopId, setFilterShopId] = useState(activeShopId);
     const [activeTab, setActiveTab] = useState('inventory');
 
     useEffect(() => {
@@ -73,22 +73,21 @@ const Stock = () => {
     }, []);
 
     useEffect(() => {
+        setFilterShopId(activeShopId);
         fetchData();
-    }, [filterShopId, activeShopId]);
+    }, [activeShopId]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
             const params = {};
-            if (user?.role === 'owner') {
-                if (filterShopId !== 'ALL') {
-                    params.shop_id = filterShopId;
-                }
+            if (activeShopId) {
+                params.shop_id = activeShopId;
             }
 
             const [stockData, transferData] = await Promise.all([
                 stockService.getAll(params),
-                stockService.getTransfers()
+                stockService.getTransfers(params)
             ]);
             setStocks(Array.isArray(stockData?.data) ? stockData.data : (stockData || []));
             setTransfers(Array.isArray(transferData?.data) ? transferData.data : (transferData || []));
@@ -275,18 +274,6 @@ const Stock = () => {
                 <div className="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
                     <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Live Inventory</h3>
                     <div className="flex items-center gap-3">
-                        {user?.role === 'owner' && (
-                            <select
-                                value={filterShopId}
-                                onChange={(e) => setFilterShopId(e.target.value)}
-                                className="text-xs font-bold bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-brand-500/20 text-gray-700 dark:text-gray-200"
-                            >
-                                <option value="ALL">All Warehouses</option>
-                                {shops.map(shop => (
-                                    <option key={shop.id} value={shop.id}>{shop.name}</option>
-                                ))}
-                            </select>
-                        )}
                         <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
                     </div>
                 </div>
