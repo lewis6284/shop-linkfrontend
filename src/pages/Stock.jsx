@@ -49,17 +49,26 @@ const Stock = () => {
         description: ''
     });
 
+    const [filterShopId, setFilterShopId] = useState(activeShopId || 'ALL');
+
     useEffect(() => {
-        fetchData();
         fetchAuxData();
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [filterShopId, activeShopId]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            // Owners can specify which shop stock to view (or null for global), Managers are restricted by backend
-            const params = user?.role === 'owner' && activeShopId ? { shop_id: activeShopId } : {};
-            
+            const params = {};
+            if (user?.role === 'owner') {
+                if (filterShopId !== 'ALL') {
+                    params.shop_id = filterShopId;
+                }
+            }
+
             const [stockData, transferData] = await Promise.all([
                 stockService.getAll(params),
                 stockService.getTransfers()
@@ -205,9 +214,23 @@ const Stock = () => {
                     <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
                         <div className="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
                             <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Live Inventory Status</h3>
-                            <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
+                            <div className="flex items-center gap-3">
+                                {user?.role === 'owner' && (
+                                    <select
+                                        value={filterShopId}
+                                        onChange={(e) => setFilterShopId(e.target.value)}
+                                        className="text-xs font-bold bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-brand-500/20 text-gray-700 dark:text-gray-200"
+                                    >
+                                        <option value="ALL">All Warehouses</option>
+                                        {shops.map(shop => (
+                                            <option key={shop.id} value={shop.id}>{shop.name}</option>
+                                        ))}
+                                    </select>
+                                )}
+                                <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
+                            </div>
                         </div>
-                        <Table headers={['Product', 'Current Stock', 'Status', 'Actions']}>
+                        <Table headers={['Product', 'Location', 'Current Stock', 'Status', 'Actions']}>
                             {stocks.map(s => (
                                 <TableRow key={s.id}>
                                     <TableCell>
@@ -219,6 +242,14 @@ const Stock = () => {
                                                 <p className="font-black text-sm text-gray-900 dark:text-white uppercase">{s.Product?.name}</p>
                                                 <p className="text-[10px] font-mono text-gray-400">SKU: {s.Product?.sku || s.Product?.barcode}</p>
                                             </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <Store size={14} className="text-gray-400" />
+                                            <span className="font-bold text-xs text-gray-700 dark:text-gray-300">
+                                                {s.Shop?.name || 'Global Warehouse'}
+                                            </span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
