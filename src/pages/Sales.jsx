@@ -48,7 +48,7 @@ const Sales = () => {
         setConfirmModal({
             isOpen: true,
             saleId: sale.id,
-            invoiceNumber: sale.invoice_number || `SAL-${sale.id.slice(0, 8)}`
+            invoiceNumber: sale.Invoice?.invoice_number || sale.invoice_number || `SAL-${sale.id.slice(0, 8)}`
         });
     };
 
@@ -135,7 +135,7 @@ const Sales = () => {
                                         <FileText size={20} />
                                     </div>
                                     <div>
-                                        <p className="font-black text-gray-900 dark:text-white uppercase leading-none mb-1">{s.invoice_number || `SAL-${s.id.slice(0, 8)}`}</p>
+                                        <p className="font-black text-gray-900 dark:text-white uppercase leading-none mb-1">{s.Invoice?.invoice_number || s.invoice_number || `SAL-${s.id.slice(0, 8)}`}</p>
                                         <p className="text-[10px] font-mono text-gray-400">{new Date(s.createdAt).toLocaleString()}</p>
                                     </div>
                                 </div>
@@ -200,7 +200,7 @@ const Sales = () => {
                         <div className="flex justify-between items-start border-b border-dashed border-gray-200 dark:border-gray-700 pb-6">
                             <div>
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Invoice ID</p>
-                                <p className="text-xl font-black text-gray-900 dark:text-white uppercase">{selectedSale.invoice_number || `SAL-${selectedSale.id}`}</p>
+                                <p className="text-xl font-black text-gray-900 dark:text-white uppercase">{selectedSale.Invoice?.invoice_number || selectedSale.invoice_number || `SAL-${selectedSale.id.slice(0, 8)}`}</p>
                             </div>
                             <div className="text-right">
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Payment Method</p>
