@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { productService, categoryService, brandService, unitService } from '../services/inventoryService';
+import userService from '../services/userService';
 import { calculateMargin, calculateTax, generateBarcode, generateSKU } from '../utils/calculations';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
@@ -20,6 +21,7 @@ const Products = () => {
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [units, setUnits] = useState([]);
+    const [shops, setShops] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Modal forms states
@@ -68,7 +70,8 @@ const Products = () => {
         wholesalePrice: '',
         tax_type: 'HTVA',
         tax_rate: 18,
-        image_url: ''
+        image_url: '',
+        ShopId: '' // empty string equals global, UUID equals specific shop
     });
 
     // Category Form state
@@ -89,23 +92,40 @@ const Products = () => {
     });
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (user) {
+            fetchData();
+        }
+    }, [user]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [pData, cData, bData, uData] = await Promise.all([
+            const promises = [
                 productService.getAll(),
                 categoryService.getAll(),
                 brandService.getAll(),
                 unitService.getAll()
-            ]);
+            ];
+            
+            if (user?.role === 'owner') {
+                promises.push(userService.getShops());
+            }
+
+            const results = await Promise.all(promises);
+            const pData = results[0];
+            const cData = results[1];
+            const bData = results[2];
+            const uData = results[3];
             
             setProducts(Array.isArray(pData) ? pData : (pData?.products || []));
             setCategories(Array.isArray(cData) ? cData : (cData?.categories || []));
             setBrands(Array.isArray(bData) ? bData : (bData?.brands || []));
             setUnits(Array.isArray(uData) ? uData : (uData?.units || []));
+
+            if (user?.role === 'owner' && results[4]) {
+                const sData = results[4];
+                setShops(Array.isArray(sData?.data) ? sData.data : (sData?.shops || []));
+            }
         } catch (error) {
             console.error("Failed to fetch catalog data", error);
             toast.error("Failed to load catalog/inventory data");
@@ -113,6 +133,7 @@ const Products = () => {
             setCategories([]);
             setBrands([]);
             setUnits([]);
+            setShops([]);
         } finally {
             setLoading(false);
         }
@@ -136,7 +157,8 @@ const Products = () => {
                 wholesalePrice: product.wholesalePrice || '',
                 tax_type: product.tax_type || 'HTVA',
                 tax_rate: product.tax_rate || 18,
-                image_url: product.image_url || ''
+                image_url: product.image_url || '',
+                ShopId: product.ShopId || ''
             });
         } else {
             setEditingProduct(null);
@@ -155,7 +177,8 @@ const Products = () => {
                 wholesalePrice: '',
                 tax_type: 'HTVA',
                 tax_rate: 18,
-                image_url: ''
+                image_url: '',
+                ShopId: ''
             });
         }
         setIsProductModalOpen(true);
@@ -841,6 +864,22 @@ const Products = () => {
                                     </select>
                                 </div>
                             </div>
+
+                            {user?.role === 'owner' && (
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center justify-between">
+                                        <span className="flex items-center gap-1.5"><Layers size={12} className="text-brand-500" /> Shop Catalog Scope (Owner Only)</span>
+                                    </label>
+                                    <select
+                                        value={productFormData.ShopId}
+                                        onChange={e => setProductFormData({...productFormData, ShopId: e.target.value})}
+                                        className="w-full px-4 py-3 bg-brand-50 dark:bg-brand-900/10 border border-brand-100 dark:border-brand-800/50 rounded-xl outline-none text-sm font-bold text-brand-900 dark:text-brand-100 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                    >
+                                        <option value="">🌍 Global Catalog (Available to ALL Shops)</option>
+                                        {shops.map(s => <option key={s.id} value={s.id}>🏪 Local Catalog: {s.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
 
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Image Thumbnail URL</label>
