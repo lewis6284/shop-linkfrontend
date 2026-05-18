@@ -5,6 +5,7 @@ import { productService } from '../services/inventoryService';
 import userService from '../services/userService';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
+import ConfirmModal from '../components/ConfirmModal';
 import { 
     BarChart2, ArrowLeftRight, Package, AlertTriangle, 
     TrendingUp, Store, Filter, RefreshCw, CheckCircle, Plus, Edit2, X
@@ -14,6 +15,21 @@ import toast from 'react-hot-toast';
 const Stock = () => {
     const { user, activeShopId } = useAuth();
     const [stocks, setStocks] = useState([]);
+    
+    // Confirmation Modal state
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+        type: 'info'
+    });
+
+    const closeConfirmModal = () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+    };
 // ... (skipping some lines as replace_file_content needs an exact block)
     const [transfers, setTransfers] = useState([]);
     const [products, setProducts] = useState([]);
@@ -119,15 +135,26 @@ const Stock = () => {
         }
     };
 
-    const handleCancel = async (id) => {
-        if (!window.confirm('Cancel this transfer? This action cannot be undone.')) return;
-        try {
-            await stockService.cancelTransfer(id);
-            toast.success('Transfer cancelled.');
-            fetchData();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to cancel transfer');
-        }
+    const handleCancel = (id) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Cancel Stock Transfer',
+            message: 'Are you sure you want to cancel this transfer? This action cannot be undone.',
+            confirmText: 'Cancel Transfer',
+            cancelText: 'Keep Transfer',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await stockService.cancelTransfer(id);
+                    toast.success('Transfer cancelled.');
+                    fetchData();
+                } catch (error) {
+                    toast.error(error.response?.data?.message || 'Failed to cancel transfer');
+                } finally {
+                    closeConfirmModal();
+                }
+            }
+        });
     };
 
     const handleAddStock = async (e) => {
@@ -659,6 +686,17 @@ const Stock = () => {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmModal
+                isOpen={confirmConfig.isOpen}
+                onClose={closeConfirmModal}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                confirmText={confirmConfig.confirmText}
+                cancelText={confirmConfig.cancelText}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };
