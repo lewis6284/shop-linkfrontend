@@ -230,14 +230,18 @@ const Stock = () => {
                                 <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
                             </div>
                         </div>
-                        <Table headers={['Product', 'Location', 'Current Stock', 'Status', 'Actions']}>
+                        <Table headers={['Product', 'Location', 'Stock Metrics', 'Total Value', 'Status', 'Actions']}>
                             {stocks.map(s => (
                                 <TableRow key={s.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 border border-gray-100 dark:border-gray-600">
-                                                <Package size={20} />
-                                            </div>
+                                            {s.Product?.image_url ? (
+                                                <img src={s.Product.image_url} alt={s.Product.name} className="w-10 h-10 rounded-xl object-cover border border-gray-100 dark:border-gray-600 shadow-sm" />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 border border-gray-100 dark:border-gray-600">
+                                                    <Package size={20} />
+                                                </div>
+                                            )}
                                             <div>
                                                 <p className="font-black text-sm text-gray-900 dark:text-white uppercase">{s.Product?.name}</p>
                                                 <p className="text-[10px] font-mono text-gray-400">SKU: {s.Product?.sku || s.Product?.barcode}</p>
@@ -253,8 +257,23 @@ const Stock = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="font-black text-lg text-gray-900 dark:text-white tracking-tighter">
-                                            {s.quantity} <span className="text-[10px] text-gray-400 uppercase">units</span>
+                                        <div>
+                                            <div className="font-black text-lg text-gray-900 dark:text-white tracking-tighter">
+                                                {s.quantity} <span className="text-[10px] text-gray-400 uppercase font-bold">units</span>
+                                            </div>
+                                            <div className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                                                Min: {s.Product?.min_stock_level || 5}
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div>
+                                            <div className="font-black text-sm text-brand-600 dark:text-brand-400">
+                                                ${(s.quantity * (s.Product?.purchasePrice || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                            </div>
+                                            <div className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                                                Cost Value
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -266,21 +285,37 @@ const Stock = () => {
                                     </TableCell>
                                     <TableCell>
                                         {isAuthorized && (
-                                            <button 
-                                                onClick={() => {
-                                                    setAdjustStockData({
-                                                        ...adjustStockData,
-                                                        product_id: s.ProductId,
-                                                        shop_id: s.ShopId || activeShopId || '',
-                                                        quantity: s.quantity
-                                                    });
-                                                    setIsAdjustStockModalOpen(true);
-                                                }}
-                                                className="p-2 bg-gray-100 hover:bg-brand-50 hover:text-brand-600 dark:bg-gray-700 dark:hover:bg-brand-900/30 dark:text-gray-300 dark:hover:text-brand-400 rounded-xl transition-all"
-                                                title="Adjust Stock Count"
-                                            >
-                                                <Edit2 size={14} />
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => {
+                                                        setTransferData({
+                                                            ...transferData,
+                                                            ProductId: s.ProductId,
+                                                            fromShopId: s.ShopId || ''
+                                                        });
+                                                        setIsTransferModalOpen(true);
+                                                    }}
+                                                    className="p-2 bg-gray-100 hover:bg-brand-50 hover:text-brand-600 dark:bg-gray-700 dark:hover:bg-brand-900/30 dark:text-gray-300 dark:hover:text-brand-400 rounded-xl transition-all"
+                                                    title="Transfer Stock"
+                                                >
+                                                    <ArrowLeftRight size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => {
+                                                        setAdjustStockData({
+                                                            ...adjustStockData,
+                                                            product_id: s.ProductId,
+                                                            shop_id: s.ShopId || activeShopId || '',
+                                                            quantity: s.quantity
+                                                        });
+                                                        setIsAdjustStockModalOpen(true);
+                                                    }}
+                                                    className="p-2 bg-gray-100 hover:bg-brand-50 hover:text-brand-600 dark:bg-gray-700 dark:hover:bg-brand-900/30 dark:text-gray-300 dark:hover:text-brand-400 rounded-xl transition-all"
+                                                    title="Adjust Stock Count"
+                                                >
+                                                    <Edit2 size={14} />
+                                                </button>
+                                            </div>
                                         )}
                                     </TableCell>
                                 </TableRow>
