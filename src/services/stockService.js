@@ -1,16 +1,16 @@
 import api from './api';
 
 export const stockService = {
-    getShopStock: async (shopId, params) => {
-        const response = await api.get(`/stock/shop/${shopId}`, { params });
+    getAll: async (params) => {
+        const response = await api.get('/stock', { params });
         return response.data;
     },
-    getGlobalStock: async (params) => {
-        const response = await api.get('/stock/global', { params });
+    addStock: async (data) => {
+        const response = await api.post('/stock/add', data);
         return response.data;
     },
-    updateStock: async (data) => {
-        const response = await api.post('/stock/update', data);
+    adjustStock: async (data) => {
+        const response = await api.patch('/stock/adjust', data);
         return response.data;
     },
     getTransfers: async (params) => {

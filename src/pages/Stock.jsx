@@ -2,22 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { stockService } from '../services/stockService';
 import { productService } from '../services/inventoryService';
+import userService from '../services/userService';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
 import { 
     BarChart2, ArrowLeftRight, Package, AlertTriangle, 
-    TrendingUp, Store, Filter, RefreshCw, CheckCircle 
+    TrendingUp, Store, Filter, RefreshCw, CheckCircle, Plus, Edit2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Stock = () => {
     const { user, activeShopId } = useAuth();
     const [stocks, setStocks] = useState([]);
+// ... (skipping some lines as replace_file_content needs an exact block)
     const [transfers, setTransfers] = useState([]);
     const [products, setProducts] = useState([]);
     const [shops, setShops] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
+    const [isAdjustStockModalOpen, setIsAdjustStockModalOpen] = useState(false);
     
     // Transfer form state
     const [transferData, setTransferData] = useState({
@@ -28,6 +32,23 @@ const Stock = () => {
         notes: ''
     });
 
+    // Add Stock form state
+    const [addStockData, setAddStockData] = useState({
+        product_id: '',
+        quantity: '',
+        shop_id: activeShopId || '',
+        description: ''
+    });
+
+    // Adjust Stock form state
+    const [adjustStockData, setAdjustStockData] = useState({
+        product_id: '',
+        quantity: '',
+        shop_id: activeShopId || '',
+        reason: 'ADJUSTMENT',
+        description: ''
+    });
+
     useEffect(() => {
         fetchData();
         fetchAuxData();
@@ -36,12 +57,15 @@ const Stock = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
+            // Owners can specify which shop stock to view (or null for global), Managers are restricted by backend
+            const params = user?.role === 'owner' && activeShopId ? { shop_id: activeShopId } : {};
+            
             const [stockData, transferData] = await Promise.all([
-                user?.role === 'owner' ? stockService.getGlobalStock() : stockService.getShopStock(activeShopId),
+                stockService.getAll(params),
                 stockService.getTransfers()
             ]);
-            setStocks(Array.isArray(stockData) ? stockData : (stockData?.stocks || []));
-            setTransfers(Array.isArray(transferData) ? transferData : (transferData?.transfers || []));
+            setStocks(Array.isArray(stockData?.data) ? stockData.data : (stockData || []));
+            setTransfers(Array.isArray(transferData?.data) ? transferData.data : (transferData || []));
         } catch (error) {
             console.error("Failed to fetch stock", error);
             toast.error("Failed to load stock data");
@@ -54,10 +78,10 @@ const Stock = () => {
         try {
             const [pData, sData] = await Promise.all([
                 productService.getAll(),
-                api.get('/shops')
+                user?.role === 'owner' ? userService.getShops() : Promise.resolve({ data: [] })
             ]);
             setProducts(Array.isArray(pData) ? pData : (pData?.products || []));
-            setShops(sData.data.data || []);
+            setShops(Array.isArray(sData?.data) ? sData.data : (sData?.shops || []));
         } catch (err) {
             console.error("Aux data fetch failed", err);
         }
@@ -85,6 +109,32 @@ const Stock = () => {
         }
     };
 
+    const handleAddStock = async (e) => {
+        e.preventDefault();
+        try {
+            await stockService.addStock(addStockData);
+            toast.success("Stock added successfully");
+            setIsAddStockModalOpen(false);
+            setAddStockData({ ...addStockData, product_id: '', quantity: '', description: '' });
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to add stock");
+        }
+    };
+
+    const handleAdjustStock = async (e) => {
+        e.preventDefault();
+        try {
+            await stockService.adjustStock(adjustStockData);
+            toast.success("Stock adjusted successfully");
+            setIsAdjustStockModalOpen(false);
+            setAdjustStockData({ ...adjustStockData, product_id: '', quantity: '', description: '' });
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to adjust stock");
+        }
+    };
+
     const isAuthorized = user?.role === 'owner' || user?.role === 'manager';
 
     return (
@@ -97,12 +147,20 @@ const Stock = () => {
                     <p className="text-gray-500 font-medium text-sm">Monitor stock levels and manage transfers between shops</p>
                 </div>
                 {isAuthorized && (
-                    <button
-                        onClick={() => setIsTransferModalOpen(true)}
-                        className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95"
-                    >
-                        <ArrowLeftRight size={20} /> New Transfer
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setIsTransferModalOpen(true)}
+                            className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all active:scale-95 border border-gray-200 dark:border-gray-700"
+                        >
+                            <ArrowLeftRight size={20} /> New Transfer
+                        </button>
+                        <button
+                            onClick={() => setIsAddStockModalOpen(true)}
+                            className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95"
+                        >
+                            <Plus size={20} /> Receive Stock
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -149,7 +207,7 @@ const Stock = () => {
                             <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Live Inventory Status</h3>
                             <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
                         </div>
-                        <Table headers={['Product', 'Current Stock', 'Status']}>
+                        <Table headers={['Product', 'Current Stock', 'Status', 'Actions']}>
                             {stocks.map(s => (
                                 <TableRow key={s.id}>
                                     <TableCell>
@@ -174,6 +232,25 @@ const Stock = () => {
                                         }`}>
                                             {s.quantity <= (s.Product?.min_stock_level || 5) ? 'Critical / Low' : 'In Stock'}
                                         </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {isAuthorized && (
+                                            <button 
+                                                onClick={() => {
+                                                    setAdjustStockData({
+                                                        ...adjustStockData,
+                                                        product_id: s.ProductId,
+                                                        shop_id: s.ShopId || activeShopId || '',
+                                                        quantity: s.quantity
+                                                    });
+                                                    setIsAdjustStockModalOpen(true);
+                                                }}
+                                                className="p-2 bg-gray-100 hover:bg-brand-50 hover:text-brand-600 dark:bg-gray-700 dark:hover:bg-brand-900/30 dark:text-gray-300 dark:hover:text-brand-400 rounded-xl transition-all"
+                                                title="Adjust Stock Count"
+                                            >
+                                                <Edit2 size={14} />
+                                            </button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -281,6 +358,143 @@ const Stock = () => {
                     <div className="flex gap-3 pt-4">
                         <button type="button" onClick={() => setIsTransferModalOpen(false)} className="flex-1 py-4 border border-gray-200 dark:border-gray-700 rounded-xl font-black text-xs uppercase text-gray-500 hover:bg-gray-50">Cancel</button>
                         <button type="submit" className="flex-1 py-4 bg-brand-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-500/20 hover:bg-brand-700 transition-all">Initiate Transfer</button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Add/Receive Stock Modal */}
+            <Modal isOpen={isAddStockModalOpen} onClose={() => setIsAddStockModalOpen(false)} title="Receive New Stock" maxWidth="max-w-xl">
+                <form onSubmit={handleAddStock} className="space-y-6">
+                    <div className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Select Product</label>
+                            <select 
+                                required
+                                value={addStockData.product_id}
+                                onChange={e => setAddStockData({...addStockData, product_id: e.target.value})}
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
+                            >
+                                <option value="">Choose a product...</option>
+                                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {user?.role === 'owner' && (
+                                <div className="space-y-1">
+                                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Receiving Shop</label>
+                                    <select 
+                                        value={addStockData.shop_id || ''}
+                                        onChange={e => setAddStockData({...addStockData, shop_id: e.target.value})}
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
+                                    >
+                                        <option value="">Global Inventory</option>
+                                        {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                            <div className="space-y-1">
+                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Quantity Received</label>
+                                <input 
+                                    type="number"
+                                    required
+                                    min="1"
+                                    value={addStockData.quantity}
+                                    onChange={e => setAddStockData({...addStockData, quantity: e.target.value})}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
+                                    placeholder="+ Units"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Supplier / Notes</label>
+                            <textarea 
+                                value={addStockData.description}
+                                onChange={e => setAddStockData({...addStockData, description: e.target.value})}
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-medium dark:text-white outline-none h-20"
+                                placeholder="Invoice numbers, supplier info..."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                        <button type="button" onClick={() => setIsAddStockModalOpen(false)} className="flex-1 py-4 border border-gray-200 dark:border-gray-700 rounded-xl font-black text-xs uppercase text-gray-500 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" className="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 transition-all">Receive Stock</button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Adjust Stock Modal */}
+            <Modal isOpen={isAdjustStockModalOpen} onClose={() => setIsAdjustStockModalOpen(false)} title="Adjust Inventory Count" maxWidth="max-w-xl">
+                <form onSubmit={handleAdjustStock} className="space-y-6">
+                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900">
+                        <div className="flex gap-3">
+                            <AlertTriangle className="text-amber-500 shrink-0" size={20} />
+                            <p className="text-sm font-medium text-amber-800 dark:text-amber-200 leading-snug">
+                                This sets the <span className="font-black">absolute new total quantity</span>. It will automatically calculate the difference (+ or -) and log the adjustment for auditing.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Target Product</label>
+                                <select 
+                                    required
+                                    disabled
+                                    value={adjustStockData.product_id}
+                                    className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border rounded-xl font-bold dark:text-white outline-none opacity-80"
+                                >
+                                    <option value="">Select a product...</option>
+                                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest">New Absolute Quantity</label>
+                                <input 
+                                    type="number"
+                                    required
+                                    min="0"
+                                    step="0.01"
+                                    value={adjustStockData.quantity}
+                                    onChange={e => setAdjustStockData({...adjustStockData, quantity: e.target.value})}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-black text-lg text-brand-600 dark:text-brand-400 outline-none focus:ring-2 focus:ring-brand-500/20 text-center"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Reason</label>
+                            <select 
+                                required
+                                value={adjustStockData.reason}
+                                onChange={e => setAdjustStockData({...adjustStockData, reason: e.target.value})}
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
+                            >
+                                <option value="ADJUSTMENT">General Adjustment</option>
+                                <option value="DAMAGE">Damaged Goods</option>
+                                <option value="LOSS">Loss / Theft</option>
+                                <option value="COUNT">Physical Count Audit</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Audit Notes</label>
+                            <textarea 
+                                required
+                                value={adjustStockData.description}
+                                onChange={e => setAdjustStockData({...adjustStockData, description: e.target.value})}
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-medium dark:text-white outline-none h-20"
+                                placeholder="Why is this count changing? This is permanently audited."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                        <button type="button" onClick={() => setIsAdjustStockModalOpen(false)} className="flex-1 py-4 border border-gray-200 dark:border-gray-700 rounded-xl font-black text-xs uppercase text-gray-500 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" className="flex-1 py-4 bg-brand-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-500/20 hover:bg-brand-700 transition-all">Submit Adjustment</button>
                     </div>
                 </form>
             </Modal>
