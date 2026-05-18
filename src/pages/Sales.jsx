@@ -9,7 +9,7 @@ import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, Tras
 import toast from 'react-hot-toast';
 
 const Sales = () => {
-    const { user } = useAuth();
+    const { user, activeShopId } = useAuth();
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -25,12 +25,16 @@ const Sales = () => {
 
     useEffect(() => {
         fetchSales();
-    }, []);
+    }, [activeShopId]);
 
     const fetchSales = async () => {
         try {
             setLoading(true);
-            const data = await saleService.getAll();
+            const params = {};
+            if (activeShopId) {
+                params.shop_id = activeShopId;
+            }
+            const data = await saleService.getAll(params);
             setSales(Array.isArray(data) ? data : (data?.sales || []));
         } catch (error) {
             toast.error("Failed to load sales history");
