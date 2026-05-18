@@ -76,6 +76,195 @@ const Sales = () => {
         setIsDetailsModalOpen(true);
     };
 
+    const handlePrintInvoice = (sale) => {
+        const invoiceNum = sale.Invoice?.invoice_number || sale.invoice_number || `SAL-${sale.id.slice(0, 8)}`;
+        const customerName = sale.Customer?.full_name || 'Walk-in Customer';
+        const cashierName = sale.User?.full_name || 'System';
+        const activeShopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
+        const shopName = activeShopData?.name || "ShopLink Store";
+        const shopPhone = activeShopData?.phone || "";
+        const shopAddress = activeShopData?.address || "";
+        
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        if (!printWindow) {
+            toast.error("Popup blocked! Please allow popups to print invoices.");
+            return;
+        }
+        
+        const itemsHtml = (sale.SaleItems || []).map(item => `
+            <tr>
+                <td style="padding: 6px 0; font-family: monospace; font-size: 12px; text-transform: uppercase;">
+                    ${item.Product?.name || 'Unknown Product'}
+                    <div style="font-size: 10px; color: #666;">${item.quantity} x ${Number(item.unitPrice).toLocaleString()} FBU</div>
+                </td>
+                <td style="text-align: right; padding: 6px 0; font-family: monospace; font-size: 12px; font-weight: bold;">
+                    ${Number(item.total || (item.quantity * item.unitPrice)).toLocaleString()} FBU
+                </td>
+            </tr>
+        `).join('');
+
+        const htmlContent = `
+            <html>
+            <head>
+                <title>Facture - ${invoiceNum}</title>
+                <style>
+                    body {
+                        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                        color: #333;
+                        margin: 0;
+                        padding: 20px;
+                        background: #fff;
+                    }
+                    .receipt-container {
+                        max-width: 400px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        border: 1px solid #eee;
+                        border-radius: 12px;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        border-bottom: 2px dashed #eee;
+                        padding-bottom: 15px;
+                    }
+                    .header h2 {
+                        margin: 0 0 5px 0;
+                        font-size: 20px;
+                        font-weight: 900;
+                        letter-spacing: -0.5px;
+                        text-transform: uppercase;
+                    }
+                    .header p {
+                        margin: 3px 0;
+                        font-size: 11px;
+                        color: #666;
+                        font-weight: 600;
+                    }
+                    .meta-info {
+                        font-size: 11px;
+                        margin-bottom: 15px;
+                        color: #555;
+                        line-height: 1.5;
+                    }
+                    .meta-info div {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    .meta-info span {
+                        font-weight: bold;
+                    }
+                    .items-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 15px;
+                    }
+                    .items-table th {
+                        border-bottom: 1px solid #333;
+                        text-align: left;
+                        padding-bottom: 5px;
+                        font-size: 10px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                    }
+                    .totals {
+                        border-top: 2px dashed #eee;
+                        padding-top: 10px;
+                        margin-top: 10px;
+                    }
+                    .totals-row {
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 12px;
+                        margin-bottom: 4px;
+                    }
+                    .grand-total {
+                        font-size: 16px;
+                        font-weight: 900;
+                        border-top: 1px solid #333;
+                        padding-top: 8px;
+                        margin-top: 8px;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 30px;
+                        font-size: 10px;
+                        color: #888;
+                        border-top: 1px dashed #eee;
+                        padding-top: 15px;
+                    }
+                    @media print {
+                        body { padding: 0; }
+                        .receipt-container {
+                            border: none;
+                            padding: 0;
+                            max-width: 100%;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-container">
+                    <div class="header">
+                        <h2>${shopName}</h2>
+                        <p>QUALITY PRODUCTS & SERVICES</p>
+                        ${shopAddress ? `<p>${shopAddress}</p>` : ''}
+                        ${shopPhone ? `<p>Phone: ${shopPhone}</p>` : ''}
+                    </div>
+                    <div class="meta-info">
+                        <div>Invoice: <span>${invoiceNum}</span></div>
+                        <div>Date: <span>${new Date(sale.createdAt).toLocaleString()}</span></div>
+                        <div>Customer: <span>${customerName}</span></div>
+                        <div>Cashier: <span>${cashierName}</span></div>
+                        <div>Payment: <span>${sale.paymentMethod || 'CASH'}</span></div>
+                    </div>
+                    
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th style="padding-bottom: 8px;">Item Description</th>
+                                <th style="text-align: right; padding-bottom: 8px;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+                    
+                    <div class="totals">
+                        <div class="totals-row">
+                            <div>Subtotal</div>
+                            <div style="font-family: monospace; font-weight: bold;">${Number(sale.subtotal || (sale.totalAmount - (sale.taxAmount || 0))).toLocaleString()} FBU</div>
+                        </div>
+                        <div class="totals-row" style="color: #666;">
+                            <div>Tax (VAT Incl)</div>
+                            <div style="font-family: monospace; font-weight: bold;">${Number(sale.taxAmount || sale.tax_amount || 0).toLocaleString()} FBU</div>
+                        </div>
+                        <div class="totals-row grand-total">
+                            <div>GRAND TOTAL</div>
+                            <div style="font-family: monospace;">${Number(sale.totalAmount || sale.total_amount).toLocaleString()} FBU</div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        <p style="margin: 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Thank you for shopping with us!</p>
+                        <p style="margin: 4px 0 0 0; font-size: 8px;">Powered by ShopLink ERP</p>
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        setTimeout(function() { window.close(); }, 500);
+                    }
+                </script>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -235,7 +424,7 @@ const Sales = () => {
                         </div>
 
                         <div className="flex gap-4">
-                            <button className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3">
+                            <button onClick={() => handlePrintInvoice(selectedSale)} className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3">
                                 <Download size={18} /> Print Invoice
                             </button>
                             <button onClick={() => setIsDetailsModalOpen(false)} className="px-8 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-2xl font-black text-xs uppercase tracking-widest">Close</button>
