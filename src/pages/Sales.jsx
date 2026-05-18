@@ -7,6 +7,8 @@ import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, Trash2, User as UserIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const Sales = () => {
     const { user, activeShopId } = useAuth();
@@ -76,7 +78,7 @@ const Sales = () => {
         setIsDetailsModalOpen(true);
     };
 
-    const handlePrintInvoice = (sale) => {
+    const handlePrintInvoice = async (sale) => {
         const invoiceNum = sale.Invoice?.invoice_number || sale.invoice_number || `SAL-${sale.id.slice(0, 8)}`;
         const customerName = sale.Customer?.full_name || 'Walk-in Customer';
         const cashierName = sale.User?.full_name || 'System';
@@ -84,185 +86,199 @@ const Sales = () => {
         const shopName = activeShopData?.name || "ShopLink Store";
         const shopPhone = activeShopData?.phone || "";
         const shopAddress = activeShopData?.address || "";
-        
-        const printWindow = window.open('', '_blank', 'width=800,height=600');
-        if (!printWindow) {
-            toast.error("Popup blocked! Please allow popups to print invoices.");
-            return;
-        }
-        
-        const itemsHtml = (sale.SaleItems || []).map(item => `
-            <tr>
-                <td style="padding: 6px 0; font-family: monospace; font-size: 12px; text-transform: uppercase;">
-                    ${item.Product?.name || 'Unknown Product'}
-                    <div style="font-size: 10px; color: #666;">${item.quantity} x ${Number(item.unitPrice).toLocaleString()} FBU</div>
-                </td>
-                <td style="text-align: right; padding: 6px 0; font-family: monospace; font-size: 12px; font-weight: bold;">
-                    ${Number(item.total || (item.quantity * item.unitPrice)).toLocaleString()} FBU
-                </td>
-            </tr>
-        `).join('');
 
-        const htmlContent = `
-            <html>
-            <head>
-                <title>Facture - ${invoiceNum}</title>
-                <style>
-                    body {
-                        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                        color: #333;
-                        margin: 0;
-                        padding: 20px;
-                        background: #fff;
-                    }
-                    .receipt-container {
-                        max-width: 400px;
-                        margin: 0 auto;
-                        padding: 20px;
-                        border: 1px solid #eee;
-                        border-radius: 12px;
-                    }
-                    .header {
-                        text-align: center;
-                        margin-bottom: 20px;
-                        border-bottom: 2px dashed #eee;
-                        padding-bottom: 15px;
-                    }
-                    .header h2 {
-                        margin: 0 0 5px 0;
-                        font-size: 20px;
-                        font-weight: 900;
-                        letter-spacing: -0.5px;
-                        text-transform: uppercase;
-                    }
-                    .header p {
-                        margin: 3px 0;
-                        font-size: 11px;
-                        color: #666;
-                        font-weight: 600;
-                    }
-                    .meta-info {
-                        font-size: 11px;
-                        margin-bottom: 15px;
-                        color: #555;
-                        line-height: 1.5;
-                    }
-                    .meta-info div {
-                        display: flex;
-                        justify-content: space-between;
-                    }
-                    .meta-info span {
-                        font-weight: bold;
-                    }
-                    .items-table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-bottom: 15px;
-                    }
-                    .items-table th {
-                        border-bottom: 1px solid #333;
-                        text-align: left;
-                        padding-bottom: 5px;
-                        font-size: 10px;
-                        text-transform: uppercase;
-                        letter-spacing: 1px;
-                    }
-                    .totals {
-                        border-top: 2px dashed #eee;
-                        padding-top: 10px;
-                        margin-top: 10px;
-                    }
-                    .totals-row {
-                        display: flex;
-                        justify-content: space-between;
-                        font-size: 12px;
-                        margin-bottom: 4px;
-                    }
-                    .grand-total {
-                        font-size: 16px;
-                        font-weight: 900;
-                        border-top: 1px solid #333;
-                        padding-top: 8px;
-                        margin-top: 8px;
-                    }
-                    .footer {
-                        text-align: center;
-                        margin-top: 30px;
-                        font-size: 10px;
-                        color: #888;
-                        border-top: 1px dashed #eee;
-                        padding-top: 15px;
-                    }
-                    @media print {
-                        body { padding: 0; }
-                        .receipt-container {
-                            border: none;
-                            padding: 0;
-                            max-width: 100%;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="receipt-container">
-                    <div class="header">
-                        <h2>${shopName}</h2>
-                        <p>QUALITY PRODUCTS & SERVICES</p>
-                        ${shopAddress ? `<p>${shopAddress}</p>` : ''}
-                        ${shopPhone ? `<p>Phone: ${shopPhone}</p>` : ''}
-                    </div>
-                    <div class="meta-info">
-                        <div>Invoice: <span>${invoiceNum}</span></div>
-                        <div>Date: <span>${new Date(sale.createdAt).toLocaleString()}</span></div>
-                        <div>Customer: <span>${customerName}</span></div>
-                        <div>Cashier: <span>${cashierName}</span></div>
-                        <div>Payment: <span>${sale.paymentMethod || 'CASH'}</span></div>
-                    </div>
-                    
-                    <table class="items-table">
-                        <thead>
-                            <tr>
-                                <th style="padding-bottom: 8px;">Item Description</th>
-                                <th style="text-align: right; padding-bottom: 8px;">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${itemsHtml}
-                        </tbody>
-                    </table>
-                    
-                    <div class="totals">
-                        <div class="totals-row">
-                            <div>Subtotal</div>
-                            <div style="font-family: monospace; font-weight: bold;">${Number(sale.subtotal || (sale.totalAmount - (sale.taxAmount || 0))).toLocaleString()} FBU</div>
-                        </div>
-                        <div class="totals-row" style="color: #666;">
-                            <div>Tax (VAT Incl)</div>
-                            <div style="font-family: monospace; font-weight: bold;">${Number(sale.taxAmount || sale.tax_amount || 0).toLocaleString()} FBU</div>
-                        </div>
-                        <div class="totals-row grand-total">
-                            <div>GRAND TOTAL</div>
-                            <div style="font-family: monospace;">${Number(sale.totalAmount || sale.total_amount).toLocaleString()} FBU</div>
-                        </div>
-                    </div>
-                    
-                    <div class="footer">
-                        <p style="margin: 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Thank you for shopping with us!</p>
-                        <p style="margin: 4px 0 0 0; font-size: 8px;">Powered by ShopLink ERP</p>
-                    </div>
-                </div>
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        setTimeout(function() { window.close(); }, 500);
-                    }
-                </script>
-            </body>
-            </html>
-        `;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
 
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
+        const primaryColor = [15, 23, 42];
+        const accentColor = [217, 119, 6];
+        const textColor = [51, 65, 85];
+
+        // Draw Company Logo
+        const addImageProcess = new Promise((resolve) => {
+            const img = new Image();
+            img.src = '/shoplink/logo.png';
+            img.onload = () => {
+                try {
+                    doc.addImage(img, 'PNG', 20, 20, 32, 32);
+                } catch (e) {
+                    console.error('Failed to draw logo.png', e);
+                }
+                resolve();
+            };
+            img.onerror = () => {
+                doc.setFillColor(15, 23, 42);
+                doc.roundedRect(20, 20, 32, 32, 4, 4, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.text('SL', 36, 40, { align: 'center' });
+                resolve();
+            };
+        });
+
+        await addImageProcess;
+
+        // Header Text Details
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(22);
+        doc.text(shopName.toUpperCase(), 58, 30);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text('INVOICE / FACTURE CERTIFICATE', 58, 36);
+        if (shopAddress) doc.text(`Address: ${shopAddress}`, 58, 42);
+        if (shopPhone) doc.text(`Phone: ${shopPhone}`, 58, 47);
+
+        // Right Header Box (Invoice details)
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(135, 20, 55, 32, 3, 3, 'F');
+        
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('INVOICE DETAIL', 140, 27);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        doc.text(`Ref No: ${invoiceNum}`, 140, 33);
+        doc.text(`Date: ${new Date(sale.createdAt).toLocaleDateString('en-GB')}`, 140, 38);
+        doc.text(`Payment: ${sale.paymentMethod || 'CASH'}`, 140, 43);
+        doc.text(`Status: ${sale.status || 'COMPLETED'}`, 140, 48);
+
+        // Divider Line
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.line(20, 58, 190, 58);
+
+        // Party Details Section
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('CLIENT DETAILS', 20, 68);
+        doc.text('TRANSACTION META', 110, 68);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        doc.text(`Name: ${customerName}`, 20, 74);
+        doc.text('Type: Retail Customer', 20, 79);
+        doc.text(`Seller: ${cashierName}`, 110, 74);
+        doc.text(`Branch ID: ${activeShopId.slice(0, 8)}`, 110, 79);
+
+        // Generate Items Table
+        const tableColumns = [
+            { header: 'ITEM DESCRIPTION', dataKey: 'name' },
+            { header: 'UNIT PRICE', dataKey: 'price', align: 'right' },
+            { header: 'QUANTITY', dataKey: 'qty', align: 'center' },
+            { header: 'TOTAL (FBU)', dataKey: 'total', align: 'right' }
+        ];
+
+        const tableRows = (sale.SaleItems || []).map(item => ({
+            name: (item.Product?.name || 'Unknown Product').toUpperCase(),
+            price: `${Number(item.unitPrice).toLocaleString()} FBU`,
+            qty: String(item.quantity),
+            total: `${Number(item.total || (item.quantity * item.unitPrice)).toLocaleString()} FBU`
+        }));
+
+        autoTable(doc, {
+            columns: tableColumns,
+            body: tableRows,
+            startY: 88,
+            margin: { left: 20, right: 20 },
+            styles: {
+                font: 'helvetica',
+                fontSize: 8,
+                cellPadding: 4,
+                textColor: [51, 65, 85],
+                valign: 'middle'
+            },
+            headStyles: {
+                fillColor: [15, 23, 42],
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                fontSize: 8,
+                halign: 'left'
+            },
+            columnStyles: {
+                price: { halign: 'right' },
+                qty: { halign: 'center' },
+                total: { halign: 'right' }
+            },
+            theme: 'striped'
+        });
+
+        // Totals Calculation Box
+        const finalY = (doc.lastAutoTable?.finalY || doc.previousAutoTable?.finalY || 120) + 12;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Subtotal:', 125, finalY);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${Number(sale.subtotal || (sale.totalAmount - (sale.taxAmount || 0))).toLocaleString()} FBU`, 190, finalY, { align: 'right' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        doc.text('Tax (VAT Incl):', 125, finalY + 6);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${Number(sale.taxAmount || sale.tax_amount || 0).toLocaleString()} FBU`, 190, finalY + 6, { align: 'right' });
+
+        doc.setDrawColor(15, 23, 42);
+        doc.setLineWidth(0.5);
+        doc.line(125, finalY + 10, 190, finalY + 10);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('GRAND TOTAL:', 125, finalY + 16);
+        doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+        doc.text(`${Number(sale.totalAmount || sale.total_amount).toLocaleString()} FBU`, 190, finalY + 16, { align: 'right' });
+
+        // Signatures & Stamp Section (Allocated place for signature and stamp)
+        const sigY = finalY + 36;
+        
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.3);
+        
+        // Seller Sign Area
+        doc.line(20, sigY, 80, sigY);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text(`Seller: ${cashierName}`, 20, sigY + 6);
+
+        // Stamp / Verified Area
+        doc.line(130, sigY, 190, sigY);
+        doc.text('Verified Stamp & Date', 130, sigY + 6);
+        
+        // Stamp Box Decoration (Subtle rounded box)
+        doc.setDrawColor(226, 232, 240);
+        doc.roundedRect(130, sigY + 10, 60, 24, 2, 2, 'S');
+
+        // Premium Footer
+        const pageHeight = doc.internal.pageSize.height;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('THANK YOU FOR YOUR BUSINESS!', 105, pageHeight - 16, { align: 'center' });
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(148, 163, 184);
+        doc.text('This is an official document generated digitally by ShopLink ERP.', 105, pageHeight - 10, { align: 'center' });
+
+        // Save PDF File Natively
+        doc.save(`Facture_${invoiceNum}.pdf`);
+        toast.success("Facture PDF downloaded successfully!");
     };
 
     return (
