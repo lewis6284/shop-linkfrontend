@@ -7,7 +7,7 @@ import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
 import { 
     BarChart2, ArrowLeftRight, Package, AlertTriangle, 
-    TrendingUp, Store, Filter, RefreshCw, CheckCircle, Plus, Edit2
+    TrendingUp, Store, Filter, RefreshCw, CheckCircle, Plus, Edit2, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -116,6 +116,17 @@ const Stock = () => {
             fetchData();
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to complete transfer");
+        }
+    };
+
+    const handleCancel = async (id) => {
+        if (!window.confirm('Cancel this transfer? This action cannot be undone.')) return;
+        try {
+            await stockService.cancelTransfer(id);
+            toast.success('Transfer cancelled.');
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to cancel transfer');
         }
     };
 
@@ -356,7 +367,16 @@ const Stock = () => {
                     </div>
                     {isAuthorized && (
                         <button
-                            onClick={() => setIsTransferModalOpen(true)}
+                            onClick={() => {
+                                setTransferData({
+                                    ProductId: '',
+                                    fromShopId: activeShopId || '',
+                                    toShopId: '',
+                                    quantity: 1,
+                                    notes: ''
+                                });
+                                setIsTransferModalOpen(true);
+                            }}
                             className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all"
                         >
                             <Plus size={14} /> New Transfer
@@ -401,14 +421,24 @@ const Stock = () => {
                                 <span className="text-[10px] font-mono text-gray-400">{new Date(t.createdAt).toLocaleDateString()}</span>
                             </TableCell>
                             <TableCell>
-                                {t.status === 'PENDING' && isAuthorized && (
-                                    <button
-                                        onClick={() => handleApprove(t.id)}
-                                        className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-1.5 shadow shadow-emerald-500/10"
-                                    >
-                                        <CheckCircle size={12} /> Complete Transfer
-                                    </button>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {t.status === 'PENDING' && isAuthorized && (
+                                        <button
+                                            onClick={() => handleApprove(t.id)}
+                                            className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-1.5 shadow shadow-emerald-500/10"
+                                        >
+                                            <CheckCircle size={12} /> Complete
+                                        </button>
+                                    )}
+                                    {t.status === 'PENDING' && isAuthorized && (
+                                        <button
+                                            onClick={() => handleCancel(t.id)}
+                                            className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/30 dark:hover:text-rose-400 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-1.5"
+                                        >
+                                            <X size={12} /> Cancel
+                                        </button>
+                                    )}
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}
@@ -434,6 +464,21 @@ const Stock = () => {
                             </select>
                         </div>
 
+                        {user?.role === 'owner' && (
+                            <div className="space-y-1">
+                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Source Shop / Warehouse</label>
+                                <select 
+                                    required
+                                    value={transferData.fromShopId}
+                                    onChange={e => setTransferData({...transferData, fromShopId: e.target.value})}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
+                                >
+                                    <option value="">Choose source shop...</option>
+                                    {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Destination Shop</label>
@@ -443,8 +488,8 @@ const Stock = () => {
                                     onChange={e => setTransferData({...transferData, toShopId: e.target.value})}
                                     className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
                                 >
-                                    <option value="">Select shop...</option>
-                                    {shops.filter(s => s.id !== activeShopId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    <option value="">Select destination...</option>
+                                    {shops.filter(s => s.id !== (transferData.fromShopId || activeShopId)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-1">

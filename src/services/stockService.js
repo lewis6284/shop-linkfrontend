@@ -24,5 +24,9 @@ export const stockService = {
     approveTransfer: async (id) => {
         const response = await api.patch(`/stock/transfers/${id}/approve`);
         return response.data;
+    },
+    cancelTransfer: async (id) => {
+        const response = await api.patch(`/stock/transfers/${id}/cancel`);
+        return response.data;
     }
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
-    Bell, Search, User, LogOut, Settings as SettingsIcon,
+    Search, User, LogOut, Settings as SettingsIcon,
     Menu, Moon, Sun,
     Loader2, X, PanelLeftOpen
 } from 'lucide-react';
@@ -261,11 +261,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                     </button>
                 )}
 
-                {/* Notifications */}
-                <button className="relative p-2 text-gray-400 hover:text-brand-500 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors">
-                    <Bell size={20} />
-                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"></span>
-                </button>
+
 
                 {/* Logout Icon - Direct */}
                 <button
