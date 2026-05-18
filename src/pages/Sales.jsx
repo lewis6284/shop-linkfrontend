@@ -174,7 +174,7 @@ const Sales = () => {
                                     >
                                         <Eye size={18} />
                                     </button>
-                                    {s.status !== 'CANCELLED' && (
+                                    {s.status !== 'CANCELLED' && (user?.role === 'owner' || user?.role === 'manager') && (
                                         <button 
                                             onClick={() => handleCancelClick(s)}
                                             className="p-3 bg-gray-50 dark:bg-gray-700 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm"
