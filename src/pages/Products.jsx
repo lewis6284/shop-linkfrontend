@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { productService, categoryService, brandService, unitService } from '../services/inventoryService';
 import userService from '../services/userService';
-import { calculateMargin, calculateTax, generateBarcode, generateSKU } from '../utils/calculations';
+import { calculateMargin, calculateTax, generateSKU } from '../utils/calculations';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
