@@ -22,11 +22,11 @@ export const calculateMargin = (purchasePrice, sellingPrice) => {
 /**
  * Calculate Tax (TVA)
  */
-export const calculateTax = (sellingPrice, taxType = 'NTVA', taxRate = 18) => {
+export const calculateTax = (sellingPrice, taxType = 'HTVA', taxRate = 18) => {
     const price = Number(sellingPrice) || 0;
     const rate = Number(taxRate) || 0;
     
-    if (taxType === 'NTVA') return 0;
+    if (taxType === 'HTVA' || taxType === 'NTVA') return 0;
     
     return price * (rate / 100);
 };

@@ -60,3 +60,22 @@ export const brandService = {
         return response.data.data || response.data;
     }
 };
+
+export const unitService = {
+    getAll: async () => {
+        const response = await api.get('/units');
+        return response.data.data || response.data;
+    },
+    create: async (data) => {
+        const response = await api.post('/units', data);
+        return response.data.data || response.data;
+    },
+    update: async (id, data) => {
+        const response = await api.patch(`/units/${id}`, data);
+        return response.data.data || response.data;
+    },
+    delete: async (id) => {
+        const response = await api.delete(`/units/${id}`);
+        return response.data.data || response.data;
+    }
+};
