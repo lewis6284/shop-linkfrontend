@@ -26,7 +26,7 @@ const Unauthorized = () => {
                     </button>
                     <div className="flex gap-3">
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={() => navigate('/shoplink/login')}
                             className="flex-1 flex justify-center items-center gap-2 py-3 bg-brand-50 text-brand-700 rounded-xl font-medium hover:bg-brand-100 transition-colors"
                         >
                             Go to Login

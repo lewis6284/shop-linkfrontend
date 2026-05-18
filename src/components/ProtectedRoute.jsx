@@ -34,7 +34,7 @@ const ProtectedRoute = ({ children, allowedRoles, skipShopGuard = false }) => {
 
     // 2. Must be authenticated
     if (!user) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
+        return <Navigate to="/shoplink/login" state={{ from: location }} replace />;
     }
 
     // 3. Role check

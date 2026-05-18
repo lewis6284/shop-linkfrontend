@@ -42,8 +42,8 @@ api.interceptors.response.use(
             localStorage.removeItem('activeShopData');
             
             // Redirect to login only if we are not already on it
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            if (window.location.pathname !== '/shoplink/login') {
+                window.location.href = '/shoplink/login';
             }
         }
         return Promise.reject(error);
