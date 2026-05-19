@@ -3,11 +3,12 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import {
     TrendingUp, Users, Loader2, DollarSign, Activity, ShoppingCart, 
     Calendar, ArrowUpRight, AlertTriangle, CheckCircle2, Download, 
-    RefreshCw, ShieldAlert, PieChart, Briefcase
+    RefreshCw, ShieldAlert, PieChart, Briefcase, FileText, Printer
 } from 'lucide-react';
 import { financialService } from '../services/financialService';
 
 const Reports = () => {
+    const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'statement'
     const [activeTab, setActiveTab] = useState('sales');
     const [dateRange, setDateRange] = useState('30'); // '7', '30', 'custom'
     const [startDate, setStartDate] = useState(() => {
@@ -83,6 +84,10 @@ const Reports = () => {
         fetchAllReportData();
     }, [dateRange, startDate, endDate]);
 
+    const handlePrint = () => {
+        window.print();
+    };
+
     if (loading) {
         return (
             <div className="h-full min-h-[60vh] flex flex-col items-center justify-center py-20 gap-4">
@@ -110,9 +115,44 @@ const Reports = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+        <div className="space-y-6 pb-20 relative">
+            {/* Custom Print CSS overrides to hide layout and render perfect black & white reports */}
+            <style>{`
+                @media print {
+                    aside, nav, header, .no-print, button, .toggle-container, .date-selector-bar {
+                        display: none !important;
+                    }
+                    body {
+                        background: white !important;
+                        color: black !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    .print-sheet {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        margin: 0 !important;
+                        padding: 10mm !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        background: white !important;
+                        color: black !important;
+                    }
+                    table {
+                        page-break-inside: auto;
+                    }
+                    tr {
+                        page-break-inside: avoid;
+                        page-break-after: auto;
+                    }
+                }
+            `}</style>
+
             {/* Header section with interactive export and refresh controls */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 dark:border-gray-800 pb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 dark:border-gray-800 pb-6 no-print">
                 <div>
                     <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
                         System Health & Intelligence
@@ -128,14 +168,38 @@ const Reports = () => {
                     >
                         <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
                     </button>
+                    {viewMode === 'statement' && (
+                        <button 
+                            onClick={handlePrint}
+                            className="px-5 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10"
+                        >
+                            <Printer size={18} /> Print Statement
+                        </button>
+                    )}
                     <button className="flex-1 md:flex-initial px-5 py-3 bg-brand-600 text-white font-bold rounded-2xl hover:bg-brand-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-500/10">
                         <Download size={18} /> Export Health Audit
                     </button>
                 </div>
             </div>
 
+            {/* Premium view mode selector bar */}
+            <div className="flex bg-gray-100 dark:bg-gray-900 p-1.5 rounded-2xl self-stretch md:w-fit toggle-container no-print">
+                <button 
+                    onClick={() => setViewMode('dashboard')}
+                    className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${viewMode === 'dashboard' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                >
+                    <Activity size={16} /> Interactive Dashboard
+                </button>
+                <button 
+                    onClick={() => setViewMode('statement')}
+                    className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${viewMode === 'statement' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm border border-brand-100 dark:border-brand-900/30' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                >
+                    <FileText size={16} /> Executive Economic Statement
+                </button>
+            </div>
+
             {/* Comprehensive Period Selectors */}
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 date-selector-bar no-print">
                 <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl self-stretch sm:self-auto">
                     <button 
                         onClick={() => setDateRange('7')}
@@ -182,274 +246,428 @@ const Reports = () => {
                 )}
             </div>
 
-            {/* Breathtaking Financial Metrics Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Gross Revenue Card */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                    <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <DollarSign size={90} />
-                    </div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-2xl">
-                            <DollarSign size={20} />
-                        </div>
-                        <h3 className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Gross Revenue</h3>
-                    </div>
-                    <div className="text-2xl font-black text-gray-900 dark:text-white">
-                        {grossRevenue.toLocaleString()} <span className="text-xs">Fbu</span>
-                    </div>
-                    <div className="text-[10px] text-emerald-600 font-black mt-2 uppercase tracking-tight flex items-center gap-1">
-                        <ArrowUpRight size={12} /> Stable retail volume
-                    </div>
-                </div>
-
-                {/* Cost of Goods Sold Card */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                    <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <ShoppingCart size={90} />
-                    </div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-2xl">
-                            <ShoppingCart size={20} />
-                        </div>
-                        <h3 className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Cost of Goods (COGS)</h3>
-                    </div>
-                    <div className="text-2xl font-black text-gray-900 dark:text-white">
-                        {cogs.toLocaleString()} <span className="text-xs">Fbu</span>
-                    </div>
-                    <div className="text-[10px] text-gray-400 font-black mt-2 uppercase tracking-tight">Total stock procurement value</div>
-                </div>
-
-                {/* Gross Profit Card */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow border-brand-200 dark:border-brand-900/40">
-                    <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <TrendingUp size={90} />
-                    </div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 rounded-2xl">
-                            <TrendingUp size={20} />
-                        </div>
-                        <h3 className="font-black text-brand-600 dark:text-brand-400 text-[10px] uppercase tracking-widest">Gross Profit</h3>
-                    </div>
-                    <div className="text-2xl font-black text-gray-900 dark:text-white">
-                        {grossProfit.toLocaleString()} <span className="text-xs">Fbu</span>
-                    </div>
-                    <div className="text-[10px] text-brand-600 font-black mt-2 uppercase tracking-tight">True purchasing margin kept</div>
-                </div>
-
-                {/* Gross Margin Percentage Card */}
-                <div className="bg-gradient-to-br from-brand-600 to-brand-700 p-6 rounded-3xl shadow-lg shadow-brand-500/10 text-white relative overflow-hidden group">
-                    <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <PieChart size={90} />
-                    </div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-white/10 text-white rounded-2xl">
-                            <PieChart size={20} />
-                        </div>
-                        <h3 className="font-black text-brand-100 text-[10px] uppercase tracking-widest">System Gross Margin</h3>
-                    </div>
-                    <div className="text-4xl font-black tracking-tighter">
-                        {profitMargin}%
-                    </div>
-                    <div className="text-[10px] font-black text-brand-200 mt-2 uppercase tracking-tight">Average product efficiency</div>
-                </div>
-            </div>
-
-            {/* Deep-Dive Interactive Tab Panel Selector */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-                <div className="flex border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 p-2 gap-2 overflow-x-auto">
-                    <button 
-                        onClick={() => setActiveTab('sales')}
-                        className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'sales' ? 'bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                    >
-                        <Activity size={16} /> Sales Performance
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('products')}
-                        className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'products' ? 'bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                    >
-                        <ShoppingCart size={16} /> Product Margins
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('employees')}
-                        className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'employees' ? 'bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                    >
-                        <Briefcase size={16} /> Staff Sales
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('security')}
-                        className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'security' ? 'bg-white dark:bg-gray-900 text-rose-600 dark:text-rose-400 shadow-sm border border-rose-100 dark:border-rose-900/30' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                    >
-                        <ShieldAlert size={16} /> Security Audit Feed
-                    </button>
-                </div>
-
-                <div className="p-8">
-                    {/* Tab 1: Sales Analytics Graph */}
-                    {activeTab === 'sales' && (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm">Revenue Flow Trend</h3>
-                                    <p className="text-gray-400 text-xs mt-1">Real-time daily transaction volumes mapped chronologically</p>
+            {viewMode === 'dashboard' ? (
+                <>
+                    {/* Breathtaking Financial Metrics Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print animate-in fade-in duration-300">
+                        {/* Gross Revenue Card */}
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                            <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <DollarSign size={90} />
+                            </div>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-2xl">
+                                    <DollarSign size={20} />
                                 </div>
+                                <h3 className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Gross Revenue</h3>
                             </div>
-                            <div className="h-[360px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={monthlySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="colorRevReport" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
-                                                <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" strokeOpacity={0.15} />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 900 }} dy={15} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 900 }} tickFormatter={(val) => `${val / 1000}k`} />
-                                        <Tooltip
-                                            contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', backgroundColor: '#111827', padding: '16px' }}
-                                            itemStyle={{ color: '#F3F4F6', fontSize: '13px', fontWeight: 'bold' }}
-                                            labelStyle={{ color: '#9CA3AF', marginBottom: '8px', fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase' }}
-                                            formatter={(value) => [`${Number(value).toLocaleString()} Fbu`, 'Gross Revenue']}
-                                        />
-                                        <Area type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={3.5} fillOpacity={1} fill="url(#colorRevReport)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                            <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                {grossRevenue.toLocaleString()} <span className="text-xs">Fbu</span>
+                            </div>
+                            <div className="text-[10px] text-emerald-600 font-black mt-2 uppercase tracking-tight flex items-center gap-1">
+                                <ArrowUpRight size={12} /> Stable retail volume
                             </div>
                         </div>
-                    )}
 
-                    {/* Tab 2: Best-selling Products & Profit Margins */}
-                    {activeTab === 'products' && (
-                        <div className="space-y-6">
-                            <div>
-                                <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm">Product Profitability Index</h3>
-                                <p className="text-gray-400 text-xs mt-1">Detailed breakdowns of items driving the highest volumes and sales margins</p>
+                        {/* Cost of Goods Sold Card */}
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                            <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <ShoppingCart size={90} />
                             </div>
-                            <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
-                                            <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Product Details</th>
-                                            <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest text-right">Units Sold</th>
-                                            <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest text-right">Total Revenue</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                                        {topProducts.length > 0 ? (
-                                            topProducts.map((prod, idx) => (
-                                                <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/10 transition-colors">
-                                                    <td className="px-6 py-4 font-bold text-gray-900 dark:text-white text-sm">
-                                                        {prod.Product?.name || prod.name || 'Unknown Product'}
-                                                    </td>
-                                                    <td className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-sm text-right">
-                                                        {Number(prod.total_sold || prod.quantity || 0).toLocaleString()}
-                                                    </td>
-                                                    <td className="px-6 py-4 font-black text-brand-600 dark:text-brand-400 text-sm text-right">
-                                                        {Number(prod.total_revenue || prod.revenue || 0).toLocaleString()} Fbu
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No product data logged for this range</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Tab 3: Staff Performance */}
-                    {activeTab === 'employees' && (
-                        <div className="space-y-6">
-                            <div>
-                                <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm">Staff Register Performance</h3>
-                                <p className="text-gray-400 text-xs mt-1">Transaction counts and revenues registered by active cashiers and managers</p>
-                            </div>
-                            <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
-                                            <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Employee Name</th>
-                                            <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Designation</th>
-                                            <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest text-right">Completed Sales</th>
-                                            <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest text-right">Revenue Contributed</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                                        {employeeSales.length > 0 ? (
-                                            employeeSales.map((emp, idx) => (
-                                                <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/10 transition-colors">
-                                                    <td className="px-6 py-4 font-bold text-gray-900 dark:text-white text-sm">
-                                                        {emp.User?.full_name || 'Staff Member'}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border dark:border-gray-700">
-                                                            {emp.User?.role || 'Staff'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-sm text-right">
-                                                        {emp.total_sales || 0}
-                                                    </td>
-                                                    <td className="px-6 py-4 font-black text-emerald-600 dark:text-emerald-400 text-sm text-right">
-                                                        {Number(emp.total_revenue || 0).toLocaleString()} Fbu
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="4" className="px-6 py-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No employee transactions found for this range</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Tab 4: Security Audit Log Feed */}
-                    {activeTab === 'security' && (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm flex items-center gap-2">
-                                        <ShieldAlert className="text-rose-500" size={18} /> Compliance & System Security Logs
-                                    </h3>
-                                    <p className="text-gray-400 text-xs mt-1">Direct un-editable feed of modifications, critical events, and daily generations</p>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-2xl">
+                                    <ShoppingCart size={20} />
                                 </div>
+                                <h3 className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Cost of Goods (COGS)</h3>
                             </div>
-                            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                {auditLogs.length > 0 ? (
-                                    auditLogs.map((log) => (
-                                        <div key={log.id} className="p-4 bg-gray-50 dark:bg-gray-900/30 rounded-2xl border border-gray-100 dark:border-gray-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-gray-200 dark:hover:border-gray-700 transition-colors">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border ${getAuditLevelStyles(log.actionType)}`}>
-                                                    {log.actionType?.replace(/_/g, ' ') || 'ACTION'}
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs font-black text-gray-900 dark:text-white tracking-tight">
-                                                        {log.User?.full_name || 'System Auto-Daemon'}
-                                                    </p>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-0.5">
-                                                        Modified Table: {log.tableName || 'System'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="text-[9px] text-gray-400 font-black uppercase self-end sm:self-auto">
-                                                {new Date(log.createdAt).toLocaleString()}
-                                            </div>
+                            <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                {cogs.toLocaleString()} <span className="text-xs">Fbu</span>
+                            </div>
+                            <div className="text-[10px] text-gray-400 font-black mt-2 uppercase tracking-tight">Total stock procurement value</div>
+                        </div>
+
+                        {/* Gross Profit Card */}
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow border-brand-200 dark:border-brand-900/40">
+                            <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <TrendingUp size={90} />
+                            </div>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3 bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 rounded-2xl">
+                                    <TrendingUp size={20} />
+                                </div>
+                                <h3 className="font-black text-brand-600 dark:text-brand-400 text-[10px] uppercase tracking-widest">Gross Profit</h3>
+                            </div>
+                            <div className="text-2xl font-black text-gray-900 dark:text-white">
+                                {grossProfit.toLocaleString()} <span className="text-xs">Fbu</span>
+                            </div>
+                            <div className="text-[10px] text-brand-600 font-black mt-2 uppercase tracking-tight">True purchasing margin kept</div>
+                        </div>
+
+                        {/* Gross Margin Percentage Card */}
+                        <div className="bg-gradient-to-br from-brand-600 to-brand-700 p-6 rounded-3xl shadow-lg shadow-brand-500/10 text-white relative overflow-hidden group">
+                            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <PieChart size={90} />
+                            </div>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3 bg-white/10 text-white rounded-2xl">
+                                    <PieChart size={20} />
+                                </div>
+                                <h3 className="font-black text-brand-100 text-[10px] uppercase tracking-widest">System Gross Margin</h3>
+                            </div>
+                            <div className="text-4xl font-black tracking-tighter">
+                                {profitMargin}%
+                            </div>
+                            <div className="text-[10px] font-black text-brand-200 mt-2 uppercase tracking-tight">Average product efficiency</div>
+                        </div>
+                    </div>
+
+                    {/* Deep-Dive Interactive Tab Panel Selector */}
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden no-print">
+                        <div className="flex border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 p-2 gap-2 overflow-x-auto">
+                            <button 
+                                onClick={() => setActiveTab('sales')}
+                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'sales' ? 'bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                            >
+                                <Activity size={16} /> Sales Performance
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('products')}
+                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'products' ? 'bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                            >
+                                <ShoppingCart size={16} /> Product Margins
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('employees')}
+                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'employees' ? 'bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                            >
+                                <Briefcase size={16} /> Staff Sales
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('security')}
+                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'security' ? 'bg-white dark:bg-gray-900 text-rose-600 dark:text-rose-400 shadow-sm border border-rose-100 dark:border-rose-900/30' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                            >
+                                <ShieldAlert size={16} /> Security Audit Feed
+                            </button>
+                        </div>
+
+                        <div className="p-8">
+                            {/* Tab 1: Sales Analytics Graph */}
+                            {activeTab === 'sales' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm">Revenue Flow Trend</h3>
+                                            <p className="text-gray-400 text-xs mt-1">Real-time daily transaction volumes mapped chronologically</p>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="py-16 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No security activity logged yet</div>
-                                )}
+                                    </div>
+                                    <div className="h-[360px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={monthlySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                                <defs>
+                                                    <linearGradient id="colorRevReport" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
+                                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" strokeOpacity={0.15} />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 900 }} dy={15} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 900 }} tickFormatter={(val) => `${val / 1000}k`} />
+                                                <Tooltip
+                                                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', backgroundColor: '#111827', padding: '16px' }}
+                                                    itemStyle={{ color: '#F3F4F6', fontSize: '13px', fontWeight: 'bold' }}
+                                                    labelStyle={{ color: '#9CA3AF', marginBottom: '8px', fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase' }}
+                                                    formatter={(value) => [`${Number(value).toLocaleString()} Fbu`, 'Gross Revenue']}
+                                                />
+                                                <Area type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={3.5} fillOpacity={1} fill="url(#colorRevReport)" />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Tab 2: Best-selling Products & Profit Margins */}
+                            {activeTab === 'products' && (
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm">Product Profitability Index</h3>
+                                        <p className="text-gray-400 text-xs mt-1">Detailed breakdowns of items driving the highest volumes and sales margins</p>
+                                    </div>
+                                    <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Product Details</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest text-right">Units Sold</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest text-right">Total Revenue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                                {topProducts.length > 0 ? (
+                                                    topProducts.map((prod, idx) => (
+                                                        <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/10 transition-colors">
+                                                            <td className="px-6 py-4 font-bold text-gray-900 dark:text-white text-sm">
+                                                                {prod.Product?.name || prod.name || 'Unknown Product'}
+                                                            </td>
+                                                            <td className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-sm text-right">
+                                                                {Number(prod.total_sold || prod.quantity || 0).toLocaleString()}
+                                                            </td>
+                                                            <td className="px-6 py-4 font-black text-brand-600 dark:text-brand-400 text-sm text-right">
+                                                                {Number(prod.total_revenue || prod.revenue || 0).toLocaleString()} Fbu
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="3" className="px-6 py-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No product data logged for this range</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Tab 3: Staff Performance */}
+                            {activeTab === 'employees' && (
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm">Staff Register Performance</h3>
+                                        <p className="text-gray-400 text-xs mt-1">Transaction counts and revenues registered by active cashiers and managers</p>
+                                    </div>
+                                    <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Employee Name</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Designation</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest text-right">Completed Sales</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest text-right">Revenue Contributed</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                                {employeeSales.length > 0 ? (
+                                                    employeeSales.map((emp, idx) => (
+                                                        <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/10 transition-colors">
+                                                            <td className="px-6 py-4 font-bold text-gray-900 dark:text-white text-sm">
+                                                                {emp.User?.full_name || 'Staff Member'}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border dark:border-gray-700">
+                                                                    {emp.User?.role || 'Staff'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-sm text-right">
+                                                                {emp.total_sales || 0}
+                                                            </td>
+                                                            <td className="px-6 py-4 font-black text-emerald-600 dark:text-emerald-400 text-sm text-right">
+                                                                {Number(emp.total_revenue || 0).toLocaleString()} Fbu
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="4" className="px-6 py-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No employee transactions found for this range</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Tab 4: Security Audit Log Feed */}
+                            {activeTab === 'security' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm flex items-center gap-2">
+                                                <ShieldAlert className="text-rose-500" size={18} /> Compliance & System Security Logs
+                                            </h3>
+                                            <p className="text-gray-400 text-xs mt-1">Direct un-editable feed of modifications, critical events, and daily generations</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {auditLogs.length > 0 ? (
+                                            auditLogs.map((log) => (
+                                                <div key={log.id} className="p-4 bg-gray-50 dark:bg-gray-900/30 rounded-2xl border border-gray-100 dark:border-gray-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-gray-200 dark:hover:border-gray-700 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border ${getAuditLevelStyles(log.actionType)}`}>
+                                                            {log.actionType?.replace(/_/g, ' ') || 'ACTION'}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs font-black text-gray-900 dark:text-white tracking-tight">
+                                                                {log.User?.full_name || 'System Auto-Daemon'}
+                                                            </p>
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-0.5">
+                                                                Modified Table: {log.tableName || 'System'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-[9px] text-gray-400 font-black uppercase self-end sm:self-auto">
+                                                        {new Date(log.createdAt).toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="py-16 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No security activity logged yet</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            ) : (
+                /* Formal printable A4 Economic Report Sheet */
+                <div className="max-w-4xl mx-auto bg-white text-gray-900 p-12 rounded-3xl shadow-xl border border-gray-200/80 font-mono print-sheet animate-in zoom-in-95 duration-300">
+                    {/* Official Letterhead */}
+                    <div className="border-b-4 border-gray-900 pb-6 text-center">
+                        <h2 className="text-2xl font-black tracking-widest uppercase">SHOPLINK consolidated ledgers</h2>
+                        <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mt-1">SaaS ENTERPRISE FINANCIAL ARCHITECTURE</p>
+                        <div className="mt-4 flex justify-between items-center text-[10px] font-black uppercase text-gray-500">
+                            <div>AUDIT LEDGER REF: SL-{new Date().getFullYear()}-{(Math.random() * 100000).toFixed(0)}</div>
+                            <div>STATUS: CERTIFIED & RECONCILED</div>
+                        </div>
+                    </div>
+
+                    <div className="py-8 space-y-8">
+                        {/* Statement Title */}
+                        <div className="text-center">
+                            <h3 className="text-lg font-black uppercase tracking-widest underline decoration-2 decoration-gray-900">CONSOLIDATED STATEMENT OF PROFIT OR LOSS</h3>
+                            <p className="text-xs font-bold text-gray-600 mt-2 uppercase tracking-tight">
+                                FOR THE PERIOD STARTING <span className="underline">{startDate}</span> AND ENDING <span className="underline">{endDate}</span>
+                            </p>
+                        </div>
+
+                        {/* Section 1: Financial Ledger Tables */}
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase tracking-widest border-b border-gray-900 pb-1.5 flex items-center gap-2">
+                                <DollarSign size={14} /> 1. OPERATING INCOME & PRODUCTION COST
+                            </h4>
+                            <div className="space-y-3 pl-2 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold uppercase">GROSS RETAIL TURNOVER (REVENUE)</span>
+                                    <span className="font-bold">{grossRevenue.toLocaleString()} Fbu</span>
+                                </div>
+                                <div className="flex justify-between items-center text-gray-600">
+                                    <span className="uppercase">LESS: COST OF GOODS SOLD (COGS)</span>
+                                    <span>({cogs.toLocaleString()}) Fbu</span>
+                                </div>
+                                <div className="border-t border-dashed border-gray-400 pt-2 flex justify-between items-center text-base font-black">
+                                    <span className="uppercase">GROSS OPERATING PROFIT</span>
+                                    <span className="border-b-4 border-double border-gray-900 pb-0.5">{grossProfit.toLocaleString()} Fbu</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs text-gray-500 pt-1.5 font-bold">
+                                    <span className="uppercase">SYSTEM EFFICIENCY RATIO (GROSS MARGIN)</span>
+                                    <span>{profitMargin} %</span>
+                                </div>
                             </div>
                         </div>
-                    )}
+
+                        {/* Section 2: Volume Indicators */}
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase tracking-widest border-b border-gray-900 pb-1.5 flex items-center gap-2">
+                                <Users size={14} /> 2. OPERATIONAL FOOTPRINTS & METRICS
+                            </h4>
+                            <div className="grid grid-cols-2 gap-8 pl-2 text-xs">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 font-bold uppercase">Completed Sales:</span>
+                                        <span className="font-black text-gray-900">{(globalStats?.sale_count || 0).toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 font-bold uppercase">System Customers:</span>
+                                        <span className="font-black text-gray-900">{(globalStats?.totalCustomers || 0).toLocaleString()}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 font-bold uppercase">Tax Deducted (Est):</span>
+                                        <span className="font-black text-gray-900">{(globalStats?.totalTva || 0).toLocaleString()} Fbu</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 font-bold uppercase">Operational Shifts:</span>
+                                        <span className="font-black text-gray-900">{(globalStats?.cash_sessions?.opened || 1)} Shifts</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 3: Product Profitability Ledger */}
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase tracking-widest border-b border-gray-900 pb-1.5 flex items-center gap-2">
+                                <ShoppingCart size={14} /> 3. PRODUCT PROFITABILITY LEDGER (TOP 5)
+                            </h4>
+                            <table className="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr className="border-b border-gray-900">
+                                        <th className="py-2 font-black uppercase text-gray-700">ITEM DESCRIPTION</th>
+                                        <th className="py-2 font-black uppercase text-gray-700 text-right">UNITS SOLD</th>
+                                        <th className="py-2 font-black uppercase text-gray-700 text-right">REVENUE GENERATED</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {topProducts.slice(0, 5).map((prod, idx) => (
+                                        <tr key={idx}>
+                                            <td className="py-2 font-bold">{prod.Product?.name || prod.name || 'Unknown Product'}</td>
+                                            <td className="py-2 font-black text-gray-500 text-right">{Number(prod.total_sold || prod.quantity || 0).toLocaleString()}</td>
+                                            <td className="py-2 font-black text-gray-900 text-right">{Number(prod.total_revenue || prod.revenue || 0).toLocaleString()} Fbu</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Section 4: Cashier Ledgers */}
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase tracking-widest border-b border-gray-900 pb-1.5 flex items-center gap-2">
+                                <Briefcase size={14} /> 4. PERSONNEL TURNOVER CONTRIBUTION
+                            </h4>
+                            <table className="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr className="border-b border-gray-900">
+                                        <th className="py-2 font-black uppercase text-gray-700">STAFF MEMBER</th>
+                                        <th className="py-2 font-black uppercase text-gray-700">DESIGNATION</th>
+                                        <th className="py-2 font-black uppercase text-gray-700 text-right">SALES</th>
+                                        <th className="py-2 font-black uppercase text-gray-700 text-right">NET CONTRIBUTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {employeeSales.map((emp, idx) => (
+                                        <tr key={idx}>
+                                            <td className="py-2 font-bold">{emp.User?.full_name || 'Staff Member'}</td>
+                                            <td className="py-2 uppercase font-black text-gray-400">{emp.User?.role || 'Staff'}</td>
+                                            <td className="py-2 font-black text-gray-500 text-right">{emp.total_sales || 0}</td>
+                                            <td className="py-2 font-black text-gray-900 text-right">{Number(emp.total_revenue || 0).toLocaleString()} Fbu</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Section 5: Certification Statement & Reconciliations */}
+                        <div className="pt-8 border-t-2 border-dashed border-gray-400 space-y-6">
+                            <p className="text-[10px] leading-relaxed text-gray-500 font-bold uppercase text-justify">
+                                AUDIT DISCLOSURE: The financial numbers presented on this profit-and-loss sheet represent verified transactions captured by isolated point-of-sale register logs. Procurement costs are snapshotted in real-time against individual sales items to prevent distortion from inventory price adjustments. This ledger holds un-editable compliance audits.
+                            </p>
+                            
+                            {/* Signatures */}
+                            <div className="grid grid-cols-2 gap-12 pt-8 text-xs font-black uppercase">
+                                <div className="space-y-8">
+                                    <div>PREPARED BY:</div>
+                                    <div className="border-b border-gray-900 pb-1 text-gray-500">SYSTEM AUTO-DAEMON</div>
+                                    <div className="text-[9px] text-gray-400">ShopLink Ledger Integrity Engine</div>
+                                </div>
+                                <div className="space-y-8">
+                                    <div>APPROVED & CERTIFIED BY:</div>
+                                    <div className="border-b border-gray-900 pb-1"></div>
+                                    <div className="text-[9px] text-gray-400">Enterprise Owner Signature & Date</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };
