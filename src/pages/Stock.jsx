@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { stockService } from '../services/stockService';
 import { productService } from '../services/inventoryService';
+import { supplierService } from '../services/supplierService';
+import { purchaseService } from '../services/purchaseService';
 import userService from '../services/userService';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
@@ -34,6 +36,7 @@ const Stock = () => {
     const [transfers, setTransfers] = useState([]);
     const [products, setProducts] = useState([]);
     const [shops, setShops] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
@@ -53,6 +56,7 @@ const Stock = () => {
         product_id: '',
         quantity: '',
         shop_id: activeShopId || '',
+        supplier_id: '',
         description: ''
     });
 
@@ -101,12 +105,14 @@ const Stock = () => {
 
     const fetchAuxData = async () => {
         try {
-            const [pData, sData] = await Promise.all([
+            const [pData, sData, suppData] = await Promise.all([
                 productService.getAll(),
-                user?.role === 'owner' ? userService.getShops() : Promise.resolve({ data: [] })
+                user?.role === 'owner' ? userService.getShops() : Promise.resolve({ data: [] }),
+                supplierService.getAll()
             ]);
             setProducts(Array.isArray(pData) ? pData : (pData?.products || []));
             setShops(Array.isArray(sData?.data) ? sData.data : (sData?.shops || []));
+            setSuppliers(Array.isArray(suppData) ? suppData : (suppData?.suppliers || []));
         } catch (err) {
             console.error("Aux data fetch failed", err);
         }
@@ -159,10 +165,25 @@ const Stock = () => {
     const handleAddStock = async (e) => {
         e.preventDefault();
         try {
-            await stockService.addStock(addStockData);
+            if (addStockData.supplier_id) {
+                await purchaseService.create({
+                    purchaseData: {
+                        SupplierId: addStockData.supplier_id,
+                        ShopId: addStockData.shop_id || activeShopId,
+                        notes: addStockData.description
+                    },
+                    items: [{
+                        ProductId: addStockData.product_id,
+                        quantityPurchased: addStockData.quantity,
+                        unitCost: 0
+                    }]
+                });
+            } else {
+                await stockService.addStock(addStockData);
+            }
             toast.success("Stock added successfully");
             setIsAddStockModalOpen(false);
-            setAddStockData({ ...addStockData, product_id: '', quantity: '', description: '' });
+            setAddStockData({ product_id: '', quantity: '', shop_id: activeShopId || '', supplier_id: '', description: '' });
             fetchData();
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to add stock");
@@ -583,7 +604,19 @@ const Stock = () => {
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Supplier / Notes</label>
+                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Supplier (Optional)</label>
+                            <select 
+                                value={addStockData.supplier_id}
+                                onChange={e => setAddStockData({...addStockData, supplier_id: e.target.value})}
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
+                            >
+                                <option value="">No Supplier (Manual Intake)</option>
+                                {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Supplier Invoice / Notes</label>
                             <textarea 
                                 value={addStockData.description}
                                 onChange={e => setAddStockData({...addStockData, description: e.target.value})}

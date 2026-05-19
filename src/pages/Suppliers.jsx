@@ -16,7 +16,7 @@ const Suppliers = () => {
 
     const [formData, setFormData] = useState({
         name: '',
-        contact: '',
+        contact_name: '',
         phone: '',
         email: '',
         address: ''
@@ -44,14 +44,14 @@ const Suppliers = () => {
             setEditingSupplier(supplier);
             setFormData({
                 name: supplier.name,
-                contact: supplier.contact || '',
+                contact_name: supplier.contact_name || '',
                 phone: supplier.phone || '',
                 email: supplier.email || '',
                 address: supplier.address || ''
             });
         } else {
             setEditingSupplier(null);
-            setFormData({ name: '', contact: '', phone: '', email: '', address: '' });
+            setFormData({ name: '', contact_name: '', phone: '', email: '', address: '' });
         }
         setIsModalOpen(true);
     };
@@ -69,7 +69,7 @@ const Suppliers = () => {
             setIsModalOpen(false);
             fetchSuppliers();
         } catch (error) {
-            toast.error("Failed to save supplier");
+            toast.error(error.response?.data?.message || "Failed to save supplier");
         }
     };
 
@@ -87,7 +87,7 @@ const Suppliers = () => {
 
     const filteredSuppliers = suppliers.filter(s => 
         s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        s.contact?.toLowerCase().includes(searchTerm.toLowerCase())
+        s.contact_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const isAuthorized = user?.role === 'owner' || user?.role === 'manager';
@@ -138,7 +138,7 @@ const Suppliers = () => {
                             </div>
                         </TableCell>
                         <TableCell>
-                            <p className="text-sm font-bold text-gray-700 dark:text-gray-300">{s.contact || 'N/A'}</p>
+                            <p className="text-sm font-bold text-gray-700 dark:text-gray-300">{s.contact_name || 'N/A'}</p>
                         </TableCell>
                         <TableCell>
                             <div className="space-y-1">
@@ -168,7 +168,7 @@ const Suppliers = () => {
                     </div>
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Contact Person</label>
-                        <input value={formData.contact} onChange={e => setFormData({...formData, contact: e.target.value})} className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold" />
+                        <input value={formData.contact_name} onChange={e => setFormData({...formData, contact_name: e.target.value})} className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
