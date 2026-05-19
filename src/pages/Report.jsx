@@ -26,6 +26,7 @@ const Reports = () => {
     const [topProducts, setTopProducts] = useState([]);
     const [employeeSales, setEmployeeSales] = useState([]);
     const [auditLogs, setAuditLogs] = useState([]);
+    const [monthlySales, setMonthlySales] = useState([]);
 
     const fetchAllReportData = async (isSilent = false) => {
         if (!isSilent) setLoading(true);
@@ -48,12 +49,14 @@ const Reports = () => {
                 end = new Date().toISOString().split('T')[0];
             }
 
-            const [statsRes, profitRes, topProductsRes, employeeRes, auditRes] = await Promise.all([
+            const today = new Date();
+            const [statsRes, profitRes, topProductsRes, employeeRes, auditRes, monthlyRes] = await Promise.all([
                 financialService.getGlobalStats(),
                 financialService.getProfitReport(start, end),
                 financialService.getTopProductsReport(10, start, end),
                 financialService.getEmployeeSalesReport(start, end),
-                financialService.getAuditLogsReport()
+                financialService.getAuditLogsReport(),
+                financialService.getMonthlyReport(today.getFullYear(), today.getMonth() + 1)
             ]);
 
             setGlobalStats(statsRes);
@@ -61,6 +64,13 @@ const Reports = () => {
             setTopProducts(topProductsRes || []);
             setEmployeeSales(employeeRes || []);
             setAuditLogs(auditRes || []);
+
+            // Map monthly daily breakdown to chartData format
+            const formatted = (monthlyRes?.daily_breakdown || []).map(day => ({
+                name: new Date(day.sale_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }),
+                revenue: parseFloat(day.total_sales || 0)
+            }));
+            setMonthlySales(formatted);
         } catch (error) {
             console.error("Failed to load comprehensive reporting system", error);
         } finally {
@@ -286,7 +296,7 @@ const Reports = () => {
                             </div>
                             <div className="h-[360px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={globalStats?.chartData || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                    <AreaChart data={monthlySales} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorRevReport" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#10B981" stopOpacity={0.15} />
