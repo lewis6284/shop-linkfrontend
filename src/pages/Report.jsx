@@ -9,6 +9,7 @@ import { financialService } from '../services/financialService';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageUrl';
 
 const Reports = () => {
     const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'statement'
@@ -106,7 +107,7 @@ const Reports = () => {
             // 1. Draw Brand Logo
             const addImageProcess = new Promise((resolve) => {
                 const img = new Image();
-                img.src = '/shoplink/logo.png';
+                img.src = getImageUrl(activeShopData?.logo_url);
                 img.onload = () => {
                     try {
                         doc.addImage(img, 'PNG', 20, 20, 32, 32);

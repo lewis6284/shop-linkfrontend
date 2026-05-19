@@ -9,6 +9,7 @@ import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, Tras
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getImageUrl } from '../utils/imageUrl';
 
 const Sales = () => {
     const { user, activeShopId } = useAuth();
@@ -160,7 +161,7 @@ const Sales = () => {
         // Draw Company Logo
         const addImageProcess = new Promise((resolve) => {
             const img = new Image();
-            img.src = '/shoplink/logo.png';
+            img.src = getImageUrl(activeShopData?.logo_url);
             img.onload = () => {
                 try {
                     doc.addImage(img, 'PNG', 20, 20, 32, 32);
