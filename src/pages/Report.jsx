@@ -29,7 +29,6 @@ const Reports = () => {
     const [profitStats, setProfitStats] = useState(null);
     const [topProducts, setTopProducts] = useState([]);
     const [employeeSales, setEmployeeSales] = useState([]);
-    const [auditLogs, setAuditLogs] = useState([]);
     const [monthlySales, setMonthlySales] = useState([]);
 
     const fetchAllReportData = async (isSilent = false) => {
@@ -54,12 +53,11 @@ const Reports = () => {
             }
 
             const today = new Date();
-            const [statsRes, profitRes, topProductsRes, employeeRes, auditRes, monthlyRes] = await Promise.all([
+            const [statsRes, profitRes, topProductsRes, employeeRes, monthlyRes] = await Promise.all([
                 financialService.getGlobalStats(),
                 financialService.getProfitReport(start, end),
                 financialService.getTopProductsReport(10, start, end),
                 financialService.getEmployeeSalesReport(start, end),
-                financialService.getAuditLogsReport(),
                 financialService.getMonthlyReport(today.getFullYear(), today.getMonth() + 1)
             ]);
 
@@ -67,7 +65,6 @@ const Reports = () => {
             setProfitStats(profitRes);
             setTopProducts(topProductsRes || []);
             setEmployeeSales(employeeRes || []);
-            setAuditLogs(auditRes || []);
 
             // Map monthly daily breakdown to chartData format
             const formatted = (monthlyRes?.daily_breakdown || []).map(day => ({
@@ -361,56 +358,7 @@ const Reports = () => {
     const grossProfit = profitStats?.gross_profit || globalStats?.netProfit || 0;
     const profitMargin = grossRevenue > 0 ? ((grossProfit / grossRevenue) * 100).toFixed(1) : '0.0';
 
-    // Status level styling for Security Log activity feed
-    const getAuditLevelStyles = (action) => {
-        if (action?.includes('DELETE') || action?.includes('REMOVE') || action?.includes('CANCEL')) {
-            return 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800';
-        }
-        if (action?.includes('UPDATE') || action?.includes('EDIT') || action?.includes('PRICE') || action?.includes('ALERT')) {
-            return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800';
-        }
-        return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
-    };
 
-    // Human-readable detailed description of system events based on JSON values
-    const renderAuditLogDetails = (log) => {
-        const action = log.action_type || '';
-        const oldVal = log.old_values || {};
-        const newVal = log.new_values || {};
-
-        if (action === 'SALE_CREATE') {
-            return `New completed transaction. Invoice Ref: ${newVal.invoiceNumber || 'N/A'}`;
-        }
-        if (action === 'SALE_CANCEL') {
-            return `Transaction cancelled! Reason: "${newVal.reason || 'No reason specified'}"`;
-        }
-        if (action === 'PRODUCT_CREATE') {
-            return `Added new product: "${newVal.name || 'Product'}" (Code: ${newVal.product_code || 'N/A'}) - Wholesale: ${Number(newVal.purchasePrice || 0).toLocaleString()} FBU, Retail: ${Number(newVal.sellingPrice || 0).toLocaleString()} FBU`;
-        }
-        if (action === 'PRODUCT_UPDATE') {
-            const changes = [];
-            if (oldVal.sellingPrice !== newVal.sellingPrice) {
-                changes.push(`Price: ${Number(oldVal.sellingPrice || 0).toLocaleString()} -> ${Number(newVal.sellingPrice || 0).toLocaleString()} FBU`);
-            }
-            if (oldVal.purchasePrice !== newVal.purchasePrice) {
-                changes.push(`Wholesale cost: ${Number(oldVal.purchasePrice || 0).toLocaleString()} -> ${Number(newVal.purchasePrice || 0).toLocaleString()} FBU`);
-            }
-            if (oldVal.name !== newVal.name) {
-                changes.push(`Renamed: "${oldVal.name}" -> "${newVal.name}"`);
-            }
-            return `Product "${newVal.name || 'Product'}" updated. ${changes.join(', ') || 'Catalog details adjusted.'}`;
-        }
-        if (action === 'PRODUCT_DELETE') {
-            return `Catalog item permanently deleted: "${oldVal.name || 'Product'}" (Code: ${oldVal.product_code || 'N/A'})`;
-        }
-        if (action === 'STOCK_TRANSFER') {
-            return `Stock transferred successfully between locations.`;
-        }
-        if (action === 'STOCK_ADJUSTMENT') {
-            return `Stock level manually adjusted. Quantity: ${newVal.quantity || 0}`;
-        }
-        return `System event successfully logged on table [${log.table_name || 'System'}].`;
-    };
 
     return (
         <div className="space-y-6 pb-20 relative">
@@ -640,12 +588,7 @@ const Reports = () => {
                             >
                                 <Briefcase size={16} /> Staff Sales
                             </button>
-                            <button 
-                                onClick={() => setActiveTab('security')}
-                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'security' ? 'bg-white dark:bg-gray-950 text-rose-600 dark:text-rose-400 shadow-sm border border-rose-100 dark:border-rose-900/30' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                            >
-                                <ShieldAlert size={16} /> Security Audit Feed
-                            </button>
+
                         </div>
 
                         <div className="p-8">
@@ -773,50 +716,7 @@ const Reports = () => {
                                 </div>
                             )}
 
-                            {/* Tab 4: Security Audit Log Feed */}
-                            {activeTab === 'security' && (
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm flex items-center gap-2">
-                                                <ShieldAlert className="text-rose-500" size={18} /> Compliance & System Security Logs
-                                            </h3>
-                                            <p className="text-gray-400 text-xs mt-1">Direct un-editable feed of modifications, critical events, and daily generations</p>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {auditLogs.length > 0 ? (
-                                            auditLogs.map((log) => (
-                                                <div key={log.id} className="p-4 bg-gray-50 dark:bg-gray-900/30 rounded-2xl border border-gray-100 dark:border-gray-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-gray-200 dark:hover:border-gray-700 transition-colors">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border ${getAuditLevelStyles(log.action_type)}`}>
-                                                            {log.action_type?.replace(/_/g, ' ') || 'ACTION'}
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="text-xs font-black text-gray-900 dark:text-white tracking-tight">
-                                                                    {log.User?.full_name || 'System Auto-Daemon'}
-                                                                </p>
-                                                                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">
-                                                                    • Modified Table: {log.table_name || 'System'}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-xs text-gray-600 dark:text-gray-400 font-bold bg-white dark:bg-gray-900 px-3 py-2 rounded-xl border border-gray-150 dark:border-gray-800 shadow-sm leading-snug">
-                                                                {renderAuditLogDetails(log)}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-[9px] text-gray-400 font-mono uppercase self-end sm:self-auto font-bold bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded-lg">
-                                                        {new Date(log.createdAt).toLocaleString()}
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="py-16 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No security activity logged yet</div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+
                         </div>
                     </div>
                 </>
