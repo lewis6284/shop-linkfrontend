@@ -104,6 +104,33 @@ const POS = () => {
         });
     };
 
+    const setAbsoluteQty = (id, value) => {
+        const qty = value === '' ? '' : parseInt(value, 10);
+        
+        setCart(prev => {
+            const item = prev.find(i => i.id === id);
+            if (!item) return prev;
+
+            if (qty === '') {
+                 return prev.map(i => i.id === id ? { ...i, qty: '' } : i);
+            }
+
+            if (isNaN(qty) || qty < 0) return prev;
+
+            const shopStock = Number(item.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
+            if (qty > shopStock) {
+                toast.error(`Cannot exceed available stock of ${shopStock} for ${item.name}`, { position: 'top-center' });
+                return prev.map(i => i.id === id ? { ...i, qty: shopStock } : i);
+            }
+
+            if (qty === 0) {
+                return prev.filter(i => i.id !== id);
+            }
+
+            return prev.map(i => i.id === id ? { ...i, qty } : i);
+        });
+    };
+
     const totals = cart.reduce((acc, item) => {
         const p = getEffectivePrice(item, customer?.customer_type || "retail", item.qty);
         return {
@@ -138,7 +165,7 @@ const POS = () => {
             };
 
             const responseData = await saleService.create(payload);
-            const isPartner = responseData?.isPartner || customer?.customer_type === 'partner';
+            const isPartnerOrWholesale = responseData?.isPartner || customer?.customer_type === 'partner' || customer?.customer_type === 'wholesale';
             
             setCart([]);
             setSearchQuery("");
@@ -150,9 +177,10 @@ const POS = () => {
             const products = Array.isArray(res) ? res : res?.products || [];
             setSearchResults(products);
 
-            toast.success(isPartner ? "Partner Order Submitted for Owner Approval!" : "Sale Successful!", { id: loading });
+            toast.success(isPartnerOrWholesale ? "Order Submitted for Owner Approval!" : "Sale Successful!", { id: loading });
         } catch (e) {
-            toast.error("Checkout failed. Check stock levels.", { id: loading });
+            const msg = e.response?.data?.message || e.message || "Checkout failed. Check stock levels.";
+            toast.error(msg, { id: loading });
         }
     };
 
@@ -294,7 +322,13 @@ const POS = () => {
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center bg-white dark:bg-gray-900 rounded-xl p-1 shadow-sm border border-gray-100 dark:border-gray-800">
                                         <button onClick={() => updateQty(item.id, -1)} className="p-1 text-gray-400 hover:text-brand-600"><Minus size={14} /></button>
-                                        <span className="w-10 text-center font-black text-sm dark:text-white">{item.qty}</span>
+                                        <input 
+                                            type="number"
+                                            value={item.qty}
+                                            onChange={(e) => setAbsoluteQty(item.id, e.target.value)}
+                                            onBlur={() => { if(item.qty === '') setAbsoluteQty(item.id, 1); }}
+                                            className="w-12 text-center font-black text-sm dark:text-white bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        />
                                         <button onClick={() => updateQty(item.id, 1)} className="p-1 text-gray-400 hover:text-brand-600"><Plus size={14} /></button>
                                     </div>
                                     <div className="text-right">
@@ -358,12 +392,12 @@ const POS = () => {
                         className={`w-full py-5 text-white rounded-3xl font-black text-xl active:scale-95 transition-all flex items-center justify-center gap-4 ${
                             cart.length === 0 
                                 ? "bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed" 
-                                : customer?.customer_type === 'partner'
+                                : (customer?.customer_type === 'partner' || customer?.customer_type === 'wholesale')
                                     ? "bg-amber-600 hover:bg-amber-700 shadow-xl shadow-amber-500/20"
                                     : "bg-brand-600 hover:bg-brand-700 shadow-xl shadow-brand-500/20"
                         }`}
                     >
-                        {customer?.customer_type === 'partner' ? (
+                        {(customer?.customer_type === 'partner' || customer?.customer_type === 'wholesale') ? (
                             <>
                                 <ShieldAlert size={24} /> SUBMIT FOR APPROVAL
                             </>
