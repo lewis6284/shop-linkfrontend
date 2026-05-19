@@ -79,4 +79,10 @@ export default defineConfig({
       }
     }
   },
+  server: {
+    proxy: {
+      // Forward /uploads requests to Express in dev so images load
+      '/uploads': 'http://localhost:5000',
+    }
+  },
 })

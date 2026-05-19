@@ -6,6 +6,7 @@ import { calculateMargin, calculateTax, generateSKU } from '../utils/calculation
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
+import { getImageUrl } from '../utils/imageUrl';
 import { 
     Plus, Search, Edit2, Trash2, Package, Tag, Layers, Scale,
     Image as ImageIcon, Barcode, DollarSign, Filter, BarChart2, Check, X, RefreshCw
@@ -566,7 +567,7 @@ const Products = () => {
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm">
-                                            {p.image_url ? <img src={p.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={22} />}
+                                            {p.image_url ? <img src={getImageUrl(p.image_url, 'placeholder-product.png')} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={22} />}
                                         </div>
                                         <div>
                                             <p className="font-bold text-gray-900 dark:text-white">{p.name}</p>

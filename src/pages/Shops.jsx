@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { Store, Plus, ArrowRight, Edit2, Trash2 } from 'lucide-react';
+import { getImageUrl } from '../utils/imageUrl';
 import toast from 'react-hot-toast';
 import Table, { TableRow, TableCell } from '../components/Table';
 import StatusBadge from '../components/StatusBadge';
@@ -171,7 +172,7 @@ const Shops = () => {
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <div className="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center p-2 border border-gray-100 dark:border-gray-600 overflow-hidden">
-                                            <img src={shop.logo_url || '/logo.png'} alt="" className="w-full h-full object-contain" />
+                                            <img src={getImageUrl(shop.logo_url)} alt="" className="w-full h-full object-contain" />
                                         </div>
                                         <div>
                                             <p className="font-black text-gray-900 dark:text-white">{shop.name}</p>

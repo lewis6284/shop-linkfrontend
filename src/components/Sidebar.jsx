@@ -7,6 +7,7 @@ import {
     PanelLeftClose, Activity
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../utils/imageUrl';
 
 const Sidebar = ({ isOpen, toggle }) => {
     const { user, logout, shop } = useAuth();
@@ -75,7 +76,7 @@ const Sidebar = ({ isOpen, toggle }) => {
                             {/* Logo Image */}
                             <div className="w-12 h-12 flex-shrink-0 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center shadow-lg shadow-black/5 overflow-hidden group border border-gray-100 dark:border-gray-800">
                                 <img 
-                                    src={shop?.logo_url || '/logo.png'} 
+                                    src={getImageUrl(shop?.logo_url)} 
                                     alt={shop?.name || 'ShopLink'} 
                                     className="w-full h-full object-contain p-1.5 transition-transform group-hover:scale-110" 
                                 />

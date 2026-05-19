@@ -6,6 +6,8 @@ import { Lock, Mail } from 'lucide-react';
 import BackgroundWatermark from '../components/BackgroundWatermark';
 import api from '../services/api';
 
+import { getImageUrl } from '../utils/imageUrl';
+
 const Login = () => {
     const { login, user, isAuthenticated, shop } = useAuth();
     const navigate = useNavigate();
@@ -118,7 +120,7 @@ const Login = () => {
                 <div className="text-center mb-10">
                     <div className="w-24 h-24 mx-auto mb-6 bg-white dark:bg-gray-800 rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 overflow-hidden ring-4 ring-white/10 group relative">
                         <img
-                            src={shop?.logo_url || '/logo.png'}
+                            src={getImageUrl(shop?.logo_url)}
                             alt={shop?.name || 'ShopLink'}
                             className="w-full h-full object-contain p-4 transition-transform group-hover:scale-110 duration-500"
                         />

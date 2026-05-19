@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import toast from "react-hot-toast";
+import { getImageUrl } from "../utils/imageUrl";
 
 const POS = () => {
     const { user, activeShopId } = useAuth();
@@ -237,7 +238,7 @@ const POS = () => {
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm">
                                                     {p.image_url ? (
-                                                        <img src={p.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                        <img src={getImageUrl(p.image_url, 'placeholder-product.png')} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                                     ) : (
                                                         <Package size={20} className="text-gray-300" />
                                                     )}

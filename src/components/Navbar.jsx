@@ -6,6 +6,7 @@ import {
     Loader2, X, PanelLeftOpen
 } from 'lucide-react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { getImageUrl } from '../utils/imageUrl';
 
 const getPageTitle = (pathname) => {
     if (pathname === '/dashboard/admin') return '';
@@ -126,7 +127,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
                                 <img 
-                                    src={shop?.logo_url || '/logo.png'} 
+                                    src={getImageUrl(shop?.logo_url)} 
                                     alt={shop?.name || 'ShopLink'} 
                                     className="w-full h-full object-contain p-1" 
                                 />
@@ -142,7 +143,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                 <div className="md:hidden absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2">
                     <div className="w-7 h-7 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
                         <img 
-                            src={shop?.logo_url || '/logo.png'} 
+                            src={getImageUrl(shop?.logo_url)} 
                             alt={shop?.name || 'ShopLink'} 
                             className="w-full h-full object-contain p-0.5" 
                         />

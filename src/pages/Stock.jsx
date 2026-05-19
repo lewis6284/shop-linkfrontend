@@ -13,6 +13,7 @@ import {
     TrendingUp, Store, Filter, RefreshCw, CheckCircle, Plus, Edit2, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageUrl';
 
 const Stock = () => {
     const { user, activeShopId } = useAuth();
@@ -305,7 +306,7 @@ const Stock = () => {
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             {s.Product?.image_url ? (
-                                                <img src={s.Product.image_url} alt={s.Product.name} className="w-10 h-10 rounded-xl object-cover border border-gray-100 dark:border-gray-600 shadow-sm" />
+                                                <img src={getImageUrl(s.Product.image_url, 'placeholder-product.png')} alt={s.Product.name} className="w-10 h-10 rounded-xl object-cover border border-gray-100 dark:border-gray-600 shadow-sm" />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 border border-gray-100 dark:border-gray-600">
                                                     <Package size={20} />

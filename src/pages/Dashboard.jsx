@@ -10,6 +10,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { financialService } from '../services/financialService';
 import { productService } from '../services/inventoryService';
 import { Loader2 } from 'lucide-react';
+import { getImageUrl } from '../utils/imageUrl';
 
 const DashboardCard = ({ title, value, subtitle, icon: Icon, color }) => {
     const colorClasses = {
@@ -355,7 +356,7 @@ const CashierDashboard = () => {
                             <div key={p.id} className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-gray-100 dark:border-gray-800 flex justify-between items-center animate-in fade-in slide-in-from-top-2">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-xl bg-white dark:bg-gray-800 border dark:border-gray-700 overflow-hidden shrink-0">
-                                        <img src={p.image_url || '/placeholder-product.png'} className="w-full h-full object-cover" />
+                                        <img src={getImageUrl(p.image_url, 'placeholder-product.png')} className="w-full h-full object-cover" />
                                     </div>
                                     <div>
                                         <p className="font-black text-sm text-gray-900 dark:text-white leading-tight">{p.name}</p>
