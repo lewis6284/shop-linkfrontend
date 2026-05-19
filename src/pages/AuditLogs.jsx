@@ -11,6 +11,7 @@ const AuditLogs = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [activeTab, setActiveTab] = useState('transactions');
     const [dateRange, setDateRange] = useState('30'); // '7', '30', 'custom'
     const [startDate, setStartDate] = useState(() => {
         const d = new Date();
@@ -51,11 +52,37 @@ const AuditLogs = () => {
         }
     };
 
-    const filteredLogs = logs.filter(log => 
-        log.action_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        log.table_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        log.User?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const getCategoryForAction = (action) => {
+        if (!action) return 'system';
+        const a = action.toUpperCase();
+        if (a.includes('SALE') || a.includes('PURCHASE')) return 'transactions';
+        if (a.includes('PRODUCT') || a.includes('STOCK')) return 'inventory';
+        return 'system';
+    };
+
+    const filteredLogs = logs.filter(log => {
+        const matchesTab = activeTab === 'all' || getCategoryForAction(log.action_type) === activeTab;
+        const matchesSearch = log.action_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            log.table_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            log.User?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesTab && matchesSearch;
+    });
+
+    const formatDomainName = (tableName) => {
+        const map = {
+            'sales': 'Sales Register',
+            'purchases': 'Procurement',
+            'products': 'Product Catalog',
+            'stocks': 'Warehouse Inventory',
+            'stocktransfers': 'Logistics',
+            'stockmovements': 'Stock Operations',
+            'users': 'System Access',
+            'shops': 'Facility Settings',
+            'suppliers': 'Vendor Registry'
+        };
+        const key = tableName?.toLowerCase() || '';
+        return map[key] || tableName || 'System Engine';
+    };
 
     // Human-readable detailed description of system events based on JSON values
     const renderAuditLogDetails = (log) => {
@@ -65,6 +92,15 @@ const AuditLogs = () => {
 
         if (action === 'SALE_CREATE') {
             return `New completed transaction. Invoice Ref: ${newVal.invoiceNumber || 'N/A'}`;
+        }
+        if (action === 'SALE_PENDING_APPROVAL') {
+            return `Transaction routed for manager approval.`;
+        }
+        if (action === 'PURCHASE_CREATED') {
+            return `Official procurement logged. Stock accurately injected into inventory.`;
+        }
+        if (action === 'USER_LOGIN') {
+            return `Secure authenticated session established.`;
         }
         if (action === 'SALE_CANCEL') {
             return `Transaction cancelled! Reason: "${newVal.reason || 'No reason specified'}"`;
@@ -94,7 +130,10 @@ const AuditLogs = () => {
         if (action === 'STOCK_ADJUSTMENT') {
             return `Stock level manually adjusted. Quantity: ${newVal.quantity || 0}`;
         }
-        return `System event successfully logged on table [${log.table_name || 'System'}].`;
+        if (action === 'STOCK_ADDITION') {
+            return `Stock manually received. Quantity: +${newVal.quantity || 0}`;
+        }
+        return `System event successfully registered in the ${formatDomainName(log.table_name)} module.`;
     };
 
     const getSeverityStyles = (action) => {
@@ -165,16 +204,45 @@ const AuditLogs = () => {
                 )}
             </div>
 
-            {/* Filters */}
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            {/* Filters and Tabs Row */}
+            <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
+                {/* Tab Navigation */}
+                <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl w-full sm:w-fit overflow-x-auto hide-scrollbar shrink-0">
+                    <button
+                        onClick={() => setActiveTab('transactions')}
+                        className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'transactions' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                    >
+                        Transactions
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('inventory')}
+                        className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'inventory' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                    >
+                        Inventory
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('system')}
+                        className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'system' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                    >
+                        System Core
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('all')}
+                        className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'all' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                    >
+                        All Logs
+                    </button>
+                </div>
+
+                {/* Search */}
+                <div className="relative w-full xl:max-w-md">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input 
                         type="text"
-                        placeholder="Search by action, table, or user..."
+                        placeholder="Search logs..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500/20 outline-none text-sm font-bold transition-all dark:text-white"
+                        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-brand-500/20 outline-none text-sm font-bold shadow-sm transition-all dark:text-white"
                     />
                 </div>
             </div>
@@ -198,8 +266,8 @@ const AuditLogs = () => {
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                         <div className="flex items-center gap-2">
                                             <span className="font-black text-gray-900 dark:text-white text-sm uppercase tracking-tight">{log.action_type?.replace(/_/g, ' ')}</span>
-                                            <span className="text-gray-400 font-bold text-xs">on</span>
-                                            <span className="font-black text-brand-600 dark:text-brand-400 text-sm uppercase tracking-tight">{log.table_name}</span>
+                                            <span className="text-gray-400 font-bold text-xs">in</span>
+                                            <span className="font-black text-brand-600 dark:text-brand-400 text-sm uppercase tracking-tight">{formatDomainName(log.table_name)}</span>
                                         </div>
                                         <div className="flex items-center gap-1 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-900 px-2.5 py-1 rounded-lg border dark:border-gray-750">
                                             <Clock size={12} /> {new Date(log.createdAt).toLocaleString()}
