@@ -12,5 +12,25 @@ export const financialService = {
     getDailyStats: async () => {
         const response = await api.get('/financials/daily');
         return response.data.data || response.data;
+    },
+    getMonthlyReport: async (year, month) => {
+        const response = await api.get('/reports/monthly', { params: { year, month } });
+        return response.data.data || response.data;
+    },
+    getTopProductsReport: async (limit = 10, startDate, endDate) => {
+        const response = await api.get('/reports/top-products', { params: { limit, start_date: startDate, end_date: endDate } });
+        return response.data.data || response.data;
+    },
+    getProfitReport: async (startDate, endDate) => {
+        const response = await api.get('/reports/profit', { params: { start_date: startDate, end_date: endDate } });
+        return response.data.data || response.data;
+    },
+    getEmployeeSalesReport: async (startDate, endDate) => {
+        const response = await api.get('/reports/employee-sales', { params: { start_date: startDate, end_date: endDate } });
+        return response.data.data || response.data;
+    },
+    getAuditLogsReport: async (shopId) => {
+        const response = await api.get('/reports/audit-logs', { params: { shop_id: shopId } });
+        return response.data.data || response.data;
     }
 };
