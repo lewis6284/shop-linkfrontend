@@ -134,16 +134,16 @@ const AuditLogs = () => {
             return `Stock manually received. Quantity: +${newVal.quantity || 0}`;
         }
         if (action === 'TRANSFER_CREATE') {
-            return `Stock transfer officially initiated across locations.`;
+            return `Stock transfer officially initiated. Quantity: ${newVal.Quantity || newVal.quantity || 0}`;
         }
         if (action === 'TRANSFER_DISPATCH') {
-            return `Stock physically dispatched. Logistics status: IN TRANSIT.`;
+            return `Stock physically dispatched from "${newVal.from || 'Origin'}" to "${newVal.to || 'Destination'}". Logistics status: IN TRANSIT. Quantity: ${newVal.Quantity || newVal.quantity || 0}`;
         }
         if (action === 'TRANSFER_RECEIVE' || action === 'TRANSFER_COMPLETE') {
-            return `Stock transfer successfully received. Inventory rebalanced.`;
+            return `Stock transfer successfully received at "${newVal.to || 'Destination'}" from "${newVal.from || 'Origin'}". Inventory rebalanced. Quantity: +${newVal.Quantity || newVal.quantity || 0}`;
         }
         if (action === 'TRANSFER_CANCEL') {
-            return `Stock transfer aborted. Reserved stock has been released.`;
+            return `Stock transfer aborted between "${newVal.from || 'Origin'}" and "${newVal.to || 'Destination'}". Reserved stock released.`;
         }
         return `System event successfully registered in the ${formatDomainName(log.table_name)} module.`;
     };
