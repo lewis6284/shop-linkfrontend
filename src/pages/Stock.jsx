@@ -175,7 +175,8 @@ const Stock = () => {
                     items: [{
                         ProductId: addStockData.product_id,
                         quantityPurchased: addStockData.quantity,
-                        unitCost: 0
+                        unitPrice: 0,
+                        totalPrice: 0
                     }]
                 });
             } else {
