@@ -372,6 +372,46 @@ const Reports = () => {
         return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
     };
 
+    // Human-readable detailed description of system events based on JSON values
+    const renderAuditLogDetails = (log) => {
+        const action = log.action_type || '';
+        const oldVal = log.old_values || {};
+        const newVal = log.new_values || {};
+
+        if (action === 'SALE_CREATE') {
+            return `New completed transaction. Invoice Ref: ${newVal.invoiceNumber || 'N/A'}`;
+        }
+        if (action === 'SALE_CANCEL') {
+            return `Transaction cancelled! Reason: "${newVal.reason || 'No reason specified'}"`;
+        }
+        if (action === 'PRODUCT_CREATE') {
+            return `Added new product: "${newVal.name || 'Product'}" (Code: ${newVal.product_code || 'N/A'}) - Wholesale: ${Number(newVal.purchasePrice || 0).toLocaleString()} FBU, Retail: ${Number(newVal.sellingPrice || 0).toLocaleString()} FBU`;
+        }
+        if (action === 'PRODUCT_UPDATE') {
+            const changes = [];
+            if (oldVal.sellingPrice !== newVal.sellingPrice) {
+                changes.push(`Price: ${Number(oldVal.sellingPrice || 0).toLocaleString()} -> ${Number(newVal.sellingPrice || 0).toLocaleString()} FBU`);
+            }
+            if (oldVal.purchasePrice !== newVal.purchasePrice) {
+                changes.push(`Wholesale cost: ${Number(oldVal.purchasePrice || 0).toLocaleString()} -> ${Number(newVal.purchasePrice || 0).toLocaleString()} FBU`);
+            }
+            if (oldVal.name !== newVal.name) {
+                changes.push(`Renamed: "${oldVal.name}" -> "${newVal.name}"`);
+            }
+            return `Product "${newVal.name || 'Product'}" updated. ${changes.join(', ') || 'Catalog details adjusted.'}`;
+        }
+        if (action === 'PRODUCT_DELETE') {
+            return `Catalog item permanently deleted: "${oldVal.name || 'Product'}" (Code: ${oldVal.product_code || 'N/A'})`;
+        }
+        if (action === 'STOCK_TRANSFER') {
+            return `Stock transferred successfully between locations.`;
+        }
+        if (action === 'STOCK_ADJUSTMENT') {
+            return `Stock level manually adjusted. Quantity: ${newVal.quantity || 0}`;
+        }
+        return `System event successfully logged on table [${log.table_name || 'System'}].`;
+    };
+
     return (
         <div className="space-y-6 pb-20 relative">
             {/* Custom Print CSS overrides to hide layout and render perfect black & white reports */}
@@ -749,19 +789,24 @@ const Reports = () => {
                                             auditLogs.map((log) => (
                                                 <div key={log.id} className="p-4 bg-gray-50 dark:bg-gray-900/30 rounded-2xl border border-gray-100 dark:border-gray-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-gray-200 dark:hover:border-gray-700 transition-colors">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border ${getAuditLevelStyles(log.actionType)}`}>
-                                                            {log.actionType?.replace(/_/g, ' ') || 'ACTION'}
+                                                        <div className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border ${getAuditLevelStyles(log.action_type)}`}>
+                                                            {log.action_type?.replace(/_/g, ' ') || 'ACTION'}
                                                         </div>
-                                                        <div>
-                                                            <p className="text-xs font-black text-gray-900 dark:text-white tracking-tight">
-                                                                {log.User?.full_name || 'System Auto-Daemon'}
-                                                            </p>
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-0.5">
-                                                                Modified Table: {log.tableName || 'System'}
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-xs font-black text-gray-900 dark:text-white tracking-tight">
+                                                                    {log.User?.full_name || 'System Auto-Daemon'}
+                                                                </p>
+                                                                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">
+                                                                    • Modified Table: {log.table_name || 'System'}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-600 dark:text-gray-400 font-bold bg-white dark:bg-gray-900 px-3 py-2 rounded-xl border border-gray-150 dark:border-gray-800 shadow-sm leading-snug">
+                                                                {renderAuditLogDetails(log)}
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className="text-[9px] text-gray-400 font-black uppercase self-end sm:self-auto">
+                                                    <div className="text-[9px] text-gray-400 font-mono uppercase self-end sm:self-auto font-bold bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded-lg">
                                                         {new Date(log.createdAt).toLocaleString()}
                                                     </div>
                                                 </div>
