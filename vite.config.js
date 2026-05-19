@@ -39,6 +39,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        navigateFallbackDenylist: [/^\/shoplink\/api/, /^\/api/, /^\/shoplink\/uploads/, /^\/uploads/],
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
@@ -83,6 +84,7 @@ export default defineConfig({
     proxy: {
       // Forward /uploads requests to Express in dev so images load
       '/uploads': 'http://localhost:5000',
+      '/shoplink/uploads': 'http://localhost:5000',
     }
   },
 })

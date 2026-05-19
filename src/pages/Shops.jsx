@@ -104,7 +104,7 @@ const Shops = () => {
                 const uploadRes = await api.post('/uploads', uploadFormData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
-                finalLogoUrl = uploadRes.data.url;
+                finalLogoUrl = uploadRes.data.data?.url || uploadRes.data.url;
             }
 
             if (editingShop) {
