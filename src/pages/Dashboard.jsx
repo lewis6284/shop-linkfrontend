@@ -90,11 +90,10 @@ const OwnerDashboard = () => {
             </div>
 
             {/* Core Financials */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <DashboardCard title="Total Shops" value={stats?.totalShops || '0'} subtitle="Active tenants" icon={Store} color="purple" />
                 <DashboardCard title="Global Sales (Today)" value={`${(stats?.todaySales || 0).toLocaleString()} Fbu`} subtitle="Across all shops" icon={TrendingUp} color="emerald" />
-                <DashboardCard title="Global Profit" value={`${(stats?.netProfit || 0).toLocaleString()} Fbu`} subtitle="Net after expenses" icon={Award} color="blue" />
-                <DashboardCard title="Global Expenses" value={`${(stats?.totalExpenses || 0).toLocaleString()} Fbu`} subtitle="Total operations" icon={TrendingDown} color="rose" />
+                <DashboardCard title="Global Gross Profit" value={`${(stats?.netProfit || 0).toLocaleString()} Fbu`} subtitle="Total sales margins" icon={Award} color="blue" />
             </div>
 
             {/* Tax & Secondary Metrics */}
@@ -194,18 +193,16 @@ const ManagerDashboard = () => {
             </div>
 
             {/* Core KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <DashboardCard title="Shop Sales (Today)" value={`${(stats?.todaySales || 0).toLocaleString()} Fbu`} subtitle="+5% from avg" icon={ShoppingBag} color="emerald" />
-                <DashboardCard title="Shop Expenses" value={`${(stats?.totalExpenses || 0).toLocaleString()} Fbu`} subtitle="Operations & Salaries" icon={TrendingDown} color="rose" />
-                <DashboardCard title="Net Profit" value={`${(stats?.netProfit || 0).toLocaleString()} Fbu`} subtitle="Real-time margin" icon={Wallet} color="blue" />
+                <DashboardCard title="Gross Profit (Today)" value={`${(stats?.netProfit || 0).toLocaleString()} Fbu`} subtitle="Real-time margin" icon={Wallet} color="blue" />
                 <DashboardCard title="Low Stock Alerts" value={stats?.lowStockCount || '0'} subtitle="Requires action" icon={AlertCircle} color="amber" />
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <QuickActionButton onClick={() => navigate('/sales')} icon={ShoppingCart} label="View Sales" color="emerald" />
                 <QuickActionButton onClick={() => navigate('/stock')} icon={Package} label="Manage Stock" color="amber" />
-                <QuickActionButton onClick={() => navigate('/expenses')} icon={Wallet} label="Add Expense" color="rose" />
                 <QuickActionButton onClick={() => navigate('/reports')} icon={FileText} label="Shop Report" color="blue" />
             </div>
             

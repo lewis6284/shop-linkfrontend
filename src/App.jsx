@@ -9,7 +9,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Shops from './pages/Shops';
 import POS from './pages/POS';
-import Expenses from './pages/Expenses';
 import AuditLogs from './pages/AuditLogs';
 import Users from './pages/Users';
 import Products from './pages/Products';
@@ -145,17 +144,6 @@ const App = () => {
                         }
                     >
                         <Route index element={<Dashboard />} />
-                    </Route>
-
-                    <Route
-                        path="/expenses"
-                        element={
-                            <ProtectedRoute allowedRoles={['owner', 'manager']}>
-                                <Layout />
-                            </ProtectedRoute>
-                        }
-                    >
-                        <Route index element={<Expenses />} />
                     </Route>
 
                     <Route

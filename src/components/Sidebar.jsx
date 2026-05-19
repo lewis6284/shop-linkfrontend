@@ -41,7 +41,6 @@ const Sidebar = ({ isOpen, toggle }) => {
             title: 'Finances',
             items: [
                 { path: '/sales', name: 'Sales', icon: <CreditCard size={20} />, roles: ['owner', 'manager', 'cashier'] },
-                { path: '/expenses', name: 'Expenses', icon: <Wallet size={20} />, roles: ['owner', 'manager'] },
                 { path: '/reports', name: 'Reports', icon: <FileText size={20} />, roles: ['owner', 'manager'] },
             ]
         },

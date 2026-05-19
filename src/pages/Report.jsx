@@ -61,18 +61,18 @@ const Reports = () => {
 
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
                     <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <ArrowDownCircle size={100} />
+                        <TrendingUp size={100} />
                     </div>
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 rounded-2xl">
-                            <ArrowDownCircle size={24} />
+                        <div className="p-3 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-2xl">
+                            <TrendingUp size={24} />
                         </div>
-                        <h3 className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Total Expenses</h3>
+                        <h3 className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Total Gross Profit</h3>
                     </div>
                     <div className="text-3xl font-black text-gray-900 dark:text-white">
-                        {(stats?.totalExpenses || 0).toLocaleString()} <span className="text-sm">Fbu</span>
+                        {(stats?.netProfit || 0).toLocaleString()} <span className="text-sm">Fbu</span>
                     </div>
-                    <div className="text-[10px] text-rose-500 font-black mt-2 uppercase tracking-tight">Mainly Salaries & Rents</div>
+                    <div className="text-[10px] text-blue-600 font-black mt-2 uppercase tracking-tight">Across all product sales</div>
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
@@ -80,25 +80,22 @@ const Reports = () => {
                         <Users size={100} />
                     </div>
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-2xl">
+                        <div className="p-3 bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 rounded-2xl">
                             <Users size={24} />
                         </div>
                         <h3 className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Total Customers</h3>
                     </div>
                     <div className="text-3xl font-black text-gray-900 dark:text-white">{stats?.totalCustomers || '0'}</div>
-                    <div className="text-[10px] text-blue-600 font-black mt-2 uppercase tracking-tight">Across all shops</div>
+                    <div className="text-[10px] text-purple-600 font-black mt-2 uppercase tracking-tight">Across all shops</div>
                 </div>
             </div>
 
             <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm h-[450px]">
                 <div className="flex justify-between items-center mb-8">
-                    <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-tight">Revenue vs Expenses Performance</h3>
+                    <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-tight">Revenue Performance Analytics</h3>
                     <div className="flex gap-4">
                         <div className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Revenue
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] font-black text-rose-500 uppercase tracking-widest">
-                            <div className="w-2 h-2 rounded-full bg-rose-500"></div> Expenses
+                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Revenue Trend
                         </div>
                     </div>
                 </div>
@@ -108,10 +105,6 @@ const Reports = () => {
                             <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#10B981" stopOpacity={0.1} />
                                 <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                            </linearGradient>
-                            <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.1} />
-                                <stop offset="95%" stopColor="#F43F5E" stopOpacity={0} />
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" strokeOpacity={0.2} />
@@ -123,7 +116,6 @@ const Reports = () => {
                             labelStyle={{ color: '#9CA3AF', marginBottom: '8px', fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase' }}
                         />
                         <Area type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-                        <Area type="monotone" dataKey="expenses" stroke="#F43F5E" strokeWidth={3} fillOpacity={1} fill="url(#colorExp)" />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
