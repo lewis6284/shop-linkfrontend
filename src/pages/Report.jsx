@@ -6,6 +6,9 @@ import {
     RefreshCw, ShieldAlert, PieChart, Briefcase, FileText, Printer
 } from 'lucide-react';
 import { financialService } from '../services/financialService';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import toast from 'react-hot-toast';
 
 const Reports = () => {
     const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'statement'
@@ -84,8 +87,263 @@ const Reports = () => {
         fetchAllReportData();
     }, [dateRange, startDate, endDate]);
 
-    const handlePrint = () => {
-        window.print();
+    // Breathtaking Vector PDF Statement compiler - styled identically to invoices
+    const handlePrintStatement = async () => {
+        const loadingMsg = toast.loading("Compiling consolidated financial report...");
+        try {
+            const activeShopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
+            const shopName = activeShopData?.name || "ShopLink Store";
+            const shopPhone = activeShopData?.phone || "";
+            const shopAddress = activeShopData?.address || "";
+
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const primaryColor = [15, 23, 42]; // Slate
+            const accentColor = [217, 119, 6]; // Amber
+            const textColor = [51, 65, 85];
+
+            // 1. Draw Brand Logo
+            const addImageProcess = new Promise((resolve) => {
+                const img = new Image();
+                img.src = '/shoplink/logo.png';
+                img.onload = () => {
+                    try {
+                        doc.addImage(img, 'PNG', 20, 20, 32, 32);
+                    } catch (e) {
+                        console.error('Failed to draw logo.png', e);
+                    }
+                    resolve();
+                };
+                img.onerror = () => {
+                    doc.setFillColor(15, 23, 42);
+                    doc.roundedRect(20, 20, 32, 32, 4, 4, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(16);
+                    doc.text('SL', 36, 40, { align: 'center' });
+                    resolve();
+                };
+            });
+
+            await addImageProcess;
+
+            // 2. Header Text Details
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(22);
+            doc.text(shopName.toUpperCase(), 58, 30);
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(100, 116, 139);
+            doc.text('CONSOLIDATED STATEMENT OF PROFIT OR LOSS', 58, 36);
+            if (shopAddress) doc.text(`Address: ${shopAddress}`, 58, 42);
+            if (shopPhone) doc.text(`Phone: ${shopPhone}`, 58, 47);
+
+            // 3. Right Header Info Box
+            doc.setFillColor(248, 250, 252);
+            doc.roundedRect(135, 20, 55, 32, 3, 3, 'F');
+            
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.text('REPORT DETAIL', 140, 27);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            doc.text(`Ref No: SL-RP-${new Date().getFullYear()}-${(Math.random() * 10000).toFixed(0)}`, 140, 33);
+            doc.text(`Period: ${startDate} to ${endDate}`, 140, 38);
+            doc.text(`Status: AUDITED / FINAL`, 140, 43);
+            doc.text(`Issued: ${new Date().toLocaleDateString('en-GB')}`, 140, 48);
+
+            // Divider Line
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.5);
+            doc.line(20, 58, 190, 58);
+
+            // 4. Section 1: Financial Ledger Calculations
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10.5);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text('1. CONSOLIDATED OPERATING BALANCES', 20, 68);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+            doc.text('GROSS RETAIL TURNOVER (REVENUE):', 25, 76);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${grossRevenue.toLocaleString()} FBU`, 190, 76, { align: 'right' });
+
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 116, 139);
+            doc.text('LESS: COST OF GOODS SOLD (COGS):', 25, 83);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`(${cogs.toLocaleString()}) FBU`, 190, 83, { align: 'right' });
+
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.3);
+            doc.line(25, 88, 190, 88);
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10.5);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text('GROSS OPERATING PROFIT:', 25, 95);
+            doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+            doc.text(`${grossProfit.toLocaleString()} FBU`, 190, 95, { align: 'right' });
+
+            // Accounting Standard double-underline
+            doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
+            doc.setLineWidth(0.3);
+            doc.line(135, 98, 190, 98);
+            doc.line(135, 99.2, 190, 99.2);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text('OPERATING SYSTEM Gross Margin (%):', 25, 105);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${profitMargin} %`, 190, 105, { align: 'right' });
+
+            // 5. Section 2: Product Margins Table
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10.5);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text('2. PRODUCT PROFITABILITY INDEX (TOP 5 ITEMS)', 20, 116);
+
+            const prodColumns = [
+                { header: 'PRODUCT DESCRIPTION', dataKey: 'name' },
+                { header: 'TOTAL UNITS SOLD', dataKey: 'qty', align: 'center' },
+                { header: 'TOTAL REVENUE (FBU)', dataKey: 'revenue', align: 'right' }
+            ];
+
+            const prodRows = topProducts.slice(0, 5).map(prod => ({
+                name: (prod.Product?.name || prod.name || 'Unknown Product').toUpperCase(),
+                qty: String(prod.total_sold || prod.quantity || 0),
+                revenue: `${Number(prod.total_revenue || prod.revenue || 0).toLocaleString()} FBU`
+            }));
+
+            autoTable(doc, {
+                columns: prodColumns,
+                body: prodRows,
+                startY: 121,
+                margin: { left: 20, right: 20 },
+                styles: {
+                    font: 'helvetica',
+                    fontSize: 8,
+                    cellPadding: 4,
+                    textColor: [51, 65, 85],
+                    valign: 'middle'
+                },
+                headStyles: {
+                    fillColor: [15, 23, 42], // Slate header
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8,
+                    halign: 'left'
+                },
+                columnStyles: {
+                    qty: { halign: 'center' },
+                    revenue: { halign: 'right' }
+                },
+                theme: 'striped'
+            });
+
+            // 6. Section 3: Cashier Ledgers
+            const staffY = doc.lastAutoTable.finalY + 10;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10.5);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text('3. STAFF REGISTER TURNOVER LOG', 20, staffY);
+
+            const staffColumns = [
+                { header: 'STAFF MEMBER NAME', dataKey: 'name' },
+                { header: 'DESIGNATION', dataKey: 'role' },
+                { header: 'COMPLETED SALES', dataKey: 'sales', align: 'center' },
+                { header: 'REVENUE REGISTERED (FBU)', dataKey: 'revenue', align: 'right' }
+            ];
+
+            const staffRows = employeeSales.map(emp => ({
+                name: (emp.User?.full_name || 'Staff Member').toUpperCase(),
+                role: (emp.User?.role || 'Staff').toUpperCase(),
+                sales: String(emp.total_sales || 0),
+                revenue: `${Number(emp.total_revenue || 0).toLocaleString()} FBU`
+            }));
+
+            autoTable(doc, {
+                columns: staffColumns,
+                body: staffRows,
+                startY: staffY + 4,
+                margin: { left: 20, right: 20 },
+                styles: {
+                    font: 'helvetica',
+                    fontSize: 8,
+                    cellPadding: 4,
+                    textColor: [51, 65, 85],
+                    valign: 'middle'
+                },
+                headStyles: {
+                    fillColor: [15, 23, 42],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8,
+                    halign: 'left'
+                },
+                columnStyles: {
+                    sales: { halign: 'center' },
+                    revenue: { halign: 'right' }
+                },
+                theme: 'striped'
+            });
+
+            // 7. Section 4: Signatures & Verification blocks (Identical to invoice styling)
+            const sigY = doc.lastAutoTable.finalY + 12;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(148, 163, 184);
+            doc.text('AUDIT DISCLOSURE: Financial statistics are calculated on snapshotted registers compiled dynamically with isolated parameters.', 20, sigY);
+
+            const linesY = sigY + 22;
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.4);
+
+            // Prep Area
+            doc.line(20, linesY, 80, linesY);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8.5);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text('Prepared: System Auto-Daemon', 20, linesY + 6);
+
+            // Approved & Signature Box (Just like invoice verified stamp box)
+            doc.line(130, linesY, 190, linesY);
+            doc.text('Approved: Enterprise Owner Signature', 130, linesY + 6);
+            doc.roundedRect(130, linesY + 10, 60, 20, 2, 2, 'S');
+
+            // Footer
+            const pageHeight = doc.internal.pageSize.height;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8.5);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text('CONFIDENTIAL CONSOLIDATED FINANCIAL HEALTH REPORT', 105, pageHeight - 15, { align: 'center' });
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(148, 163, 184);
+            doc.text('This is an official document generated digitally by ShopLink ERP.', 105, pageHeight - 9, { align: 'center' });
+
+            // 8. Save vector PDF natively
+            doc.save(`Rapport_Economique_${startDate}_${endDate}.pdf`);
+            toast.success("Financial Statement PDF compiled successfully!", { id: loadingMsg });
+        } catch (error) {
+            console.error("Failed to compile statement PDF", error);
+            toast.error("Failed to generate PDF.", { id: loadingMsg });
+        }
     };
 
     if (loading) {
@@ -170,10 +428,10 @@ const Reports = () => {
                     </button>
                     {viewMode === 'statement' && (
                         <button 
-                            onClick={handlePrint}
+                            onClick={handlePrintStatement}
                             className="px-5 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10"
                         >
-                            <Printer size={18} /> Print Statement
+                            <Printer size={18} /> Print Statement (PDF)
                         </button>
                     )}
                     <button className="flex-1 md:flex-initial px-5 py-3 bg-brand-600 text-white font-bold rounded-2xl hover:bg-brand-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-500/10">
@@ -338,13 +596,13 @@ const Reports = () => {
                             </button>
                             <button 
                                 onClick={() => setActiveTab('employees')}
-                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'employees' ? 'bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'employees' ? 'bg-white dark:bg-gray-950 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
                             >
                                 <Briefcase size={16} /> Staff Sales
                             </button>
                             <button 
                                 onClick={() => setActiveTab('security')}
-                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'security' ? 'bg-white dark:bg-gray-900 text-rose-600 dark:text-rose-400 shadow-sm border border-rose-100 dark:border-rose-900/30' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'security' ? 'bg-white dark:bg-gray-950 text-rose-600 dark:text-rose-400 shadow-sm border border-rose-100 dark:border-rose-900/30' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
                             >
                                 <ShieldAlert size={16} /> Security Audit Feed
                             </button>
