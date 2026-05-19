@@ -56,7 +56,7 @@ const AuditLogs = () => {
         if (!action) return 'system';
         const a = action.toUpperCase();
         if (a.includes('SALE') || a.includes('PURCHASE')) return 'transactions';
-        if (a.includes('PRODUCT') || a.includes('STOCK')) return 'inventory';
+        if (a.includes('PRODUCT') || a.includes('STOCK') || a.includes('TRANSFER')) return 'inventory';
         return 'system';
     };
 
@@ -132,6 +132,18 @@ const AuditLogs = () => {
         }
         if (action === 'STOCK_ADDITION') {
             return `Stock manually received. Quantity: +${newVal.quantity || 0}`;
+        }
+        if (action === 'TRANSFER_CREATE') {
+            return `Stock transfer officially initiated across locations.`;
+        }
+        if (action === 'TRANSFER_DISPATCH') {
+            return `Stock physically dispatched. Logistics status: IN TRANSIT.`;
+        }
+        if (action === 'TRANSFER_RECEIVE' || action === 'TRANSFER_COMPLETE') {
+            return `Stock transfer successfully received. Inventory rebalanced.`;
+        }
+        if (action === 'TRANSFER_CANCEL') {
+            return `Stock transfer aborted. Reserved stock has been released.`;
         }
         return `System event successfully registered in the ${formatDomainName(log.table_name)} module.`;
     };
