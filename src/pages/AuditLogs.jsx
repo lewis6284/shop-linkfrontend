@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { financialService } from '../services/financialService';
 import { 
     Activity, Search, Filter, Loader2, User, 
-    Shield, Clock, Database, ChevronRight, AlertTriangle, ShieldAlert
+    Shield, Clock, Database, ChevronRight, AlertTriangle, ShieldAlert,
+    Calendar
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -10,15 +11,37 @@ const AuditLogs = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [dateRange, setDateRange] = useState('30'); // '7', '30', 'custom'
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 30);
+        return d.toISOString().split('T')[0];
+    });
+    const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
         fetchLogs();
-    }, []);
+    }, [dateRange, startDate, endDate]);
 
     const fetchLogs = async () => {
         try {
             setLoading(true);
-            const data = await financialService.getAuditLogsReport();
+            let start = startDate;
+            let end = endDate;
+            
+            if (dateRange === '7') {
+                const d = new Date();
+                d.setDate(d.getDate() - 7);
+                start = d.toISOString().split('T')[0];
+                end = new Date().toISOString().split('T')[0];
+            } else if (dateRange === '30') {
+                const d = new Date();
+                d.setDate(d.getDate() - 30);
+                start = d.toISOString().split('T')[0];
+                end = new Date().toISOString().split('T')[0];
+            }
+
+            const data = await financialService.getAuditLogsReport(null, start, end);
             setLogs(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Failed to load audit logs", error);
@@ -94,6 +117,54 @@ const AuditLogs = () => {
                 <p className="text-gray-500 font-medium text-sm">Security and activity monitoring across all shops</p>
             </div>
 
+            {/* Comprehensive Period Selectors */}
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 date-selector-bar">
+                <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl self-stretch sm:self-auto">
+                    <button 
+                        onClick={() => setDateRange('7')}
+                        className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${dateRange === '7' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                    >
+                        Last 7 Days
+                    </button>
+                    <button 
+                        onClick={() => setDateRange('30')}
+                        className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${dateRange === '30' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                    >
+                        Last 30 Days
+                    </button>
+                    <button 
+                        onClick={() => setDateRange('custom')}
+                        className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${dateRange === 'custom' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                    >
+                        Custom Range
+                    </button>
+                </div>
+
+                {dateRange === 'custom' && (
+                    <div className="flex items-center gap-2 animate-in slide-in-from-right-4 duration-300 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:flex-initial">
+                            <input 
+                                type="date" 
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-2xl outline-none focus:border-brand-500 dark:text-white font-bold text-xs"
+                            />
+                            <Calendar size={14} className="absolute left-3.5 top-3.5 text-gray-400" />
+                        </div>
+                        <span className="text-gray-400 text-xs font-bold uppercase">To</span>
+                        <div className="relative flex-1 sm:flex-initial">
+                            <input 
+                                type="date" 
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-2xl outline-none focus:border-brand-500 dark:text-white font-bold text-xs"
+                            />
+                            <Calendar size={14} className="absolute left-3.5 top-3.5 text-gray-400" />
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Filters */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
@@ -114,7 +185,7 @@ const AuditLogs = () => {
                     <div className="flex justify-center py-20"><Loader2 className="animate-spin text-brand-600" size={32} /></div>
                 ) : filteredLogs.length === 0 ? (
                     <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest text-xs opacity-50">
-                        No activity logs found
+                        No activity logs found for this period
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-50 dark:divide-gray-700/50">
