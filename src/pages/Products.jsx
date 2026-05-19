@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { productService, categoryService, brandService, unitService } from '../services/inventoryService';
 import userService from '../services/userService';
+import api from '../services/api';
 import { calculateMargin, calculateTax, generateSKU } from '../utils/calculations';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
@@ -187,9 +188,22 @@ const Products = () => {
 
     const handleProductSubmit = async (e) => {
         e.preventDefault();
+        const loadingToast = toast.loading("Saving product...");
         try {
+            let finalImageUrl = productFormData.image_url;
+            const fileInput = document.getElementById('product-image-upload');
+            if (fileInput && fileInput.files[0]) {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', fileInput.files[0]);
+                const uploadRes = await api.post('/uploads', uploadFormData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                finalImageUrl = uploadRes.data.data?.url || uploadRes.data.url;
+            }
+
             const submissionData = { 
                 ...productFormData, 
+                image_url: finalImageUrl,
                 buyingPrice: productFormData.purchasePrice,
                 // If barcode is empty string, transmit as null so it doesn't violate unique constraint
                 barcode: productFormData.barcode.trim() || null 
@@ -197,16 +211,16 @@ const Products = () => {
             
             if (editingProduct) {
                 await productService.update(editingProduct.id, submissionData);
-                toast.success("Product updated successfully");
+                toast.success("Product updated successfully", { id: loadingToast });
             } else {
                 await productService.create(submissionData);
-                toast.success("Product created successfully");
+                toast.success("Product created successfully", { id: loadingToast });
             }
             setIsProductModalOpen(false);
             fetchData();
         } catch (error) {
             console.error(error);
-            toast.error(error.response?.data?.message || "Failed to save product");
+            toast.error(error.response?.data?.message || "Failed to save product", { id: loadingToast });
         }
     };
 
@@ -883,17 +897,27 @@ const Products = () => {
                             )}
 
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Image Thumbnail URL</label>
-                                <div className="relative">
-                                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                                    <input
-                                        type="text"
-                                        placeholder="https://example.com/image.png"
-                                        value={productFormData.image_url}
-                                        onChange={e => setProductFormData({...productFormData, image_url: e.target.value})}
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 text-sm font-medium"
-                                    />
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Product Image (Upload)</label>
+                                <div className="flex items-center gap-3">
+                                    {productFormData.image_url && (
+                                        <div className="w-12 h-12 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 bg-white dark:bg-gray-800 flex items-center justify-center">
+                                            <img 
+                                                src={getImageUrl(productFormData.image_url, 'placeholder-product.png')} 
+                                                alt="Preview" 
+                                                className="w-full h-full object-cover" 
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="relative group flex-1">
+                                        <input
+                                            id="product-image-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="w-full px-5 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 text-sm font-medium"
+                                        />
+                                    </div>
                                 </div>
+                                <p className="text-[10px] text-gray-400 font-medium px-1">Upload a product image (PNG, JPG, max 5MB)</p>
                             </div>
 
                             <div className="space-y-1">
