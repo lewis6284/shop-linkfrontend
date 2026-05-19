@@ -64,7 +64,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../shoplink/public/shoplink',
+    outDir: '../api/public/shoplink',
     emptyOutDir: true,
     rollupOptions: {
       output: {
