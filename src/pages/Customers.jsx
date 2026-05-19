@@ -16,11 +16,11 @@ const Customers = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const [formData, setFormData] = useState({
-        name: '',
+        full_name: '',
         phone: '',
         email: '',
         address: '',
-        customer_type: 'RETAIL'
+        customer_type: 'retail'
     });
 
     useEffect(() => {
@@ -44,15 +44,15 @@ const Customers = () => {
         if (customer) {
             setEditingCustomer(customer);
             setFormData({
-                name: customer.name,
+                full_name: customer.full_name || '',
                 phone: customer.phone || '',
                 email: customer.email || '',
                 address: customer.address || '',
-                customer_type: customer.customer_type || 'RETAIL'
+                customer_type: customer.customer_type || 'retail'
             });
         } else {
             setEditingCustomer(null);
-            setFormData({ name: '', phone: '', email: '', address: '', customer_type: 'RETAIL' });
+            setFormData({ full_name: '', phone: '', email: '', address: '', customer_type: 'retail' });
         }
         setIsModalOpen(true);
     };
@@ -75,7 +75,7 @@ const Customers = () => {
     };
 
     const filteredCustomers = customers.filter(c => 
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (c.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
         c.phone?.includes(searchTerm)
     );
 
@@ -115,10 +115,10 @@ const Customers = () => {
                         <TableCell>
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 font-black">
-                                    {c.name.charAt(0)}
+                                    {(c.full_name || 'U').charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <p className="font-bold text-gray-900 dark:text-white">{c.name}</p>
+                                    <p className="font-bold text-gray-900 dark:text-white">{c.full_name}</p>
                                     <p className="text-xs text-gray-400 truncate max-w-[150px]">{c.address || 'No address'}</p>
                                 </div>
                             </div>
@@ -154,7 +154,7 @@ const Customers = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-gray-500 uppercase">Full Name</label>
-                        <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20" />
+                        <input required value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
@@ -173,9 +173,9 @@ const Customers = () => {
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-gray-500 uppercase">Customer Type</label>
                         <select value={formData.customer_type} onChange={e => setFormData({...formData, customer_type: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20">
-                            <option value="RETAIL">Retail (Standard)</option>
-                            <option value="PARTNER">Partner (Discount)</option>
-                            <option value="WHOLESALE">Wholesale (Bulk)</option>
+                            <option value="retail">Retail (Standard)</option>
+                            <option value="partner">Partner (Discount)</option>
+                            <option value="wholesale">Wholesale (Bulk)</option>
                         </select>
                     </div>
                     <div className="flex justify-end gap-3 pt-4">

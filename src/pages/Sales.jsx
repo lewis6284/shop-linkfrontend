@@ -5,7 +5,7 @@ import Table, { TableRow, TableCell } from '../components/Table';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
-import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, Trash2, User as UserIcon } from 'lucide-react';
+import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, Trash2, User as UserIcon, ShieldAlert, Check, XCircle, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -13,10 +13,19 @@ import autoTable from 'jspdf-autotable';
 const Sales = () => {
     const { user, activeShopId } = useAuth();
     const [sales, setSales] = useState([]);
+    const [pendingSales, setPendingSales] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSale, setSelectedSale] = useState(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('completed');
+
+    // Rejection prompt modal state
+    const [rejectModal, setRejectModal] = useState({
+        isOpen: false,
+        saleId: null,
+        reason: ''
+    });
 
     // Custom built confirmation modal state (no native JS alert/confirm!)
     const [confirmModal, setConfirmModal] = useState({
@@ -27,7 +36,7 @@ const Sales = () => {
 
     useEffect(() => {
         fetchSales();
-    }, [activeShopId]);
+    }, [activeShopId, user]);
 
     const fetchSales = async () => {
         try {
@@ -36,11 +45,20 @@ const Sales = () => {
             if (activeShopId) {
                 params.shop_id = activeShopId;
             }
-            const data = await saleService.getAll(params);
-            setSales(Array.isArray(data) ? data : (data?.sales || []));
+            
+            const [completedData, pendingData] = await Promise.all([
+                saleService.getAll(params),
+                (user?.role === 'owner' || user?.role === 'manager') 
+                    ? saleService.getPendingApproval() 
+                    : Promise.resolve([])
+            ]);
+
+            setSales(Array.isArray(completedData) ? completedData : (completedData?.sales || []));
+            setPendingSales(Array.isArray(pendingData) ? pendingData : (pendingData?.sales || []));
         } catch (error) {
-            toast.error("Failed to load sales history");
+            toast.error("Failed to load transaction data");
             setSales([]);
+            setPendingSales([]);
         } finally {
             setLoading(false);
         }
@@ -67,8 +85,50 @@ const Sales = () => {
         }
     };
 
+    const handleApprove = async (saleId) => {
+        const loadingMsg = toast.loading("Approving partner transaction...");
+        try {
+            await saleService.approve(saleId);
+            toast.success("Transaction successfully approved and finalized!", { id: loadingMsg });
+            fetchSales();
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to approve sale.", { id: loadingMsg });
+        }
+    };
+
+    const handleRejectClick = (saleId) => {
+        setRejectModal({
+            isOpen: true,
+            saleId,
+            reason: ''
+        });
+    };
+
+    const handleConfirmReject = async () => {
+        if (!rejectModal.reason.trim()) {
+            toast.error("Please provide a cancellation reason");
+            return;
+        }
+        const loadingMsg = toast.loading("Rejecting transaction...");
+        try {
+            await saleService.reject(rejectModal.saleId, rejectModal.reason);
+            toast.success("Transaction successfully rejected and stock restored!", { id: loadingMsg });
+            setRejectModal({ isOpen: false, saleId: null, reason: '' });
+            fetchSales();
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to reject sale.", { id: loadingMsg });
+        }
+    };
+
     const filteredSales = sales.filter(s => 
         s.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        s.User?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.Customer?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const filteredPendingSales = pendingSales.filter(s => 
         s.User?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.Customer?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -313,90 +373,193 @@ const Sales = () => {
                 </div>
             </div>
 
+            {/* Owner/Manager Tabs */}
+            {(user?.role === 'owner' || user?.role === 'manager') && (
+                <div className="flex gap-6 border-b border-gray-100 dark:border-gray-800 pb-px mb-2">
+                    <button 
+                        onClick={() => { setActiveTab('completed'); setSearchTerm(''); }}
+                        className={`pb-4 px-2 font-black text-xs uppercase tracking-wider border-b-4 transition-all ${
+                            activeTab === 'completed' 
+                                ? 'border-brand-600 text-brand-600 dark:text-brand-400' 
+                                : 'border-transparent text-gray-400 hover:text-gray-600'
+                        }`}
+                    >
+                        Completed Ledgers
+                    </button>
+                    <button 
+                        onClick={() => { setActiveTab('pending'); setSearchTerm(''); }}
+                        className={`pb-4 px-2 font-black text-xs uppercase tracking-wider border-b-4 transition-all flex items-center gap-2 ${
+                            activeTab === 'pending' 
+                                ? 'border-amber-600 text-amber-600 dark:text-amber-400' 
+                                : 'border-transparent text-gray-400 hover:text-gray-600'
+                        }`}
+                    >
+                        <ShieldAlert size={14} /> Partner Approvals
+                        {pendingSales.length > 0 && (
+                            <span className="bg-amber-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse">
+                                {pendingSales.length}
+                            </span>
+                        )}
+                    </button>
+                </div>
+            )}
+
             {/* Filter & Search */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative">
                 <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                     type="text"
-                    placeholder="Search by Invoice #, Customer, or Cashier..."
+                    placeholder={activeTab === 'pending' ? "Search pending by Customer or Cashier..." : "Search by Invoice #, Customer, or Cashier..."}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-black text-sm uppercase tracking-wider dark:text-white"
                 />
             </div>
 
-            {/* Sales Table */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
-                <Table headers={['Invoice Number', 'Party Details', 'Financials', 'Payment', 'Status', 'Actions']}>
-                    {loading ? (
-                        <TableRow><TableCell colSpan={6} className="text-center py-10">Loading...</TableCell></TableRow>
-                    ) : filteredSales.length === 0 ? (
-                        <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No records found matching criteria</TableCell></TableRow>
-                    ) : filteredSales.map(s => (
-                        <TableRow key={s.id}>
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-brand-5: dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-xl">
-                                        <FileText size={20} />
+            {/* Sales Table / Pending Table Conditional */}
+            {activeTab === 'completed' ? (
+                <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
+                    <Table headers={['Invoice Number', 'Party Details', 'Financials', 'Payment', 'Status', 'Actions']}>
+                        {loading ? (
+                            <TableRow><TableCell colSpan={6} className="text-center py-10">Loading...</TableCell></TableRow>
+                        ) : filteredSales.length === 0 ? (
+                            <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No records found matching criteria</TableCell></TableRow>
+                        ) : filteredSales.map(s => (
+                            <TableRow key={s.id}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-xl">
+                                            <FileText size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-gray-900 dark:text-white uppercase leading-none mb-1">{s.Invoice?.invoice_number || s.invoice_number || `SAL-${s.id.slice(0, 8)}`}</p>
+                                            <p className="text-[10px] font-mono text-gray-400">{new Date(s.createdAt).toLocaleString()}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-black text-gray-900 dark:text-white uppercase leading-none mb-1">{s.Invoice?.invoice_number || s.invoice_number || `SAL-${s.id.slice(0, 8)}`}</p>
-                                        <p className="text-[10px] font-mono text-gray-400">{new Date(s.createdAt).toLocaleString()}</p>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <UserIcon size={12} className="text-gray-400" />
+                                            <p className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase">{s.Customer?.full_name || 'Walk-in'}</p>
+                                        </div>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase ml-5">By: {s.User?.full_name}</p>
                                     </div>
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="space-y-1">
+                                </TableCell>
+                                <TableCell>
+                                    <div className="font-black text-lg text-gray-900 dark:text-white tracking-tighter">
+                                        {Number(s.totalAmount || s.total_amount).toLocaleString()}
+                                    </div>
+                                    <div className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">Tax Incl: {Number(s.taxAmount || s.tax_amount).toLocaleString()}</div>
+                                </TableCell>
+                                <TableCell>
+                                    <StatusBadge status={s.paymentMethod || s.payment_method || 'CASH'} />
+                                </TableCell>
+                                <TableCell>
+                                    <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block ${
+                                        s.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/20'
+                                    }`}>
+                                        {s.status || 'FINALIZED'}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
                                     <div className="flex items-center gap-2">
-                                        <UserIcon size={12} className="text-gray-400" />
-                                        <p className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase">{s.Customer?.full_name || 'Walk-in'}</p>
-                                    </div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase ml-5">By: {s.User?.full_name}</p>
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="font-black text-lg text-gray-900 dark:text-white tracking-tighter">
-                                    {Number(s.totalAmount || s.total_amount).toLocaleString()}
-                                </div>
-                                <div className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">Tax Incl: {Number(s.taxAmount || s.tax_amount).toLocaleString()}</div>
-                            </TableCell>
-                            <TableCell>
-                                <StatusBadge status={s.paymentMethod || s.payment_method || 'CASH'} />
-                            </TableCell>
-                            <TableCell>
-                                <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block ${
-                                    s.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-55 text-rose-600 dark:bg-rose-950/20'
-                                }`}>
-                                    {s.status || 'FINALIZED'}
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-2">
-                                    <button 
-                                        onClick={() => openDetails(s)}
-                                        className="p-3 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm"
-                                        title="View Details"
-                                    >
-                                        <Eye size={18} />
-                                    </button>
-                                    {s.status !== 'CANCELLED' && (user?.role === 'owner' || user?.role === 'manager') && (
                                         <button 
-                                            onClick={() => handleCancelClick(s)}
-                                            className="p-3 bg-gray-50 dark:bg-gray-700 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm"
-                                            title="Cancel Sale"
+                                            onClick={() => openDetails(s)}
+                                            className="p-3 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm"
+                                            title="View Details"
                                         >
-                                            <Trash2 size={18} />
+                                            <Eye size={18} />
                                         </button>
-                                    )}
-                                    <button onClick={() => handlePrintInvoice(s)} className="p-3 bg-gray-50 dark:bg-gray-700 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm" title="Download Invoice">
-                                        <Download size={18} />
-                                    </button>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </Table>
-            </div>
+                                        {s.status !== 'CANCELLED' && (user?.role === 'owner' || user?.role === 'manager') && (
+                                            <button 
+                                                onClick={() => handleCancelClick(s)}
+                                                className="p-3 bg-gray-50 dark:bg-gray-700 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm"
+                                                title="Cancel Sale"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        )}
+                                        <button onClick={() => handlePrintInvoice(s)} className="p-3 bg-gray-50 dark:bg-gray-700 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm" title="Download Invoice">
+                                            <Download size={18} />
+                                        </button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </Table>
+                </div>
+            ) : (
+                <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
+                    <Table headers={['Queue Date', 'Customer Detail', 'Cashier Issuer', 'Total Amount', 'Status', 'Actions']}>
+                        {loading ? (
+                            <TableRow><TableCell colSpan={6} className="text-center py-10">Loading...</TableCell></TableRow>
+                        ) : filteredPendingSales.length === 0 ? (
+                            <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No pending authorization queues found</TableCell></TableRow>
+                        ) : filteredPendingSales.map(s => (
+                            <TableRow key={s.id}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 rounded-xl">
+                                            <Clock size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-gray-900 dark:text-white uppercase leading-none mb-1">Pending approval</p>
+                                            <p className="text-[10px] font-mono text-gray-400">{new Date(s.createdAt).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-black text-gray-900 dark:text-white uppercase">{s.Customer?.full_name || 'Walk-in Partner'}</p>
+                                        <span className="inline-block text-[8px] font-black px-2 py-0.5 bg-amber-150 dark:bg-amber-950 text-amber-700 dark:text-amber-450 rounded-md tracking-wider uppercase">Partner Seller</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="text-xs font-black text-gray-600 dark:text-gray-300 uppercase">{s.User?.full_name}</p>
+                                    <p className="text-[9px] text-gray-400 font-bold">POS Cashier</p>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="font-black text-lg text-amber-600 dark:text-amber-400 tracking-tighter">
+                                        {Number(s.totalAmount || s.total_amount).toLocaleString()} Fbu
+                                    </div>
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase">Reserved Inventory</p>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="text-[10px] font-black px-3 py-1 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 rounded-full uppercase tracking-widest inline-flex items-center gap-1">
+                                        <ShieldAlert size={10} /> PENDING
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => openDetails(s)}
+                                            className="p-3 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-brand-600 hover:text-white rounded-xl transition-all shadow-sm"
+                                            title="Review Order details"
+                                        >
+                                            <Eye size={18} />
+                                        </button>
+                                        <button 
+                                            onClick={() => handleApprove(s.id)}
+                                            className="p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-sm"
+                                            title="Approve Order"
+                                        >
+                                            <Check size={18} />
+                                        </button>
+                                        <button 
+                                            onClick={() => handleRejectClick(s.id)}
+                                            className="p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm"
+                                            title="Reject Order"
+                                        >
+                                            <XCircle size={18} />
+                                        </button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </Table>
+                </div>
+            )}
 
             {/* Sale Details Modal */}
             <Modal isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="TRANSACTION RECEIPT" maxWidth="max-w-2xl">
@@ -458,6 +621,44 @@ const Sales = () => {
                 message={`Are you sure you want to cancel the transaction ${confirmModal.invoiceNumber}? This will automatically restore shop-specific stock levels for all products in this transaction.`}
                 confirmText="Cancel Sale"
             />
+
+            {/* Custom Rejection reason modal */}
+            <Modal 
+                isOpen={rejectModal.isOpen} 
+                onClose={() => setRejectModal({ isOpen: false, saleId: null, reason: '' })} 
+                title="REJECT PARTNER TRANSACTION" 
+                maxWidth="max-w-md"
+            >
+                <div className="space-y-6 p-2">
+                    <p className="text-sm text-gray-500 font-medium">
+                        Provide a brief explanation for rejecting this partner order. This rejection will restore all reserved stocks immediately back to physical inventory.
+                    </p>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">REJECTION REASON</label>
+                        <textarea
+                            value={rejectModal.reason}
+                            onChange={(e) => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}
+                            placeholder="e.g. Credit limit reached, pricing adjustments required..."
+                            rows={3}
+                            className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900 border rounded-2xl border-gray-250 dark:border-gray-700 rounded-2xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold dark:text-white"
+                        />
+                    </div>
+                    <div className="flex gap-4">
+                        <button 
+                            onClick={handleConfirmReject} 
+                            className="flex-1 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest"
+                        >
+                            Reject & Restore
+                        </button>
+                        <button 
+                            onClick={() => setRejectModal({ isOpen: false, saleId: null, reason: '' })} 
+                            className="px-8 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-2xl font-black text-xs uppercase tracking-widest"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

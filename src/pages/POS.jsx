@@ -16,7 +16,8 @@ import {
     X,
     Loader2,
     Package,
-    Search
+    Search,
+    ShieldAlert
 } from "lucide-react";
 
 import toast from "react-hot-toast";
@@ -136,7 +137,9 @@ const POS = () => {
                 status: 'COMPLETED'
             };
 
-            await saleService.create(payload);
+            const responseData = await saleService.create(payload);
+            const isPartner = responseData?.isPartner || customer?.customer_type === 'partner';
+            
             setCart([]);
             setSearchQuery("");
             setCustomer(null);
@@ -147,7 +150,7 @@ const POS = () => {
             const products = Array.isArray(res) ? res : res?.products || [];
             setSearchResults(products);
 
-            toast.success("Sale Successful!", { id: loading });
+            toast.success(isPartner ? "Partner Order Submitted for Owner Approval!" : "Sale Successful!", { id: loading });
         } catch (e) {
             toast.error("Checkout failed. Check stock levels.", { id: loading });
         }
@@ -352,9 +355,23 @@ const POS = () => {
                     <button
                         onClick={checkout}
                         disabled={cart.length === 0}
-                        className="w-full py-5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 text-white rounded-3xl font-black text-xl shadow-xl shadow-brand-500/20 active:scale-95 transition-all flex items-center justify-center gap-4"
+                        className={`w-full py-5 text-white rounded-3xl font-black text-xl active:scale-95 transition-all flex items-center justify-center gap-4 ${
+                            cart.length === 0 
+                                ? "bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed" 
+                                : customer?.customer_type === 'partner'
+                                    ? "bg-amber-600 hover:bg-amber-700 shadow-xl shadow-amber-500/20"
+                                    : "bg-brand-600 hover:bg-brand-700 shadow-xl shadow-brand-500/20"
+                        }`}
                     >
-                        <CreditCard size={24} /> PAY NOW
+                        {customer?.customer_type === 'partner' ? (
+                            <>
+                                <ShieldAlert size={24} /> SUBMIT FOR APPROVAL
+                            </>
+                        ) : (
+                            <>
+                                <CreditCard size={24} /> PAY NOW
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

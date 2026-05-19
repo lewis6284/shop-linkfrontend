@@ -17,6 +17,18 @@ export const saleService = {
         const response = await api.post(`/sales/${id}/cancel`, { reason });
         return response.data.data || response.data;
     },
+    getPendingApproval: async () => {
+        const response = await api.get('/sales/pending-approval');
+        return response.data.data || response.data;
+    },
+    approve: async (id) => {
+        const response = await api.post(`/sales/${id}/approve`);
+        return response.data.data || response.data;
+    },
+    reject: async (id, reason = 'Rejected by Owner') => {
+        const response = await api.post(`/sales/${id}/reject`, { reason });
+        return response.data.data || response.data;
+    },
     getInvoices: async (params) => {
         const response = await api.get('/sales/invoices', { params });
         return response.data.data || response.data;
