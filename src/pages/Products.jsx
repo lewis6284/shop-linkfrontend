@@ -432,6 +432,93 @@ const Products = () => {
 
     const isAuthorized = user?.role === 'owner' || user?.role === 'manager';
 
+    const getStockQuantity = (product) => {
+        const shopTotal = product.Stocks?.reduce((sum, stock) => sum + Number(stock.quantity || 0), 0);
+        if (shopTotal > 0) return shopTotal;
+        if (product.GlobalStock?.quantity != null) return Number(product.GlobalStock.quantity);
+        return Number(shopTotal || 0);
+    };
+
+    const productRows = filteredProducts.map((p) => {
+        const stockQuantity = getStockQuantity(p);
+        return (
+            <TableRow key={p.id}>
+                <TableCell>
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm">
+                            {p.image_url ? <img src={getImageUrl(p.image_url, 'placeholder-product.png')} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={22} />}
+                        </div>
+                        <div>
+                            <p className="font-bold text-gray-900 dark:text-white">{p.name}</p>
+                            <div className="flex flex-wrap gap-1.5 mt-0.5">
+                                <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded font-mono font-black uppercase">{p.sku || 'NO SKU'}</span>
+                                {p.barcode && (
+                                    <span className="text-[10px] bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-1.5 py-0.5 rounded font-mono flex items-center gap-0.5">
+                                        <Barcode size={8} /> {p.barcode}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </TableCell>
+                <TableCell>
+                    <div className="space-y-0.5">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{p.Category?.name || 'Uncategorized'}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{p.Brand?.name || 'No Brand'}</p>
+                    </div>
+                </TableCell>
+                <TableCell>
+                    <span className="text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-lg">
+                        {p.Unit?.name ? `${p.Unit.name} (${p.Unit.short_name})` : 'Pcs (Default)'}
+                    </span>
+                </TableCell>
+                <TableCell>
+                    <div className="space-y-0.5">
+                        <p className="font-black text-brand-600">{Number(p.sellingPrice).toLocaleString()} Fbu</p>
+                        <p className="text-[10px] text-gray-400 font-bold">Buying Cost: {Number(p.purchasePrice || p.buyingPrice || 0).toLocaleString()}</p>
+                    </div>
+                </TableCell>
+                <TableCell>
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold text-xs ${
+                        stockQuantity <= (p.min_stock_level || 5) ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                    }`}>
+                        <BarChart2 size={12} />
+                        {stockQuantity} units
+                    </div>
+                </TableCell>
+                <TableCell>
+                    <StatusBadge status={p.tax_type === 'TVA' ? 'TVA' : 'HTVA'} />
+                </TableCell>
+                <TableCell>
+                    {isAuthorized && (
+                        <div className="flex items-center gap-1">
+                            <button onClick={() => handleOpenProductModal(p)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                                <Edit2 size={16} />
+                            </button>
+                            <button onClick={() => handleProductDelete(p.id)} className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors">
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    )}
+                </TableCell>
+            </TableRow>
+        );
+    });
+
+    const productsTableBody = loading ? (
+        <TableRow>
+            <TableCell colSpan={7} className="text-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
+            </TableCell>
+        </TableRow>
+    ) : filteredProducts.length === 0 ? (
+        <TableRow>
+            <TableCell colSpan={7} className="text-center py-20 text-gray-500">No products found in the catalog.</TableCell>
+        </TableRow>
+    ) : (
+        productRows
+    );
+
     // Real-time pricing calculations
     const { margin, marginPercent } = calculateMargin(productFormData.purchasePrice, productFormData.sellingPrice);
     const taxAmount = calculateTax(productFormData.sellingPrice, productFormData.tax_type, productFormData.tax_rate);
@@ -566,78 +653,7 @@ const Products = () => {
 
                     {/* Products Table */}
                     <Table headers={['Product Details', 'Category / Brand', 'Unit of Measure', 'Selling Price', 'Stock Level', 'Tax Taxonomy', 'Actions']}>
-                        {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center py-20">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
-                                </TableCell>
-                            </TableRow>
-                        ) : filteredProducts.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center py-20 text-gray-500">No products found in the catalog.</TableCell>
-                            </TableRow>
-                        ) : filteredProducts.map((p) => (
-                            <TableRow key={p.id}>
-                                <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm">
-                                            {p.image_url ? <img src={getImageUrl(p.image_url, 'placeholder-product.png')} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={22} />}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-gray-900 dark:text-white">{p.name}</p>
-                                            <div className="flex flex-wrap gap-1.5 mt-0.5">
-                                                <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded font-mono font-black uppercase">{p.sku || 'NO SKU'}</span>
-                                                {p.barcode && (
-                                                    <span className="text-[10px] bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-1.5 py-0.5 rounded font-mono flex items-center gap-0.5">
-                                                        <Barcode size={8} /> {p.barcode}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="space-y-0.5">
-                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{p.Category?.name || 'Uncategorized'}</p>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{p.Brand?.name || 'No Brand'}</p>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-lg">
-                                        {p.Unit?.name ? `${p.Unit.name} (${p.Unit.short_name})` : 'Pcs (Default)'}
-                                    </span>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="space-y-0.5">
-                                        <p className="font-black text-brand-600">{Number(p.sellingPrice).toLocaleString()} Fbu</p>
-                                        <p className="text-[10px] text-gray-400 font-bold">Buying Cost: {Number(p.purchasePrice || p.buyingPrice || 0).toLocaleString()}</p>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold text-xs ${
-                                        (p.GlobalStock?.quantity || 0) <= (p.min_stock_level || 5) ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                    }`}>
-                                        <BarChart2 size={12} />
-                                        {p.GlobalStock?.quantity || 0} units
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <StatusBadge status={p.tax_type === 'TVA' ? 'TVA' : 'HTVA'} />
-                                </TableCell>
-                                <TableCell>
-                                    {isAuthorized && (
-                                        <div className="flex items-center gap-1">
-                                            <button onClick={() => handleOpenProductModal(p)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button onClick={() => handleProductDelete(p.id)} className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors">
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    )}
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {productsTableBody}
                     </Table>
                 </div>
             )}
