@@ -33,7 +33,7 @@ const POS = () => {
     const [customer, setCustomer] = useState(null);
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
     const [customerResults, setCustomerResults] = useState([]);
-    const [paymentMethod, setPaymentMethod] = useState("CASH");
+    const paymentMethod = "CASH";
 
     const searchRef = useRef(null);
 
@@ -171,7 +171,6 @@ const POS = () => {
             setCart([]);
             setSearchQuery("");
             setCustomer(null);
-            setPaymentMethod("CASH");
 
             // Reload products to immediately refresh stock numbers
             const res = await productService.getAll();
@@ -344,35 +343,6 @@ const POS = () => {
 
                 {/* Bottom Summary */}
                 <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950">
-                    
-                    {/* Payment Method Segmented Picker */}
-                    <div className="mb-6">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">PAYMENT METHOD</label>
-                        <div className="grid grid-cols-3 gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl">
-                            <button
-                                type="button"
-                                onClick={() => setPaymentMethod("CASH")}
-                                className={`py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 ${paymentMethod === 'CASH' ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50'}`}
-                            >
-                                Cash
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setPaymentMethod("MOBILE_MONEY")}
-                                className={`py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 ${paymentMethod === 'MOBILE_MONEY' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50'}`}
-                            >
-                                M-Money
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setPaymentMethod("CREDIT")}
-                                className={`py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 ${paymentMethod === 'CREDIT' ? 'bg-amber-600 text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50'}`}
-                            >
-                                Credit
-                            </button>
-                        </div>
-                    </div>
-
                     <div className="space-y-2 mb-6">
                         <div className="flex justify-between text-xs font-black text-gray-400 uppercase tracking-widest">
                             <span>Subtotal</span>

@@ -423,9 +423,9 @@ const Reports = () => {
                             <Printer size={18} /> Print Statement (PDF)
                         </button>
                     )}
-                    <button className="flex-1 md:flex-initial px-5 py-3 bg-brand-600 text-white font-bold rounded-2xl hover:bg-brand-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-500/10">
+                    {/* <button className="flex-1 md:flex-initial px-5 py-3 bg-brand-600 text-white font-bold rounded-2xl hover:bg-brand-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-500/10">
                         <Download size={18} /> Export Health Audit
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
