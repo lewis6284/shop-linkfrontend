@@ -38,6 +38,7 @@
   .pb-safe { padding-bottom: var(--safe-area-bottom); }
   .mt-safe { margin-top: var(--safe-area-top); }
   .mb-safe { margin-bottom: var(--safe-area-bottom); }
+  .pb-bottom-nav { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
 }
 
 /* Scrollbar styling */

@@ -20,7 +20,7 @@ const Layout = () => {
                 <Navbar toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
 
                 {/* Content Container: Scrollable area strictly below Navbar and to the right of Sidebar */}
-                <main className="flex-1 overflow-y-auto p-4 pb-24 md:p-8 md:pb-8 custom-scrollbar scroll-smooth">
+                <main className="flex-1 overflow-y-auto p-4 pb-bottom-nav md:p-8 md:pb-8 custom-scrollbar scroll-smooth">
                     <div className="max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <Outlet />
                     </div>
