@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageUrl';
 
 const Reports = () => {
-    const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'statement'
+    const [viewMode, setViewMode] = useState('accounting'); // 'accounting' | 'dashboard' | 'statement'
     const [activeTab, setActiveTab] = useState('sales');
     const [dateRange, setDateRange] = useState('30'); // '7', '30', 'custom'
     const [startDate, setStartDate] = useState(() => {
@@ -30,6 +30,7 @@ const Reports = () => {
     const [profitStats, setProfitStats] = useState(null);
     const [topProducts, setTopProducts] = useState([]);
     const [employeeSales, setEmployeeSales] = useState([]);
+    const [accountingEntries, setAccountingEntries] = useState([]);
     const [monthlySales, setMonthlySales] = useState([]);
 
     const fetchAllReportData = async (isSilent = false) => {
@@ -54,11 +55,12 @@ const Reports = () => {
             }
 
             const today = new Date();
-            const [statsRes, profitRes, topProductsRes, employeeRes, monthlyRes] = await Promise.all([
+            const [statsRes, profitRes, topProductsRes, employeeRes, accountingRes, monthlyRes] = await Promise.all([
                 financialService.getGlobalStats(),
                 financialService.getProfitReport(start, end),
                 financialService.getTopProductsReport(10, start, end),
                 financialService.getEmployeeSalesReport(start, end),
+                financialService.getAuditLogsReport(null, start, end),
                 financialService.getMonthlyReport(today.getFullYear(), today.getMonth() + 1)
             ]);
 
@@ -66,6 +68,7 @@ const Reports = () => {
             setProfitStats(profitRes);
             setTopProducts(topProductsRes || []);
             setEmployeeSales(employeeRes || []);
+            setAccountingEntries(Array.isArray(accountingRes) ? accountingRes : []);
 
             // Map monthly daily breakdown to chartData format
             const formatted = (monthlyRes?.daily_breakdown || []).map(day => ({
@@ -432,16 +435,22 @@ const Reports = () => {
             {/* Premium view mode selector bar */}
             <div className="flex bg-gray-100 dark:bg-gray-900 p-1.5 rounded-2xl self-stretch md:w-fit toggle-container no-print">
                 <button 
-                    onClick={() => setViewMode('dashboard')}
-                    className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${viewMode === 'dashboard' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                    onClick={() => setViewMode('accounting')}
+                    className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${viewMode === 'accounting' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
                 >
-                    <Activity size={16} /> Interactive Dashboard
+                    <FileText size={16} /> Accounting Ledger
                 </button>
                 <button 
                     onClick={() => setViewMode('statement')}
                     className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${viewMode === 'statement' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm border border-brand-100 dark:border-brand-900/30' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
                 >
                     <FileText size={16} /> Executive Economic Statement
+                </button>
+                <button 
+                    onClick={() => setViewMode('dashboard')}
+                    className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${viewMode === 'dashboard' ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                >
+                    <Activity size={16} /> Interactive Dashboard
                 </button>
             </div>
 
@@ -493,7 +502,46 @@ const Reports = () => {
                 )}
             </div>
 
-            {viewMode === 'dashboard' ? (
+            {viewMode === 'accounting' && (
+                <div className="space-y-6">
+                    <div>
+                        <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm">Detailed Accounting Ledger</h3>
+                        <p className="text-gray-400 text-xs mt-1">View transaction events, journal lines, and audit-backed accounting entries for the selected period.</p>
+                    </div>
+                    <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Date</th>
+                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Action</th>
+                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Entity</th>
+                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Performed By</th>
+                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Summary</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                {accountingEntries.length > 0 ? (
+                                    accountingEntries.map((entry, idx) => (
+                                        <tr key={entry.id || idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/10 transition-colors">
+                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{new Date(entry.createdAt).toLocaleString()}</td>
+                                            <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">{entry.action_type || 'UNKNOWN'}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{entry.table_name ? entry.table_name.replace('_', ' ').toUpperCase() : 'General'}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{entry.User?.full_name || entry.user_name || 'System'}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{entry.new_values?.description || entry.new_values?.note || entry.new_values?.invoice_number || entry.new_values?.total_amount || entry.new_values?.amount || entry.new_values?.quantity || entry.old_values?.quantity || 'Audit event recorded.'}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No accounting journal entries logged for this period</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {viewMode === 'dashboard' && (
                 <>
                     {/* Breathtaking Financial Metrics Cards Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print animate-in fade-in duration-300">
@@ -588,6 +636,12 @@ const Reports = () => {
                                 className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'employees' ? 'bg-white dark:bg-gray-950 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
                             >
                                 <Briefcase size={16} /> Staff Sales
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('accounting')}
+                                className={`px-6 py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${activeTab === 'accounting' ? 'bg-white dark:bg-gray-950 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                            >
+                                <FileText size={16} /> Accounting Ledger
                             </button>
 
                         </div>
@@ -717,11 +771,62 @@ const Reports = () => {
                                 </div>
                             )}
 
+                            {activeTab === 'accounting' && (
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-wider text-sm">Detailed Accounting Ledger</h3>
+                                        <p className="text-gray-400 text-xs mt-1">View transaction events, journal lines, and audit-backed accounting entries for the selected period.</p>
+                                    </div>
+                                    <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Date</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Action</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Entity</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Performed By</th>
+                                                    <th className="px-6 py-4 font-black text-gray-500 dark:text-gray-400 text-[10px] uppercase tracking-widest">Summary</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                                {accountingEntries.length > 0 ? (
+                                                    accountingEntries.map((entry, idx) => (
+                                                        <tr key={entry.id || idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/10 transition-colors">
+                                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                                                {new Date(entry.createdAt).toLocaleString()}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">
+                                                                {entry.action_type || 'UNKNOWN'}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                                {entry.table_name ? entry.table_name.replace('_', ' ').toUpperCase() : 'General'}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                                                {entry.User?.full_name || entry.user_name || 'System'}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                                {entry.new_values?.description || entry.new_values?.note || entry.new_values?.invoice_number || entry.new_values?.total_amount || entry.new_values?.amount || entry.new_values?.quantity || entry.old_values?.quantity || 'Audit event recorded.'}
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="5" className="px-6 py-12 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-55">No accounting journal entries logged for this period</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
 
                         </div>
                     </div>
                 </>
-            ) : (
+            )}
+
+            {viewMode === 'statement' && (
                 /* Formal printable A4 Economic Report Sheet */
                 <div className="max-w-4xl mx-auto bg-white text-gray-900 p-12 rounded-3xl shadow-xl border border-gray-200/80 font-mono print-sheet animate-in zoom-in-95 duration-300">
                     {/* Official Letterhead */}
