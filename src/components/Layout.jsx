@@ -28,7 +28,7 @@ const Layout = () => {
             </div>
             
             {/* Mobile Bottom Navigation — Only visible on mobile, fixed at the bottom */}
-            <BottomNav />
+            {/* <BottomNav /> */}
         </div>
     );
 };
