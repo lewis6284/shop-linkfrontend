@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
     TrendingUp, TrendingDown, Users, Activity, AlertCircle, PlusCircle, Wallet,
@@ -418,7 +418,7 @@ const Dashboard = () => {
     // Dynamic Role Routing
     if (user?.role === 'owner') return <OwnerDashboard />;
     if (user?.role === 'manager') return <ManagerDashboard />;
-    if (user?.role === 'cashier' || user?.role === 'user') return <CashierDashboard />;
+    if (user?.role === 'cashier' || user?.role === 'user') return <Navigate to="/pos" replace />;
     
     return (
         <div className="flex items-center justify-center h-full">

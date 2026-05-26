@@ -22,7 +22,7 @@ const Login = () => {
             } else if (user.role === 'manager') {
                 navigate('/dashboard/shop', { replace: true });
             } else {
-                navigate('/dashboard', { replace: true });
+                navigate('/pos', { replace: true });
             }
         }
     }, [isAuthenticated, user, navigate]);
@@ -47,7 +47,7 @@ const Login = () => {
             } else if (user.role === 'manager') {
                 navigate('/dashboard/shop');
             } else {
-                navigate('/dashboard');
+                navigate('/pos');
             }
         } catch (error) {
             console.error("Login Error:", error);

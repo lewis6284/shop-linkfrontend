@@ -42,8 +42,7 @@ const BottomNav = () => {
             { path: '/users', name: 'Staff', icon: Users },
         ],
         cashier: [
-            { path: '/dashboard', name: 'Home', icon: LayoutDashboard },
-            { path: '/pos', name: 'POS', icon: ShoppingCart },
+            { path: '/pos', name: 'Home', icon: LayoutDashboard },
             { path: '/sales', name: 'Sales', icon: CreditCard },
             { path: '/customers', name: 'Clients', icon: Users },
             { path: '/profile', name: 'Me', icon: User },

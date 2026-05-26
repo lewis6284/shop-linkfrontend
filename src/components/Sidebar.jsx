@@ -15,7 +15,7 @@ const Sidebar = ({ isOpen, toggle }) => {
     const dashboardPath =
         user?.role === 'owner' ? '/dashboard/admin' :
             user?.role === 'manager' ? '/dashboard/shop' :
-                '/dashboard';
+                '/pos';
 
     // Fallback logo: first letter of shop name or 'S'
     const shopInitial = shop?.name?.charAt(0).toUpperCase() || 'S';
@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, toggle }) => {
         {
             title: 'Main',
             items: [
-                { path: dashboardPath, name: 'Home', icon: <LayoutDashboard size={20} />, roles: ['owner', 'manager', 'cashier'] },
+                { path: dashboardPath, name: 'Home', icon: <LayoutDashboard size={20} />, roles: ['owner', 'manager'] },
                 { path: '/pos', name: 'POS', icon: <ShoppingCart size={20} />, roles: ['owner', 'manager', 'cashier'] },
                 { path: '/shops', name: 'Shops', icon: <Store size={20} />, roles: ['owner'] },
                 { path: '/users', name: 'Staff', icon: <Users size={20} />, roles: ['owner', 'manager'] },
