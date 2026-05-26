@@ -117,7 +117,7 @@ const Login = () => {
 
 
                 {/* Logo Section */}
-                <div className="text-center mb-10">
+                {/* <div className="text-center mb-10">
                     <div className="w-24 h-24 mx-auto mb-6 bg-white dark:bg-gray-800 rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 overflow-hidden ring-4 ring-white/10 group relative">
                         <img
                             src={getImageUrl(shop?.logo_url)}
@@ -138,7 +138,7 @@ const Login = () => {
                     <p className="text-gray-400 text-sm font-bold uppercase tracking-[0.3em] mt-3 opacity-80">
                         {shop ? `${shop.type} ACCESS` : 'SaaS Business Suite'}
                     </p>
-                </div>
+                </div> */}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
 
