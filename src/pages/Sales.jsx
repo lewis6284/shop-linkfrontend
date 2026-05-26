@@ -420,11 +420,11 @@ const Sales = () => {
             {/* Sales Table / Pending Table Conditional */}
             {activeTab === 'completed' ? (
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
-                    <Table headers={['Invoice Number', 'Party Details', 'Financials', 'Payment', 'Status', 'Actions']}>
+                    <Table headers={['Invoice Number', 'Party Details', 'Financials', 'Actions']}>
                         {loading ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-10">Loading...</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={4} className="text-center py-10">Loading...</TableCell></TableRow>
                         ) : filteredSales.length === 0 ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No records found matching criteria</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={4} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No records found matching criteria</TableCell></TableRow>
                         ) : filteredSales.map(s => (
                             <TableRow key={s.id}>
                                 <TableCell>
@@ -452,16 +452,6 @@ const Sales = () => {
                                         {Number(s.totalAmount || s.total_amount).toLocaleString()}
                                     </div>
                                     <div className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">Tax Incl: {Number(s.taxAmount || s.tax_amount).toLocaleString()}</div>
-                                </TableCell>
-                                <TableCell>
-                                    <StatusBadge status={s.paymentMethod || s.payment_method || 'CASH'} />
-                                </TableCell>
-                                <TableCell>
-                                    <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block ${
-                                        s.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/20'
-                                    }`}>
-                                        {s.status || 'FINALIZED'}
-                                    </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
@@ -492,11 +482,11 @@ const Sales = () => {
                 </div>
             ) : (
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
-                    <Table headers={['Queue Date', 'Customer Detail', 'Cashier Issuer', 'Total Amount', 'Status', 'Actions']}>
+                    <Table headers={['Queue Date', 'Customer Detail', 'Cashier Issuer', 'Total Amount', 'Actions']}>
                         {loading ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-10">Loading...</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={5} className="text-center py-10">Loading...</TableCell></TableRow>
                         ) : filteredPendingSales.length === 0 ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No pending authorization queues found</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={5} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No pending authorization queues found</TableCell></TableRow>
                         ) : filteredPendingSales.map(s => (
                             <TableRow key={s.id}>
                                 <TableCell>
@@ -525,11 +515,6 @@ const Sales = () => {
                                         {Number(s.totalAmount || s.total_amount).toLocaleString()} Fbu
                                     </div>
                                     <p className="text-[9px] text-gray-400 font-bold uppercase">Reserved Inventory</p>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="text-[10px] font-black px-3 py-1 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 rounded-full uppercase tracking-widest inline-flex items-center gap-1">
-                                        <ShieldAlert size={10} /> PENDING
-                                    </span>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
