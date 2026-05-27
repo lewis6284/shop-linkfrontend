@@ -420,7 +420,7 @@ const Sales = () => {
             {/* Sales Table / Pending Table Conditional */}
             {activeTab === 'completed' ? (
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
-                    <Table headers={['Invoice Number', 'Party Details', 'Financials', 'Actions']}>
+                    <Table headers={['Invoice Number', 'Seller', 'Financials', 'Actions']}>
                         {loading ? (
                             <TableRow><TableCell colSpan={4} className="text-center py-10">Loading...</TableCell></TableRow>
                         ) : filteredSales.length === 0 ? (
@@ -439,13 +439,7 @@ const Sales = () => {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <UserIcon size={12} className="text-gray-400" />
-                                            <p className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase">{s.Customer?.full_name || 'Walk-in'}</p>
-                                        </div>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase ml-5">By: {s.User?.full_name}</p>
-                                    </div>
+                                    <p className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase">{s.User?.full_name || 'Unknown Seller'}</p>
                                 </TableCell>
                                 <TableCell>
                                     <div className="font-black text-lg text-gray-900 dark:text-white tracking-tighter">
