@@ -259,14 +259,27 @@ const POS = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Mobile Cart Row */}
+                <div className="lg:hidden border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-4">
+                    <button
+                        type="button"
+                        onClick={() => setShowCartMobile(true)}
+                        className="w-full flex items-center justify-between gap-4 px-5 py-4 bg-gray-900 dark:bg-gray-800 text-white rounded-3xl font-black uppercase tracking-widest"
+                    >
+                        <span className="flex items-center gap-2">
+                            <ShoppingCart size={18} />
+                            <span>{cart.length} items</span>
+                        </span>
+                        <span>{totals.total.toLocaleString()} FBU</span>
+                    </button>
+                </div>
             </div>
 
             {/* RIGHT: Cart & Totals */}
-            <div className={`
-                fixed inset-0 z-50 lg:relative lg:inset-auto lg:z-0
-                lg:w-[450px] bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 flex flex-col
-                transition-transform lg:translate-x-0 ${showCartMobile ? 'translate-x-0' : 'translate-x-full'}
-            `}>
+            <div className={
+                `fixed inset-0 z-50 lg:relative lg:inset-auto lg:z-0 lg:w-[450px] bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 flex flex-col transition-transform lg:translate-x-0 ${showCartMobile ? 'translate-x-0' : 'translate-x-full'}`
+            }>
                 {/* Cart Header */}
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
                     <h2 className="text-xl font-black flex items-center gap-3 dark:text-white">
@@ -361,20 +374,6 @@ const POS = () => {
                         )}
                     </button>
                 </div>
-            </div>
-
-            {/* Mobile Footer Toggle */}
-            <div className="lg:hidden fixed bottom-16 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 flex gap-4 z-40">
-                <button 
-                    onClick={() => setShowCartMobile(true)}
-                    className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-4 rounded-2xl flex items-center justify-between px-6 font-black"
-                >
-                    <div className="flex items-center gap-3">
-                        <ShoppingCart size={20} />
-                        <span className="text-xs uppercase">{cart.length} ITEMS</span>
-                    </div>
-                    <span>{totals.total.toLocaleString()} FBU</span>
-                </button>
             </div>
 
             {/* Customer Selection Modal */}
