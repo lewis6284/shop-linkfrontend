@@ -48,7 +48,7 @@ const Sidebar = ({ isOpen, toggle }) => {
         {
             title: 'Contacts',
             items: [
-                { path: '/customers', name: 'Customers', icon: <Users size={20} />, roles: ['owner', 'manager', 'cashier'] },
+                // { path: '/customers', name: 'Customers', icon: <Users size={20} />, roles: ['owner', 'manager', 'cashier'] },
                 { path: '/suppliers', name: 'Suppliers', icon: <Truck size={20} />, roles: ['owner', 'manager'] },
             ]
         }

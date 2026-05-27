@@ -387,7 +387,7 @@ const Sales = () => {
                     >
                         Completed Ledgers
                     </button>
-                    <button 
+                    {/* <button 
                         onClick={() => { setActiveTab('pending'); setSearchTerm(''); }}
                         className={`pb-4 px-2 font-black text-xs uppercase tracking-wider border-b-4 transition-all flex items-center gap-2 ${
                             activeTab === 'pending' 
@@ -401,7 +401,7 @@ const Sales = () => {
                                 {pendingSales.length}
                             </span>
                         )}
-                    </button>
+                    </button> */}
                 </div>
             )}
 
