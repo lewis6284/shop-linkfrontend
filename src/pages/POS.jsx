@@ -204,19 +204,6 @@ const POS = () => {
                                 className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border-2 border-transparent focus:border-brand-500 outline-none font-black text-gray-900 dark:text-white transition-all shadow-inner"
                             />
                         </div>
-                        <button 
-                            onClick={() => setIsCustomerModalOpen(true)}
-                            className="w-full md:w-auto px-6 py-4 bg-gray-50 dark:bg-gray-900 rounded-2xl flex items-center gap-3 border border-gray-100 dark:border-gray-800 hover:bg-gray-100 transition-colors"
-                        >
-                            <User size={20} className={customer ? 'text-brand-600' : 'text-gray-400'} />
-                            <div className="text-left">
-                                <p className="text-[10px] font-black text-gray-400 uppercase leading-none mb-1">Customer</p>
-                                <p className="font-black text-xs text-gray-900 dark:text-white uppercase truncate max-w-[120px]">
-                                    {customer?.full_name || 'Walk-in Customer'}
-                                </p>
-                            </div>
-                            {customer && <X size={14} className="text-gray-400" onClick={(e) => { e.stopPropagation(); setCustomer(null); }} />}
-                        </button>
                     </div>
                 </div>
 
@@ -228,7 +215,7 @@ const POS = () => {
                             <p className="font-black text-xs uppercase tracking-widest">Loading Catalog...</p>
                         </div>
                     ) : searchResults.length > 0 ? (
-                        <Table headers={['Product Preview', 'Selling Price', 'Shop Stock', 'Action']}>
+                        <Table headers={['Product Preview', 'Selling Price', 'Action']}>
                             {searchResults.map(p => {
                                 const shopStock = Number(p.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
                                 return (
@@ -250,11 +237,6 @@ const POS = () => {
                                         </TableCell>
                                         <TableCell>
                                             <p className="font-black text-brand-600 dark:text-brand-400 text-base">{Number(p.sellingPrice).toLocaleString()} <span className="text-xs">Fbu</span></p>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className={`inline-block text-[10px] font-extrabold px-3 py-1 rounded-full shadow-sm ${shopStock <= 0 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400' : shopStock < 5 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'}`}>
-                                                {shopStock <= 0 ? 'OUT OF STOCK' : `${shopStock} IN STOCK`}
-                                            </span>
                                         </TableCell>
                                         <TableCell>
                                             <button
