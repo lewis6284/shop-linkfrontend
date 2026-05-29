@@ -329,10 +329,10 @@ const Stock = () => {
                                     <TableCell>
                                         <div>
                                             <div className="font-black text-lg text-gray-900 dark:text-white tracking-tighter">
-                                                {s.quantity} <span className="text-[10px] text-gray-400 uppercase font-bold">units</span>
+                                                {s.quantity} <span className="text-[10px] text-gray-400 uppercase font-bold">{s.Product?.Unit?.short_name || s.Product?.unit_of_measure || 'pcs'}</span>
                                             </div>
                                             <div className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
-                                                Min: {s.Product?.min_stock_level || 5}
+                                                Min: {s.Product?.min_stock_level || 5} {s.Product?.Unit?.short_name || s.Product?.unit_of_measure || 'pcs'}
                                             </div>
                                         </div>
                                     </TableCell>

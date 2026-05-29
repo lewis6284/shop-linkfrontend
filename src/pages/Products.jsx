@@ -406,7 +406,6 @@ const Products = () => {
             }
         });
     };
-
     // --- 🔍 FILTER LOGIC ---
     const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerms.products.toLowerCase()) || 
@@ -438,7 +437,6 @@ const Products = () => {
         if (product.GlobalStock?.quantity != null) return Number(product.GlobalStock.quantity);
         return Number(shopTotal || 0);
     };
-
     const productRows = filteredProducts.map((p) => {
         const stockQuantity = getStockQuantity(p);
         return (
@@ -469,7 +467,7 @@ const Products = () => {
                 </TableCell>
                 <TableCell>
                     <span className="text-xs font-bold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-lg">
-                        {p.Unit?.name ? `${p.Unit.name} (${p.Unit.short_name})` : 'Pcs (Default)'}
+                        {p.Unit?.name ? `${p.Unit.name} (${p.Unit.short_name})` : p.unit_of_measure || 'pcs'}
                     </span>
                 </TableCell>
                 <TableCell>
@@ -483,7 +481,7 @@ const Products = () => {
                         stockQuantity <= (p.min_stock_level || 5) ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                     }`}>
                         <BarChart2 size={12} />
-                        {stockQuantity} units
+                        {stockQuantity} {p.Unit?.short_name || p.unit_of_measure || 'pcs'}
                     </div>
                 </TableCell>
                 <TableCell>
