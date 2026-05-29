@@ -18,12 +18,14 @@ import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
 import Report from './pages/Report';
 import Unauthorized from './pages/Unauthorized';
+import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
 
 const App = () => {
     return (
         <AuthProvider>
             <Router basename='shoplink'>
                 <Toaster position="top-right" />
+                <ForcePasswordChangeModal />
                 <Routes>
                     {/* Public routes */}
                     <Route path="/login" element={<Login />} />

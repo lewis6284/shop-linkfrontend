@@ -94,6 +94,12 @@ export const AuthProvider = ({ children }) => {
         fetchShopDetails(shopId);
     };
 
+    const updateUser = (userData) => {
+        const newUser = { ...user, ...userData };
+        setUser(newUser);
+        localStorage.setItem('user', JSON.stringify(newUser));
+    };
+
     const value = {
         user,
         token,
@@ -103,6 +109,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         setShopContext,
+        updateUser,
         isAuthenticated: !!token
     };
 
