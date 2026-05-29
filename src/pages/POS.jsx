@@ -5,6 +5,7 @@ import { customerService } from "../services/customerService";
 import { saleService } from "../services/saleService";
 import { getEffectivePrice } from "../utils/calculations";
 import Table, { TableRow, TableCell } from "../components/Table";
+import ProductDetailsModal from "../components/ProductDetailsModal";
 
 import {
     ShoppingCart,
@@ -33,6 +34,7 @@ const POS = () => {
     const [customer, setCustomer] = useState(null);
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
     const [customerResults, setCustomerResults] = useState([]);
+    const [previewProduct, setPreviewProduct] = useState(null);
     const paymentMethod = "CASH";
 
     const searchRef = useRef(null);
@@ -222,7 +224,10 @@ const POS = () => {
                                     <TableRow key={p.id} className="cursor-pointer group" onClick={() => addToCart(p)}>
                                         <TableCell>
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm">
+                                                <div 
+                                                    className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
+                                                    onClick={(e) => { e.stopPropagation(); setPreviewProduct(p); }}
+                                                >
                                                     {p.image_url ? (
                                                         <img src={getImageUrl(p.image_url, 'placeholder-product.png')} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                                     ) : (
@@ -414,6 +419,12 @@ const POS = () => {
                     </div>
                 </div>
             )}
+
+            <ProductDetailsModal 
+                isOpen={!!previewProduct} 
+                onClose={() => setPreviewProduct(null)} 
+                product={previewProduct} 
+            />
         </div>
     );
 };

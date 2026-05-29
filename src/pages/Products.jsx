@@ -6,6 +6,7 @@ import api from '../services/api';
 import { calculateMargin, calculateTax, generateSKU } from '../utils/calculations';
 import Table, { TableRow, TableCell } from '../components/Table';
 import Modal from '../components/Modal';
+import ProductDetailsModal from '../components/ProductDetailsModal';
 import StatusBadge from '../components/StatusBadge';
 import { getImageUrl } from '../utils/imageUrl';
 import { 
@@ -37,6 +38,7 @@ const Products = () => {
     const [editingCategory, setEditingCategory] = useState(null);
     const [editingBrand, setEditingBrand] = useState(null);
     const [editingUnit, setEditingUnit] = useState(null);
+    const [previewProduct, setPreviewProduct] = useState(null);
 
     // Custom Confirmation Modal state (no native confirm!)
     const [confirmModal, setConfirmModal] = useState({
@@ -443,9 +445,9 @@ const Products = () => {
             <TableRow key={p.id}>
                 <TableCell>
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm">
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewProduct(p); }} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm hover:opacity-80 transition-opacity cursor-pointer">
                             {p.image_url ? <img src={getImageUrl(p.image_url, 'placeholder-product.png')} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={22} />}
-                        </div>
+                        </button>
                         <div>
                             <p className="font-bold text-gray-900 dark:text-white">{p.name}</p>
                             <div className="flex flex-wrap gap-1.5 mt-0.5">
@@ -804,16 +806,12 @@ const Products = () => {
                             </TableRow>
                         ) : filteredUnits.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={3} className="text-center py-20 text-gray-500">No units of measure found.</TableCell>
+                                <TableCell colSpan={3} className="text-center py-20 text-gray-500">No units found.</TableCell>
                             </TableRow>
                         ) : filteredUnits.map((u) => (
                             <TableRow key={u.id}>
                                 <TableCell className="font-bold text-gray-900 dark:text-white">{u.name}</TableCell>
-                                <TableCell>
-                                    <span className="text-xs font-black bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 px-3 py-1 rounded-lg">
-                                        {u.short_name}
-                                    </span>
-                                </TableCell>
+                                <TableCell className="text-gray-500">{u.short_name}</TableCell>
                                 <TableCell>
                                     {isAuthorized && (
                                         <div className="flex items-center gap-1">
@@ -832,389 +830,169 @@ const Products = () => {
                 </div>
             )}
 
-            {/* WIDE MODAL FOR PRODUCT CREATION & EDITION (max-w-5xl) */}
-            <Modal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} title={editingProduct ? 'Update Product Catalog Item' : 'Create New Catalog Item'} maxWidth="max-w-5xl">
-                <form onSubmit={handleProductSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                        {/* LEFT COLUMN (3/5 width): General Information & Taxonomy */}
-                        <div className="lg:col-span-3 space-y-4">
-                            <div className="border-b border-gray-100 dark:border-gray-700 pb-2">
-                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.15em] flex items-center gap-1.5">
-                                    <Package size={14} className="text-brand-600" /> General Specifications
-                                </h3>
-                            </div>
-
+            {/* MODALS */}
+            {/* Product Modal */}
+            <Modal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} title={editingProduct ? "Edit Product" : "Create Product"}>
+                <form onSubmit={handleProductSubmit} className="space-y-4">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Product Name *</label>
+                            <input required type="text" value={productFormData.name} onChange={e => setProductFormData({...productFormData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">SKU</label>
+                            <input type="text" value={productFormData.sku} onChange={e => setProductFormData({...productFormData, sku: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Barcode</label>
+                            <input type="text" value={productFormData.barcode} onChange={e => setProductFormData({...productFormData, barcode: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Category</label>
+                            <select value={productFormData.CategoryId} onChange={e => setProductFormData({...productFormData, CategoryId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                <option value="">Select Category</option>
+                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Brand</label>
+                            <select value={productFormData.BrandId} onChange={e => setProductFormData({...productFormData, BrandId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                <option value="">Select Brand</option>
+                                {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Unit of Measure</label>
+                            <select value={productFormData.unit_of_measure} onChange={e => setProductFormData({...productFormData, unit_of_measure: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                <option value="">Select Unit</option>
+                                {units.map(u => <option key={u.id} value={u.id}>{u.name} ({u.short_name})</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1 md:col-span-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Description</label>
+                            <textarea value={productFormData.description} onChange={e => setProductFormData({...productFormData, description: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" rows="2"></textarea>
+                        </div>
+                    </div>
+                    {/* Pricing */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Purchase Price *</label>
+                            <input required type="number" value={productFormData.purchasePrice} onChange={e => setProductFormData({...productFormData, purchasePrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Selling Price *</label>
+                            <input required type="number" value={productFormData.sellingPrice} onChange={e => setProductFormData({...productFormData, sellingPrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Partner Price</label>
+                            <input type="number" value={productFormData.partnerPrice} onChange={e => setProductFormData({...productFormData, partnerPrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Wholesale Price</label>
+                            <input type="number" value={productFormData.wholesalePrice} onChange={e => setProductFormData({...productFormData, wholesalePrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Tax Type</label>
+                            <select value={productFormData.tax_type} onChange={e => setProductFormData({...productFormData, tax_type: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                <option value="HTVA">HTVA</option>
+                                <option value="TVA">TVA</option>
+                            </select>
+                        </div>
+                        {user?.role === 'owner' && (
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Product Name</label>
-                                <input
-                                    required
-                                    type="text"
-                                    placeholder="e.g. Cold Soda 500ml"
-                                    value={productFormData.name}
-                                    onChange={e => setProductFormData({...productFormData, name: e.target.value})}
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold"
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Unit of Measure (UoM)</label>
-                                <select
-                                    value={productFormData.unit_of_measure}
-                                    onChange={e => setProductFormData({...productFormData, unit_of_measure: e.target.value})}
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none text-sm font-bold"
-                                >
-                                    <option value="">Select Unit...</option>
-                                    {units.map(u => <option key={u.id} value={u.id}>{u.name} ({u.short_name})</option>)}
+                                <label className="text-xs font-bold text-gray-500 uppercase">Shop Assignment</label>
+                                <select value={productFormData.ShopId} onChange={e => setProductFormData({...productFormData, ShopId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                    <option value="">Global (All Shops)</option>
+                                    {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                 </select>
                             </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Product Category</label>
-                                    <select
-                                        required
-                                        value={productFormData.CategoryId}
-                                        onChange={e => setProductFormData({...productFormData, CategoryId: e.target.value})}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none text-sm font-bold"
-                                    >
-                                        <option value="">Select Category...</option>
-                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Manufacturer Brand</label>
-                                    <select
-                                        value={productFormData.BrandId}
-                                        onChange={e => setProductFormData({...productFormData, BrandId: e.target.value})}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none text-sm font-bold"
-                                    >
-                                        <option value="">Select Brand...</option>
-                                        {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {user?.role === 'owner' && (
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center justify-between">
-                                        <span className="flex items-center gap-1.5"><Layers size={12} className="text-brand-500" /> Shop Catalog Scope (Owner Only)</span>
-                                    </label>
-                                    <select
-                                        value={productFormData.ShopId}
-                                        onChange={e => setProductFormData({...productFormData, ShopId: e.target.value})}
-                                        className="w-full px-4 py-3 bg-brand-50 dark:bg-brand-900/10 border border-brand-100 dark:border-brand-800/50 rounded-xl outline-none text-sm font-bold text-brand-900 dark:text-brand-100 focus:ring-2 focus:ring-brand-500/20 transition-all"
-                                    >
-                                        <option value="">🌍 Global Catalog (Available to ALL Shops)</option>
-                                        {shops.map(s => <option key={s.id} value={s.id}>🏪 Local Catalog: {s.name}</option>)}
-                                    </select>
-                                </div>
-                            )}
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Product Image (Upload)</label>
-                                <div className="flex items-center gap-3">
-                                    {productFormData.image_url && (
-                                        <div className="w-12 h-12 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 bg-white dark:bg-gray-800 flex items-center justify-center">
-                                            <img 
-                                                src={getImageUrl(productFormData.image_url, 'placeholder-product.png')} 
-                                                alt="Preview" 
-                                                className="w-full h-full object-cover" 
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="relative group flex-1">
-                                        <input
-                                            id="product-image-upload"
-                                            type="file"
-                                            accept="image/*"
-                                            className="w-full px-5 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 text-sm font-medium"
-                                        />
-                                    </div>
-                                </div>
-                                <p className="text-[10px] text-gray-400 font-medium px-1">Upload a product image (PNG, JPG, max 5MB)</p>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Product Catalog Description</label>
-                                <textarea
-                                    value={productFormData.description}
-                                    onChange={e => setProductFormData({...productFormData, description: e.target.value})}
-                                    rows={3}
-                                    placeholder="Write a descriptive summary for staff members or digital invoice references..."
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 text-sm"
-                                />
-                            </div>
-                        </div>
-
-                        {/* RIGHT COLUMN (2/5 width): Pricing & Taxes (Harmonious & Sleek) */}
-                        <div className="lg:col-span-2 bg-gray-50 dark:bg-gray-900/30 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 space-y-6 flex flex-col justify-between">
-                            <div>
-                                <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
-                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.15em] flex items-center gap-1.5">
-                                        <DollarSign size={14} className="text-brand-600" /> Pricing & Financials
-                                    </h3>
-                                </div>
-
-                                <div className="space-y-4 mt-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest">Wholesale Buying Price</label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-extrabold text-xs">Fbu</span>
-                                            <input
-                                                required
-                                                type="number"
-                                                value={productFormData.purchasePrice}
-                                                onChange={e => setProductFormData({...productFormData, purchasePrice: e.target.value})}
-                                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl font-black text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-brand-600 uppercase tracking-widest">Standard Retail Price</label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-500 font-extrabold text-xs">Fbu</span>
-                                            <input
-                                                required
-                                                type="number"
-                                                value={productFormData.sellingPrice}
-                                                onChange={e => setProductFormData({...productFormData, sellingPrice: e.target.value})}
-                                                className="w-full pl-10 pr-4 py-2.5 bg-brand-50/50 dark:bg-brand-900/10 border border-brand-200 rounded-xl font-black text-brand-600 dark:text-brand-400 outline-none focus:ring-2 focus:ring-brand-500/20"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 mt-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Partner Price</label>
-                                        <input
-                                            type="number"
-                                            placeholder="Standard if null"
-                                            value={productFormData.partnerPrice}
-                                            onChange={e => setProductFormData({...productFormData, partnerPrice: e.target.value})}
-                                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold outline-none"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Wholesale Price</label>
-                                        <input
-                                            type="number"
-                                            placeholder="Standard if null"
-                                            value={productFormData.wholesalePrice}
-                                            onChange={e => setProductFormData({...productFormData, wholesalePrice: e.target.value})}
-                                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold outline-none"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2 mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex justify-between">
-                                        <span>Tax Class & Rating</span>
-                                        <StatusBadge status={productFormData.tax_type === 'TVA' ? 'TVA' : 'HTVA'} />
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <select
-                                            value={productFormData.tax_type}
-                                            onChange={e => setProductFormData({...productFormData, tax_type: e.target.value})}
-                                            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-black outline-none"
-                                        >
-                                            <option value="HTVA">HTVA (No Tax)</option>
-                                            <option value="TVA">TVA (Tax Applied)</option>
-                                        </select>
-                                        {productFormData.tax_type === 'TVA' && (
-                                            <input
-                                                type="number"
-                                                value={productFormData.tax_rate}
-                                                onChange={e => setProductFormData({...productFormData, tax_rate: e.target.value})}
-                                                className="w-16 px-2 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-black outline-none"
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Dynamic Margin Indicator & Final Cost Snapshot */}
-                            <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-150 dark:border-gray-700 space-y-3 mt-6">
-                                <div className="flex justify-between text-xs font-bold">
-                                    <span className="text-gray-500">Gross Margin Profit</span>
-                                    <span className={margin >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                                        {margin >= 0 ? '+' : ''}{margin.toLocaleString()} Fbu
-                                    </span>
-                                </div>
-                                
-                                {/* Sleek visual meter bar */}
-                                <div className="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                                    <div 
-                                        className={`h-full rounded-full transition-all duration-500 ${
-                                            marginPercent >= 30 ? 'bg-emerald-500' : marginPercent >= 15 ? 'bg-amber-500' : 'bg-rose-500'
-                                        }`}
-                                        style={{ width: `${Math.min(Math.max(marginPercent, 0), 100)}%` }}
-                                    ></div>
-                                </div>
-
-                                <div className="flex justify-between text-xs font-bold border-b pb-2">
-                                    <span className="text-gray-500">Margin Percentage</span>
-                                    <span className={marginPercent >= 20 ? 'text-emerald-600 dark:text-emerald-400 font-black' : 'text-amber-600 dark:text-amber-400 font-black'}>
-                                        {marginPercent}%
-                                    </span>
-                                </div>
-                                
-                                {productFormData.tax_type === 'TVA' && (
-                                    <div className="flex justify-between text-xs font-bold">
-                                        <span className="text-gray-400">VAT Amount ({productFormData.tax_rate}%)</span>
-                                        <span className="text-gray-500">{taxAmount.toLocaleString()} Fbu</span>
-                                    </div>
-                                )}
-                                
-                                <div className="flex justify-between text-sm font-black pt-1">
-                                    <span className="text-brand-600">INVOICE FINAL PRICE</span>
-                                    <span className="text-brand-600">{finalPrice.toLocaleString()} Fbu</span>
-                                </div>
-                            </div>
+                        )}
+                        <div className="space-y-1 md:col-span-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Product Image</label>
+                            <input type="file" id="product-image-upload" accept="image/*" className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                            {productFormData.image_url && <div className="mt-2 text-xs text-gray-400 truncate">Current: {productFormData.image_url}</div>}
                         </div>
                     </div>
-
-                    {/* Actions footer */}
-                    <div className="flex justify-end gap-3 pt-6 border-t dark:border-gray-700">
-                        <button 
-                            type="button" 
-                            onClick={() => setIsProductModalOpen(false)} 
-                            className="px-8 py-3 border border-gray-200 dark:border-gray-700 rounded-xl font-black text-gray-500 text-xs uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit" 
-                            className="px-10 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-black shadow-xl shadow-brand-500/20 text-xs uppercase tracking-[0.2em] transition-all active:scale-95"
-                        >
-                            Save Product Specifications
-                        </button>
+                    <div className="flex justify-end gap-2 pt-4">
+                        <button type="button" onClick={() => setIsProductModalOpen(false)} className="px-6 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold">Cancel</button>
+                        <button type="submit" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold">Save Product</button>
                     </div>
                 </form>
             </Modal>
 
-            {/* MODAL FOR CATEGORY FORM */}
-            <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title={editingCategory ? 'Edit Category' : 'Create New Category'} maxWidth="max-w-md">
+            {/* Category Modal */}
+            <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title={editingCategory ? "Edit Category" : "Create Category"}>
                 <form onSubmit={handleCategorySubmit} className="space-y-4">
                     <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Category Name</label>
-                        <input
-                            required
-                            type="text"
-                            placeholder="e.g. Dairy & Eggs"
-                            value={categoryFormData.name}
-                            onChange={e => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold"
-                        />
+                        <label className="text-xs font-bold text-gray-500 uppercase">Category Name *</label>
+                        <input required type="text" value={categoryFormData.name} onChange={e => setCategoryFormData({...categoryFormData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Parent Category (Optional)</label>
-                        <select
-                            value={categoryFormData.parent_id}
-                            onChange={e => setCategoryFormData({ ...categoryFormData, parent_id: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none text-sm font-bold"
-                        >
-                            <option value="">None (Top Level Category)</option>
-                            {categories
-                                .filter(c => !editingCategory || c.id !== editingCategory.id)
-                                .map(c => <option key={c.id} value={c.id}>{c.name}</option>)
-                            }
+                        <label className="text-xs font-bold text-gray-500 uppercase">Parent Category</label>
+                        <select value={categoryFormData.parent_id} onChange={e => setCategoryFormData({...categoryFormData, parent_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                            <option value="">None (Top Level)</option>
+                            {categories.filter(c => c.id !== editingCategory?.id).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-                        <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="px-6 py-2 border rounded-xl font-bold text-gray-500 text-xs uppercase hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
-                        <button type="submit" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold text-xs uppercase hover:bg-brand-700">Save Category</button>
+                    <div className="flex justify-end gap-2 pt-4">
+                        <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="px-6 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold">Cancel</button>
+                        <button type="submit" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold">Save Category</button>
                     </div>
                 </form>
             </Modal>
 
-            {/* MODAL FOR BRAND FORM */}
-            <Modal isOpen={isBrandModalOpen} onClose={() => setIsBrandModalOpen(false)} title={editingBrand ? 'Edit Brand' : 'Create New Brand'} maxWidth="max-w-md">
+            {/* Brand Modal */}
+            <Modal isOpen={isBrandModalOpen} onClose={() => setIsBrandModalOpen(false)} title={editingBrand ? "Edit Brand" : "Create Brand"}>
                 <form onSubmit={handleBrandSubmit} className="space-y-4">
                     <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Brand Name</label>
-                        <input
-                            required
-                            type="text"
-                            placeholder="e.g. Coca-Cola"
-                            value={brandFormData.name}
-                            onChange={e => setBrandFormData({ name: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold"
-                        />
+                        <label className="text-xs font-bold text-gray-500 uppercase">Brand Name *</label>
+                        <input required type="text" value={brandFormData.name} onChange={e => setBrandFormData({...brandFormData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
                     </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-                        <button type="button" onClick={() => setIsBrandModalOpen(false)} className="px-6 py-2 border rounded-xl font-bold text-gray-500 text-xs uppercase hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
-                        <button type="submit" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold text-xs uppercase hover:bg-brand-700">Save Brand</button>
+                    <div className="flex justify-end gap-2 pt-4">
+                        <button type="button" onClick={() => setIsBrandModalOpen(false)} className="px-6 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold">Cancel</button>
+                        <button type="submit" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold">Save Brand</button>
                     </div>
                 </form>
             </Modal>
 
-            {/* MODAL FOR UNIT FORM */}
-            <Modal isOpen={isUnitModalOpen} onClose={() => setIsUnitModalOpen(false)} title={editingUnit ? 'Edit Unit of Measure' : 'Create New Unit of Measure'} maxWidth="max-w-md">
+            {/* Unit Modal */}
+            <Modal isOpen={isUnitModalOpen} onClose={() => setIsUnitModalOpen(false)} title={editingUnit ? "Edit Unit" : "Create Unit"}>
                 <form onSubmit={handleUnitSubmit} className="space-y-4">
                     <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Unit Name</label>
-                        <input
-                            required
-                            type="text"
-                            placeholder="e.g. Kilograms"
-                            value={unitFormData.name}
-                            onChange={e => setUnitFormData({ ...unitFormData, name: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold"
-                        />
+                        <label className="text-xs font-bold text-gray-500 uppercase">Unit Name *</label>
+                        <input required type="text" value={unitFormData.name} onChange={e => setUnitFormData({...unitFormData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" placeholder="e.g. Kilogram" />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Abbreviation / Short Name</label>
-                        <input
-                            required
-                            type="text"
-                            placeholder="e.g. kg"
-                            value={unitFormData.short_name}
-                            onChange={e => setUnitFormData({ ...unitFormData, short_name: e.target.value })}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-bold font-mono"
-                        />
+                        <label className="text-xs font-bold text-gray-500 uppercase">Short Name / Abbreviation *</label>
+                        <input required type="text" value={unitFormData.short_name} onChange={e => setUnitFormData({...unitFormData, short_name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" placeholder="e.g. kg" />
                     </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-                        <button type="button" onClick={() => setIsUnitModalOpen(false)} className="px-6 py-2 border rounded-xl font-bold text-gray-500 text-xs uppercase hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
-                        <button type="submit" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold text-xs uppercase hover:bg-brand-700">Save Unit</button>
+                    <div className="flex justify-end gap-2 pt-4">
+                        <button type="button" onClick={() => setIsUnitModalOpen(false)} className="px-6 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold">Cancel</button>
+                        <button type="submit" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold">Save Unit</button>
                     </div>
                 </form>
             </Modal>
 
-            {/* UNIFIED CUSTOM CONFIRMATION MODAL (Strictly replaces native confirm!) */}
-            <Modal isOpen={confirmModal.isOpen} onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} title={confirmModal.title} maxWidth="max-w-md">
-                <div className="space-y-6">
-                    <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl ${confirmModal.actionType === 'danger' ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30'}`}>
-                            <Trash2 size={24} />
+            {/* Confirm Modal */}
+            {confirmModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-xl animate-in zoom-in-95">
+                        <h3 className="text-xl font-bold mb-2">{confirmModal.title}</h3>
+                        <p className="text-gray-500 mb-6">{confirmModal.message}</p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setConfirmModal({...confirmModal, isOpen: false})} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold">Cancel</button>
+                            <button onClick={() => confirmModal.onConfirm()} className={`px-4 py-2 text-white rounded-lg font-bold ${confirmModal.actionType === 'danger' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-brand-600 hover:bg-brand-700'}`}>Confirm</button>
                         </div>
-                        <div className="space-y-1.5 flex-1">
-                            <h4 className="font-extrabold text-base text-gray-900 dark:text-white">{confirmModal.title}</h4>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed">{confirmModal.message}</p>
-                        </div>
-                    </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-                        <button 
-                            type="button" 
-                            onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} 
-                            className="px-6 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs uppercase tracking-wider"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="button" 
-                            onClick={confirmModal.onConfirm} 
-                            className={`px-8 py-2.5 rounded-xl font-bold text-white text-xs uppercase tracking-wider shadow-lg ${
-                                confirmModal.actionType === 'danger' 
-                                    ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/20' 
-                                    : 'bg-brand-600 hover:bg-brand-700 shadow-brand-500/20'
-                            }`}
-                        >
-                            Confirm Action
-                        </button>
                     </div>
                 </div>
-            </Modal>
+            )}
+
+            <ProductDetailsModal 
+                isOpen={!!previewProduct} 
+                onClose={() => setPreviewProduct(null)} 
+                product={previewProduct} 
+            />
         </div>
     );
 };

@@ -106,8 +106,8 @@ const Users = () => {
                 username: '',
                 email: '',
                 phone: '',
-                password: '',
-                pin_code: '',
+                password: 'password',
+                pin_code: '1234',
                 role: currentUser?.role === 'manager' ? 'cashier' : 'manager',
                 ShopId: currentUser?.role === 'manager' ? activeShopId : '',
                 is_active: true
@@ -418,21 +418,7 @@ const Users = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Initial Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                                <input
-                                    required={!editingUser}
-                                    type="password"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20"
-                                    placeholder="••••••••"
-                                />
-                            </div>
-                        </div>
+                    {editingUser && (
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">PIN Code (POS)</label>
                             <div className="relative">
@@ -447,7 +433,7 @@ const Users = () => {
                                 />
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
