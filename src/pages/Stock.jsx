@@ -339,7 +339,7 @@ const Stock = () => {
                                     <TableCell>
                                         <div>
                                             <div className="font-black text-sm text-brand-600 dark:text-brand-400">
-                                                ${(s.quantity * (s.Product?.purchasePrice || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                                {(s.quantity * (s.Product?.purchasePrice || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] font-bold text-gray-400">Fbu</span>
                                             </div>
                                             <div className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
                                                 Cost Value

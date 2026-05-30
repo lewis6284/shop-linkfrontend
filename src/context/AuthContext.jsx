@@ -49,6 +49,18 @@ export const AuthProvider = ({ children }) => {
                 const userData = response.data.data;
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
+
+                if (!activeShopId && userData?.role === 'owner') {
+                    try {
+                        const shopsRes = await api.get('/shops');
+                        const shopsList = shopsRes.data.data || shopsRes.data;
+                        if (shopsList && shopsList.length > 0) {
+                            setShopContext(shopsList[0].id);
+                        }
+                    } catch (e) {
+                        console.error("Failed to set default shop:", e);
+                    }
+                }
             } catch (error) {
                 console.error("Token verification failed:", error);
                 if (error.response && (error.response.status === 401 || error.response.status === 403)) {
@@ -62,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         verifyToken();
     }, [token, activeShopId]);
 
-    const login = (userData, jwtToken) => {
+    const login = async (userData, jwtToken) => {
         setUser(userData);
         setToken(jwtToken);
         localStorage.setItem('token', jwtToken);
@@ -71,6 +83,16 @@ export const AuthProvider = ({ children }) => {
 
         if (userData.ShopId) {
             setShopContext(userData.ShopId);
+        } else if (userData.role === 'owner') {
+            try {
+                const shopsRes = await api.get('/shops');
+                const shopsList = shopsRes.data.data || shopsRes.data;
+                if (shopsList && shopsList.length > 0) {
+                    setShopContext(shopsList[0].id);
+                }
+            } catch (e) {
+                console.error("Failed to set default shop:", e);
+            }
         }
     };
 
