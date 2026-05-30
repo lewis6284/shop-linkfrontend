@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageUrl';
+import SearchableProductSelect from '../components/SearchableProductSelect';
 
 const Stock = () => {
     const { user, activeShopId } = useAuth();
@@ -490,15 +491,13 @@ const Stock = () => {
                     <div className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Select Product</label>
-                            <select 
-                                required
+                            <SearchableProductSelect
+                                products={products}
                                 value={transferData.ProductId}
-                                onChange={e => setTransferData({...transferData, ProductId: e.target.value})}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
-                            >
-                                <option value="">Choose a product...</option>
-                                {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku || p.barcode})</option>)}
-                            </select>
+                                onChange={(id) => setTransferData({...transferData, ProductId: id})}
+                                required
+                                placeholder="Search product by name or SKU..."
+                            />
                         </div>
 
                         {user?.role === 'owner' && (
@@ -566,15 +565,13 @@ const Stock = () => {
                     <div className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Select Product</label>
-                            <select 
-                                required
+                            <SearchableProductSelect
+                                products={products}
                                 value={addStockData.product_id}
-                                onChange={e => setAddStockData({...addStockData, product_id: e.target.value})}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/20"
-                            >
-                                <option value="">Choose a product...</option>
-                                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                            </select>
+                                onChange={(id) => setAddStockData({...addStockData, product_id: id})}
+                                required
+                                placeholder="Search product by name or SKU..."
+                            />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
