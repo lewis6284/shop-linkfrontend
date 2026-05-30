@@ -441,19 +441,31 @@ const Users = () => {
                             <select
                                 required
                                 value={formData.role}
-                                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                                onChange={(e) => {
+                                    const nextRole = e.target.value;
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        role: nextRole,
+                                        ShopId: nextRole === 'owner' ? '' : prev.ShopId
+                                    }));
+                                }}
                                 className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20"
                             >
-                                {currentUser?.role === 'owner' && <option value="manager">Manager</option>}
+                                {currentUser?.role === 'owner' && (
+                                    <>
+                                        <option value="owner">Owner</option>
+                                        <option value="manager">Manager</option>
+                                    </>
+                                )}
                                 <option value="cashier">Cashier</option>
                             </select>
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Assigned Shop</label>
                             <select
-                                required
-                                disabled={currentUser?.role === 'manager'}
-                                value={formData.ShopId}
+                                required={formData.role !== 'owner'}
+                                disabled={currentUser?.role === 'manager' || formData.role === 'owner'}
+                                value={formData.role === 'owner' ? '' : formData.ShopId}
                                 onChange={(e) => setFormData({...formData, ShopId: e.target.value})}
                                 className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
                             >
