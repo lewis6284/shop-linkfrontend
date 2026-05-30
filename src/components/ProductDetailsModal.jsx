@@ -1,118 +1,91 @@
-import React from 'react';
-import Modal from './Modal';
+import React, { useEffect } from 'react';
 import { getImageUrl } from '../utils/imageUrl';
-import { Package, Tag, Barcode, Scale, DollarSign, Layers, BarChart2 } from 'lucide-react';
+import { X, Package } from 'lucide-react';
 
 const ProductDetailsModal = ({ isOpen, onClose, product }) => {
-    if (!product) return null;
+    // Close on Escape key
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+        document.addEventListener('keydown', handleKey);
+        return () => document.removeEventListener('keydown', handleKey);
+    }, [isOpen, onClose]);
 
-    const getStockQuantity = (p) => {
-        const shopTotal = p.Stocks?.reduce((sum, stock) => sum + Number(stock.quantity || 0), 0);
-        if (shopTotal > 0) return shopTotal;
-        if (p.GlobalStock?.quantity != null) return Number(p.GlobalStock.quantity);
-        return Number(shopTotal || 0);
-    };
+    // Prevent body scroll while open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [isOpen]);
 
-    const stockQuantity = getStockQuantity(product);
+    if (!isOpen || !product) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Product Details">
-            <div className="flex flex-col md:flex-row gap-6">
-                {/* Image Section */}
-                <div className="w-full md:w-1/2 flex-shrink-0">
-                    <div className="w-full aspect-square bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm flex items-center justify-center relative group">
-                        {product.image_url ? (
-                            <img 
-                                src={getImageUrl(product.image_url, 'placeholder-product.png')} 
-                                alt={product.name} 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                        ) : (
-                            <div className="flex flex-col items-center justify-center text-gray-400">
-                                <Package size={64} className="mb-4 opacity-50" />
-                                <span className="text-sm font-bold uppercase tracking-widest opacity-50">No Image</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
+        /* Full-screen backdrop — click outside to close */
+        <div
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 md:p-10 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            {/* Close button — always visible */}
+            <button
+                onClick={onClose}
+                className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-colors"
+                aria-label="Close preview"
+            >
+                <X size={22} />
+            </button>
 
-                {/* Details Section */}
-                <div className="w-full md:w-1/2 flex flex-col space-y-6">
-                    <div>
-                        <h2 className="text-2xl font-black text-gray-900 dark:text-white leading-tight mb-2">{product.name}</h2>
-                        {product.description && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                                {product.description}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
-                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                                <Tag size={16} />
-                                <span className="text-xs font-bold uppercase tracking-wider">Brand</span>
+            {/* Image container — stops propagation so clicking image doesn't close */}
+            <div
+                className="relative max-w-full max-h-full flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {product.image_url ? (
+                    <div className="relative">
+                        <img
+                            src={getImageUrl(product.image_url, 'placeholder-product.png')}
+                            alt={product.name}
+                            className="block max-w-[90vw] max-h-[85vh] w-auto h-auto rounded-2xl shadow-2xl object-contain"
+                            style={{ imageRendering: 'auto' }}
+                        />
+                        {/* Subtle info overlay at the bottom of the image */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent rounded-b-2xl px-5 py-4">
+                            <p className="text-white font-black text-lg leading-tight drop-shadow">{product.name}</p>
+                            <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                {product.Category?.name && (
+                                    <span className="text-[10px] font-black text-white/70 uppercase tracking-widest">{product.Category.name}</span>
+                                )}
+                                {product.Brand?.name && (
+                                    <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">• {product.Brand.name}</span>
+                                )}
+                                {product.sellingPrice && (
+                                    <span className="ml-auto text-sm font-black text-white/90">
+                                        {Number(product.sellingPrice).toLocaleString()} <span className="text-[10px] font-bold opacity-70">Fbu</span>
+                                    </span>
+                                )}
                             </div>
-                            <p className="font-bold text-gray-900 dark:text-white truncate">
-                                {product.Brand?.name || 'No Brand'}
-                            </p>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
-                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                                <Layers size={16} />
-                                <span className="text-xs font-bold uppercase tracking-wider">Category</span>
-                            </div>
-                            <p className="font-bold text-gray-900 dark:text-white truncate">
-                                {product.Category?.name || 'Uncategorized'}
-                            </p>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
-                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                                <Barcode size={16} />
-                                <span className="text-xs font-bold uppercase tracking-wider">SKU / Code</span>
-                            </div>
-                            <p className="font-mono text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {product.sku || product.barcode || 'N/A'}
-                            </p>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
-                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                                <Scale size={16} />
-                                <span className="text-xs font-bold uppercase tracking-wider">Unit</span>
-                            </div>
-                            <p className="font-bold text-gray-900 dark:text-white truncate">
-                                {product.Unit?.name ? `${product.Unit.name} (${product.Unit.short_name})` : product.unit_of_measure || 'pcs'}
-                            </p>
                         </div>
                     </div>
-
-                    <div className="flex items-center justify-between p-5 bg-brand-50 dark:bg-brand-900/20 rounded-2xl border border-brand-100 dark:border-brand-800/50">
-                        <div className="flex flex-col">
-                            <span className="text-xs font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1">Selling Price</span>
-                            <span className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                {Number(product.sellingPrice).toLocaleString()} <span className="text-sm text-gray-500 dark:text-gray-400">Fbu</span>
-                            </span>
-                        </div>
-                        <div className="flex flex-col items-end">
-                            <span className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Stock Level</span>
-                            <span className={`text-lg font-black flex items-center gap-1.5 ${stockQuantity <= (product.min_stock_level || 5) ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                <BarChart2 size={18} />
-                                {stockQuantity}
-                            </span>
+                ) : (
+                    /* No image fallback */
+                    <div className="flex flex-col items-center justify-center text-white/50 gap-4 bg-white/5 rounded-2xl p-16 backdrop-blur-sm border border-white/10">
+                        <Package size={72} />
+                        <div className="text-center">
+                            <p className="font-black text-xl text-white">{product.name}</p>
+                            <p className="text-sm mt-1 text-white/50 uppercase tracking-widest">No image available</p>
                         </div>
                     </div>
-
-                    <div className="pt-2">
-                        <button
-                            onClick={onClose}
-                            className="w-full py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-black rounded-xl hover:bg-gray-800 dark:hover:bg-white transition-all active:scale-95 uppercase tracking-wider text-sm shadow-xl shadow-gray-900/20 dark:shadow-gray-100/20"
-                        >
-                            Close Preview
-                        </button>
-                    </div>
-                </div>
+                )}
             </div>
-        </Modal>
+
+            {/* Tap anywhere hint on mobile */}
+            <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/30 text-[10px] uppercase tracking-widest font-bold pointer-events-none">
+                Tap outside to close
+            </p>
+        </div>
     );
 };
 
