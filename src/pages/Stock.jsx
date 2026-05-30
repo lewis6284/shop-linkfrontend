@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { stockService } from '../services/stockService';
 import { productService } from '../services/inventoryService';
@@ -10,7 +10,7 @@ import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import { 
     BarChart2, ArrowLeftRight, Package, AlertTriangle, 
-    TrendingUp, Store, Filter, RefreshCw, CheckCircle, Plus, Edit2, X
+    TrendingUp, Store, Filter, RefreshCw, CheckCircle, Plus, Edit2, X, Search
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../utils/imageUrl';
@@ -19,6 +19,18 @@ import SearchableProductSelect from '../components/SearchableProductSelect';
 const Stock = () => {
     const { user, activeShopId } = useAuth();
     const [stocks, setStocks] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredStocks = useMemo(() => {
+        if (!searchTerm.trim()) return stocks;
+        const query = searchTerm.toLowerCase().trim();
+        return stocks.filter(s => {
+            const name = s.Product?.name?.toLowerCase() || '';
+            const sku = s.Product?.sku?.toLowerCase() || '';
+            const barcode = s.Product?.barcode?.toLowerCase() || '';
+            return name.includes(query) || sku.includes(query) || barcode.includes(query);
+        });
+    }, [stocks, searchTerm]);
     
     // Confirmation Modal state
     const [confirmConfig, setConfirmConfig] = useState({
@@ -295,112 +307,140 @@ const Stock = () => {
             {/* Inventory Tab */}
             {activeTab === 'inventory' && (
             <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
-                <div className="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+                <div className="p-6 border-b dark:border-gray-700 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-gray-50/50 dark:bg-gray-900/50">
                     <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-widest text-xs">Live Inventory</h3>
-                    <div className="flex items-center gap-3">
-                        <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:flex-initial">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="Search products..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="w-full sm:w-56 pl-9 pr-8 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 text-xs font-semibold text-gray-700 dark:text-white"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                >
+                                    <X size={12} />
+                                </button>
+                            )}
+                        </div>
+                        <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors shrink-0"><RefreshCw size={16} /></button>
                     </div>
                 </div>
                         <Table headers={['Product', 'Location', 'Quantity', 'Total Value', 'Status', 'Actions']}>
-                            {stocks.map(s => (
-                                <TableRow key={s.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            {s.Product?.image_url ? (
-                                                <img src={getImageUrl(s.Product.image_url, 'placeholder-product.png')} alt={s.Product.name} className="w-10 h-10 rounded-xl object-cover border border-gray-100 dark:border-gray-600 shadow-sm" />
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 border border-gray-100 dark:border-gray-600">
-                                                    <Package size={20} />
-                                                </div>
-                                            )}
-                                            <div>
-                                                <p className="font-black text-sm text-gray-900 dark:text-white uppercase">{s.Product?.name}</p>
-                                                <p className="text-[10px] font-mono text-gray-400">SKU: {s.Product?.sku || s.Product?.barcode}</p>
-                                            </div>
+                            {filteredStocks.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6}>
+                                        <div className="py-10 text-center text-gray-400 text-sm italic">
+                                            {searchTerm ? 'No products match your search query.' : 'No stock items registered yet.'}
                                         </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Store size={14} className="text-gray-400" />
-                                            <span className="font-bold text-xs text-gray-700 dark:text-gray-300">
-                                                {s.Shop?.name || 'Global Warehouse'}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {(() => {
-                                            const fullProduct = products.find(p => p.id === s.ProductId);
-                                            const unitLabel = 
-                                                s.Product?.Unit?.short_name ||
-                                                fullProduct?.Unit?.short_name ||
-                                                fullProduct?.unit?.short_name ||
-                                                'pcs';
-                                            return (
-                                                <div className="flex items-baseline gap-2">
-                                                    <span className="font-black text-xl text-gray-900 dark:text-white tracking-tighter">
-                                                        {Math.floor(Number(s.quantity))}
-                                                    </span>
-                                                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                                                        {unitLabel}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div>
-                                            <div className="font-black text-sm text-brand-600 dark:text-brand-400">
-                                                {(s.quantity * (s.Product?.purchasePrice || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] font-bold text-gray-400">Fbu</span>
-                                            </div>
-                                            <div className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
-                                                Cost Value
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block shadow-sm ${
-                                            s.quantity <= (s.Product?.min_stock_level || 5) ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                        }`}>
-                                            {s.quantity <= (s.Product?.min_stock_level || 5) ? 'Critical / Low' : 'In Stock'}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {isAuthorized && (
-                                            <div className="flex items-center gap-2">
-                                                <button 
-                                                    onClick={() => {
-                                                        setTransferData({
-                                                            ...transferData,
-                                                            ProductId: s.ProductId,
-                                                            fromShopId: s.ShopId || ''
-                                                        });
-                                                        setIsTransferModalOpen(true);
-                                                    }}
-                                                    className="p-2 bg-gray-100 hover:bg-brand-50 hover:text-brand-600 dark:bg-gray-700 dark:hover:bg-brand-900/30 dark:text-gray-300 dark:hover:text-brand-400 rounded-xl transition-all"
-                                                    title="Transfer Stock"
-                                                >
-                                                    <ArrowLeftRight size={14} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => {
-                                                        setAdjustStockData({
-                                                            ...adjustStockData,
-                                                            product_id: s.ProductId,
-                                                            shop_id: s.ShopId || activeShopId || '',
-                                                            quantity: s.quantity
-                                                        });
-                                                        setIsAdjustStockModalOpen(true);
-                                                    }}
-                                                    className="p-2 bg-gray-100 hover:bg-brand-50 hover:text-brand-600 dark:bg-gray-700 dark:hover:bg-brand-900/30 dark:text-gray-300 dark:hover:text-brand-400 rounded-xl transition-all"
-                                                    title="Adjust Stock Count"
-                                                >
-                                                    <Edit2 size={14} />
-                                                </button>
-                                            </div>
-                                        )}
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                filteredStocks.map(s => (
+                                    <TableRow key={s.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                {s.Product?.image_url ? (
+                                                    <img src={getImageUrl(s.Product.image_url, 'placeholder-product.png')} alt={s.Product.name} className="w-10 h-10 rounded-xl object-cover border border-gray-100 dark:border-gray-600 shadow-sm" />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 border border-gray-100 dark:border-gray-600">
+                                                        <Package size={20} />
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p className="font-black text-sm text-gray-900 dark:text-white uppercase">{s.Product?.name}</p>
+                                                    <p className="text-[10px] font-mono text-gray-400">SKU: {s.Product?.sku || s.Product?.barcode}</p>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Store size={14} className="text-gray-400" />
+                                                <span className="font-bold text-xs text-gray-700 dark:text-gray-300">
+                                                    {s.Shop?.name || 'Global Warehouse'}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {(() => {
+                                                const fullProduct = products.find(p => p.id === s.ProductId);
+                                                const unitLabel = 
+                                                    s.Product?.Unit?.short_name ||
+                                                    fullProduct?.Unit?.short_name ||
+                                                    fullProduct?.unit?.short_name ||
+                                                    'pcs';
+                                                return (
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="font-black text-xl text-gray-900 dark:text-white tracking-tighter">
+                                                            {Math.floor(Number(s.quantity))}
+                                                        </span>
+                                                        <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                                                            {unitLabel}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div>
+                                                <div className="font-black text-sm text-brand-600 dark:text-brand-400">
+                                                    {(s.quantity * (s.Product?.purchasePrice || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-[10px] font-bold text-gray-400">Fbu</span>
+                                                </div>
+                                                <div className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                                                    Cost Value
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block shadow-sm ${
+                                                s.quantity <= (s.Product?.min_stock_level || 5) ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                            }`}>
+                                                {s.quantity <= (s.Product?.min_stock_level || 5) ? 'Critical / Low' : 'In Stock'}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {isAuthorized && (
+                                                <div className="flex items-center gap-2">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setTransferData({
+                                                                ...transferData,
+                                                                ProductId: s.ProductId,
+                                                                fromShopId: s.ShopId || ''
+                                                            });
+                                                            setIsTransferModalOpen(true);
+                                                        }}
+                                                        className="p-2 bg-gray-100 hover:bg-brand-50 hover:text-brand-600 dark:bg-gray-700 dark:hover:bg-brand-900/30 dark:text-gray-300 dark:hover:text-brand-400 rounded-xl transition-all"
+                                                        title="Transfer Stock"
+                                                    >
+                                                        <ArrowLeftRight size={14} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setAdjustStockData({
+                                                                ...adjustStockData,
+                                                                product_id: s.ProductId,
+                                                                shop_id: s.ShopId || activeShopId || '',
+                                                                quantity: s.quantity
+                                                            });
+                                                            setIsAdjustStockModalOpen(true);
+                                                        }}
+                                                        className="p-2 bg-gray-100 hover:bg-brand-50 hover:text-brand-600 dark:bg-gray-700 dark:hover:bg-brand-900/30 dark:text-gray-300 dark:hover:text-brand-400 rounded-xl transition-all"
+                                                        title="Adjust Stock Count"
+                                                    >
+                                                        <Edit2 size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </Table>
             </div>
             )}
