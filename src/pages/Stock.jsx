@@ -301,7 +301,7 @@ const Stock = () => {
                         <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors"><RefreshCw size={16} /></button>
                     </div>
                 </div>
-                        <Table headers={['Product', 'Location', 'Stock Metrics', 'Total Value', 'Status', 'Actions']}>
+                        <Table headers={['Product', 'Location', 'Quantity', 'Total Value', 'Status', 'Actions']}>
                             {stocks.map(s => (
                                 <TableRow key={s.id}>
                                     <TableCell>
@@ -328,14 +328,24 @@ const Stock = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div>
-                                            <div className="font-black text-lg text-gray-900 dark:text-white tracking-tighter">
-                                                {s.quantity} <span className="text-[10px] text-gray-400 uppercase font-bold">{s.Product?.Unit?.short_name || s.Product?.unit_of_measure || 'pcs'}</span>
-                                            </div>
-                                            <div className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
-                                                Min: {s.Product?.min_stock_level || 5} {s.Product?.Unit?.short_name || s.Product?.unit_of_measure || 'pcs'}
-                                            </div>
-                                        </div>
+                                        {(() => {
+                                            const fullProduct = products.find(p => p.id === s.ProductId);
+                                            const unitLabel = 
+                                                s.Product?.Unit?.short_name ||
+                                                fullProduct?.Unit?.short_name ||
+                                                fullProduct?.unit?.short_name ||
+                                                'pcs';
+                                            return (
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="font-black text-xl text-gray-900 dark:text-white tracking-tighter">
+                                                        {Math.floor(Number(s.quantity))}
+                                                    </span>
+                                                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                                                        {unitLabel}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                     </TableCell>
                                     <TableCell>
                                         <div>
