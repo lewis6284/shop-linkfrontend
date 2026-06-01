@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { saleService } from '../services/saleService';
+import { creditService } from '../services/creditService';
 import Table, { TableRow, TableCell } from '../components/Table';
 import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
-import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, Trash2, User as UserIcon, ShieldAlert, Check, XCircle, Clock } from 'lucide-react';
+import { CreditCard, Search, Calendar, FileText, Download, Eye, DollarSign, Trash2, User as UserIcon, ShieldAlert, Check, XCircle, Clock, AlertCircle, Phone, BadgeCheck, Hourglass } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -20,6 +21,13 @@ const Sales = () => {
     const [selectedSale, setSelectedSale] = useState(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('completed');
+
+    // Debts state
+    const [credits, setCredits] = useState([]);
+    const [creditsLoading, setCreditsLoading] = useState(false);
+    const [creditSearch, setCreditSearch] = useState('');
+    const [selectedCredit, setSelectedCredit] = useState(null);
+    const [payModal, setPayModal] = useState({ isOpen: false, creditId: null, amount: '', method: 'CASH' });
 
     // Rejection prompt modal state
     const [rejectModal, setRejectModal] = useState({
@@ -38,6 +46,38 @@ const Sales = () => {
     useEffect(() => {
         fetchSales();
     }, [activeShopId, user]);
+
+    useEffect(() => {
+        if (activeTab === 'debts') fetchCredits();
+    }, [activeTab]);
+
+    const fetchCredits = async (search = '') => {
+        setCreditsLoading(true);
+        try {
+            const res = await creditService.getAll(search ? { search } : {});
+            setCredits(Array.isArray(res) ? res : []);
+        } catch {
+            toast.error('Failed to load debts');
+        } finally {
+            setCreditsLoading(false);
+        }
+    };
+
+    const handlePayCredit = async () => {
+        const { creditId, amount, method } = payModal;
+        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+            toast.error('Enter a valid payment amount'); return;
+        }
+        const loading = toast.loading('Recording payment...');
+        try {
+            await creditService.pay(creditId, Number(amount), method);
+            toast.success('Payment recorded!', { id: loading });
+            setPayModal({ isOpen: false, creditId: null, amount: '', method: 'CASH' });
+            fetchCredits(creditSearch);
+        } catch (e) {
+            toast.error(e.response?.data?.message || 'Failed to record payment', { id: loading });
+        }
+    };
 
     const fetchSales = async () => {
         try {
@@ -377,35 +417,36 @@ const Sales = () => {
             {/* Owner/Manager Tabs */}
             {(user?.role === 'owner' || user?.role === 'manager') && (
                 <div className="flex gap-6 border-b border-gray-100 dark:border-gray-800 pb-px mb-2">
-                    <button 
+                    <button
                         onClick={() => { setActiveTab('completed'); setSearchTerm(''); }}
                         className={`pb-4 px-2 font-black text-xs uppercase tracking-wider border-b-4 transition-all ${
-                            activeTab === 'completed' 
-                                ? 'border-brand-600 text-brand-600 dark:text-brand-400' 
+                            activeTab === 'completed'
+                                ? 'border-brand-600 text-brand-600 dark:text-brand-400'
                                 : 'border-transparent text-gray-400 hover:text-gray-600'
                         }`}
                     >
                         Completed Ledgers
                     </button>
-                    {/* <button 
-                        onClick={() => { setActiveTab('pending'); setSearchTerm(''); }}
+                    <button
+                        onClick={() => { setActiveTab('debts'); setCreditSearch(''); }}
                         className={`pb-4 px-2 font-black text-xs uppercase tracking-wider border-b-4 transition-all flex items-center gap-2 ${
-                            activeTab === 'pending' 
-                                ? 'border-amber-600 text-amber-600 dark:text-amber-400' 
+                            activeTab === 'debts'
+                                ? 'border-orange-500 text-orange-600 dark:text-orange-400'
                                 : 'border-transparent text-gray-400 hover:text-gray-600'
                         }`}
                     >
-                        <ShieldAlert size={14} /> Partner Approvals
-                        {pendingSales.length > 0 && (
-                            <span className="bg-amber-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse">
-                                {pendingSales.length}
+                        <AlertCircle size={14} /> Manage Debts
+                        {credits.filter(c => c.status !== 'paid').length > 0 && (
+                            <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
+                                {credits.filter(c => c.status !== 'paid').length}
                             </span>
                         )}
-                    </button> */}
+                    </button>
                 </div>
             )}
 
-            {/* Filter & Search */}
+            {/* Filter & Search — show only for non-debts tab */}
+            {activeTab !== 'debts' && (
             <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative">
                 <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
@@ -416,9 +457,116 @@ const Sales = () => {
                     className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 font-black text-sm uppercase tracking-wider dark:text-white"
                 />
             </div>
+            )}
 
-            {/* Sales Table / Pending Table Conditional */}
-            {activeTab === 'completed' ? (
+            {/* Debts Search */}
+            {activeTab === 'debts' && (
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-orange-100 dark:border-orange-900/40 shadow-sm relative">
+                <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-orange-400" size={18} />
+                <input
+                    type="text"
+                    placeholder="Search debts by client name or phone..."
+                    value={creditSearch}
+                    onChange={(e) => { setCreditSearch(e.target.value); fetchCredits(e.target.value); }}
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl outline-none focus:ring-2 focus:ring-orange-500/20 font-black text-sm uppercase tracking-wider dark:text-white"
+                />
+            </div>
+            )}
+
+            {/* Debts Table */}
+            {activeTab === 'debts' && (
+                <div className="bg-white dark:bg-gray-800 rounded-3xl border border-orange-100 dark:border-orange-900/40 overflow-hidden shadow-sm animate-in fade-in duration-300">
+                    <Table headers={['Client', 'Total Debt', 'Paid', 'Remaining', 'Status', 'Actions']}>
+                        {creditsLoading ? (
+                            <TableRow><TableCell colSpan={6} className="text-center py-10">Loading...</TableCell></TableRow>
+                        ) : credits.length === 0 ? (
+                            <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No debt records found</TableCell></TableRow>
+                        ) : credits.map(c => (
+                            <TableRow key={c.id}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-orange-50 dark:bg-orange-900/30 text-orange-500 rounded-xl">
+                                            <Phone size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-sm text-gray-900 dark:text-white uppercase leading-none">{c.customer?.full_name || '—'}</p>
+                                            <p className="text-[10px] font-mono text-gray-400">{c.customer?.phone || '—'}</p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="font-black text-gray-900 dark:text-white">{Number(c.total_credit).toLocaleString()} <span className="text-xs text-gray-400">Fbu</span></p>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="font-black text-emerald-600 dark:text-emerald-400">{Number(c.paid_credit).toLocaleString()} <span className="text-xs text-gray-400">Fbu</span></p>
+                                </TableCell>
+                                <TableCell>
+                                    <p className={`font-black ${Number(c.remaining_credit) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-400'}`}>
+                                        {Number(c.remaining_credit).toLocaleString()} <span className="text-xs text-gray-400">Fbu</span>
+                                    </p>
+                                </TableCell>
+                                <TableCell>
+                                    <span className={`inline-flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider ${
+                                        c.status === 'paid' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                        c.status === 'partial' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                        'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+                                    }`}>
+                                        {c.status === 'paid' ? <BadgeCheck size={10} /> : <Hourglass size={10} />}
+                                        {c.status}
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    {c.status !== 'paid' && (
+                                        <button
+                                            onClick={() => setPayModal({ isOpen: true, creditId: c.id, amount: '', method: 'CASH' })}
+                                            className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-xl font-black text-xs uppercase tracking-wider transition-all"
+                                        >
+                                            Record Payment
+                                        </button>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </Table>
+                </div>
+            )}
+
+            {/* Payment Modal */}
+            <Modal isOpen={payModal.isOpen} onClose={() => setPayModal({ isOpen: false, creditId: null, amount: '', method: 'CASH' })} title="Record Debt Payment" maxWidth="max-w-sm">
+                <div className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Amount Paid (Fbu)</label>
+                        <input
+                            type="number"
+                            value={payModal.amount}
+                            onChange={(e) => setPayModal(p => ({ ...p, amount: e.target.value }))}
+                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-bold dark:text-white"
+                            placeholder="0"
+                            autoFocus
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Payment Method</label>
+                        <select
+                            value={payModal.method}
+                            onChange={(e) => setPayModal(p => ({ ...p, method: e.target.value }))}
+                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-bold dark:text-white"
+                        >
+                            <option value="CASH">Cash</option>
+                            <option value="MOBILE">Mobile Money</option>
+                            <option value="BANK">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div className="flex gap-3">
+                        <button onClick={handlePayCredit} className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-colors">
+                            Confirm Payment
+                        </button>
+                        <button onClick={() => setPayModal({ isOpen: false, creditId: null, amount: '', method: 'CASH' })} className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-black text-xs uppercase">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </Modal>
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
                     <Table headers={['Invoice Number', 'Seller', 'Financials', 'Actions']}>
                         {loading ? (
