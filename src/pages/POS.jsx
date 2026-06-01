@@ -309,7 +309,7 @@ const POS = () => {
                             <p className="font-black text-xs uppercase tracking-widest">Loading Catalog...</p>
                         </div>
                     ) : searchResults.length > 0 ? (
-                        <Table headers={["Product", "Price", "Action"]}>
+                        <Table headers={["Product", customerType === "wholesale" ? "Wholesale Price" : "Price", "Action"]}>
                             {searchResults.map(p => {
                                 const shopStock = Number(p.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
                                 const priceInfo = getEffectivePrice(p, effectiveCustomerType, 1);
@@ -334,7 +334,14 @@ const POS = () => {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <p className="font-black text-brand-600 dark:text-brand-400 text-base">{Number(priceInfo.unitPrice).toLocaleString()} <span className="text-xs">Fbu</span></p>
+                                            <p className={`font-black text-base ${customerType === "wholesale" ? "text-amber-600 dark:text-amber-400" : "text-brand-600 dark:text-brand-400"}`}>
+                                                {Number(priceInfo.unitPrice).toLocaleString()} <span className="text-xs">Fbu</span>
+                                            </p>
+                                            {customerType === "wholesale" && Number(p.sellingPrice) !== Number(priceInfo.unitPrice) && (
+                                                <p className="text-[10px] text-gray-400 line-through mt-0.5">
+                                                    Retail {Number(p.sellingPrice).toLocaleString()}
+                                                </p>
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             <button
@@ -416,7 +423,9 @@ const POS = () => {
                                         <button onClick={() => updateQty(item.id, 1)} className="p-1 text-gray-400 hover:text-brand-600"><Plus size={14} /></button>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase leading-none mb-1">Total</p>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase leading-none mb-1">
+                                            {Number(p.unitPrice).toLocaleString()} × {item.qty}
+                                        </p>
                                         <p className="font-black text-lg text-gray-900 dark:text-white">{p.total.toLocaleString()}</p>
                                     </div>
                                 </div>

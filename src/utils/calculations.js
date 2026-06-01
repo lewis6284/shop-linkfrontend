@@ -48,11 +48,27 @@ export const generateBarcode = () => {
 };
 
 /**
+ * Resolve unit price for retail / partner / wholesale tiers.
+ */
+export const resolveTierPrice = (product, customerType = 'retail') => {
+    const retail = Number(product.sellingPrice) || 0;
+    if (customerType === 'wholesale') {
+        const wholesale = Number(product.wholesalePrice);
+        return wholesale > 0 ? wholesale : retail;
+    }
+    if (customerType === 'partner') {
+        const partner = Number(product.partnerPrice);
+        return partner > 0 ? partner : retail;
+    }
+    return retail;
+};
+
+/**
  * Pricing Rules Engine (Enterprise Version)
  * Calculates price based on ProductPricingRules table logic
  */
 export const getEffectivePrice = (product, customerType = 'retail', quantity = 1, pricingRules = []) => {
-    let finalPrice = Number(product.sellingPrice);
+    let finalPrice = resolveTierPrice(product, customerType);
     let activeRule = null;
 
     // 1. Check for specific Pricing Rules from the database
@@ -64,20 +80,12 @@ export const getEffectivePrice = (product, customerType = 'retail', quantity = 1
 
         if (applicableRules.length > 0) {
             activeRule = applicableRules[0];
+            const baseForRule = resolveTierPrice(product, customerType);
             if (activeRule.price) {
                 finalPrice = Number(activeRule.price);
             } else if (activeRule.discount_percentage) {
-                finalPrice = finalPrice * (1 - (activeRule.discount_percentage / 100));
+                finalPrice = baseForRule * (1 - (activeRule.discount_percentage / 100));
             }
-        }
-    }
-
-    // 2. Fallback to legacy static prices if no dynamic rule found
-    if (!activeRule) {
-        if (customerType === 'partner' && product.partnerPrice > 0) {
-            finalPrice = Number(product.partnerPrice);
-        } else if (customerType === 'wholesale' && product.wholesalePrice > 0) {
-            finalPrice = Number(product.wholesalePrice);
         }
     }
 
