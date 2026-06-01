@@ -410,9 +410,7 @@ const Products = () => {
     };
     // --- 🔍 FILTER LOGIC ---
     const filteredProducts = products.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(searchTerms.products.toLowerCase()) || 
-                            (p.barcode && p.barcode.toLowerCase().includes(searchTerms.products.toLowerCase())) ||
-                            (p.sku && p.sku.toLowerCase().includes(searchTerms.products.toLowerCase()));
+        const matchesSearch = p.name.toLowerCase().includes(searchTerms.products.toLowerCase());
         const matchesCategory = categoryFilter ? p.CategoryId === categoryFilter : true;
         const matchesBrand = brandFilter ? p.BrandId === brandFilter : true;
         return matchesSearch && matchesCategory && matchesBrand;
@@ -450,14 +448,6 @@ const Products = () => {
                         </button>
                         <div>
                             <p className="font-bold text-gray-900 dark:text-white">{p.name}</p>
-                            <div className="flex flex-wrap gap-1.5 mt-0.5">
-                                <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded font-mono font-black uppercase">{p.sku || 'NO SKU'}</span>
-                                {p.barcode && (
-                                    <span className="text-[10px] bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-1.5 py-0.5 rounded font-mono flex items-center gap-0.5">
-                                        <Barcode size={8} /> {p.barcode}
-                                    </span>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </TableCell>
@@ -627,7 +617,7 @@ const Products = () => {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="text"
-                                placeholder="Search by name, SKU or barcode..."
+                                placeholder="Search by product name..."
                                 value={searchTerms.products}
                                 onChange={(e) => setSearchTerms({ ...searchTerms, products: e.target.value })}
                                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm"
@@ -832,87 +822,117 @@ const Products = () => {
 
             {/* MODALS */}
             {/* Product Modal */}
-            <Modal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} title={editingProduct ? "Edit Product" : "Create Product"}>
-                <form onSubmit={handleProductSubmit} className="space-y-4">
-                    {/* Basic Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Product Name *</label>
-                            <input required type="text" value={productFormData.name} onChange={e => setProductFormData({...productFormData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+            <Modal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} title={editingProduct ? "Edit Product" : "Create Product"} maxWidth="max-w-5xl">
+                <form onSubmit={handleProductSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Left column: Basic Info */}
+                        <div className="md:col-span-2 space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Product Name *</label>
+                                <input required type="text" value={productFormData.name} onChange={e => setProductFormData({...productFormData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Category</label>
+                                    <select value={productFormData.CategoryId} onChange={e => setProductFormData({...productFormData, CategoryId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                        <option value="">Select Category</option>
+                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Brand</label>
+                                    <select value={productFormData.BrandId} onChange={e => setProductFormData({...productFormData, BrandId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                        <option value="">Select Brand</option>
+                                        {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Unit of Measure</label>
+                                    <select value={productFormData.unit_of_measure} onChange={e => setProductFormData({...productFormData, unit_of_measure: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                        <option value="">Select Unit</option>
+                                        {units.map(u => <option key={u.id} value={u.id}>{u.name} ({u.short_name})</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Tax Type</label>
+                                    <select value={productFormData.tax_type} onChange={e => setProductFormData({...productFormData, tax_type: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                        <option value="HTVA">HTVA</option>
+                                        <option value="TVA">TVA</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Description</label>
+                                <textarea value={productFormData.description} onChange={e => setProductFormData({...productFormData, description: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" rows="3"></textarea>
+                            </div>
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">SKU</label>
-                            <input type="text" value={productFormData.sku} onChange={e => setProductFormData({...productFormData, sku: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Barcode</label>
-                            <input type="text" value={productFormData.barcode} onChange={e => setProductFormData({...productFormData, barcode: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Category</label>
-                            <select value={productFormData.CategoryId} onChange={e => setProductFormData({...productFormData, CategoryId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
-                                <option value="">Select Category</option>
-                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Brand</label>
-                            <select value={productFormData.BrandId} onChange={e => setProductFormData({...productFormData, BrandId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
-                                <option value="">Select Brand</option>
-                                {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                            </select>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Unit of Measure</label>
-                            <select value={productFormData.unit_of_measure} onChange={e => setProductFormData({...productFormData, unit_of_measure: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
-                                <option value="">Select Unit</option>
-                                {units.map(u => <option key={u.id} value={u.id}>{u.name} ({u.short_name})</option>)}
-                            </select>
-                        </div>
-                        <div className="space-y-1 md:col-span-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Description</label>
-                            <textarea value={productFormData.description} onChange={e => setProductFormData({...productFormData, description: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" rows="2"></textarea>
+
+                        {/* Right column: Image */}
+                        <div className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Product Image</label>
+                                <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center justify-center min-h-[160px] bg-gray-50 dark:bg-gray-900">
+                                    {productFormData.image_url ? (
+                                        <img src={productFormData.image_url} alt="Product" className="max-h-32 object-contain rounded-lg" />
+                                    ) : (
+                                        <span className="text-gray-400 text-sm text-center">No image selected</span>
+                                    )}
+                                </div>
+                                <input type="file" id="product-image-upload" accept="image/*" className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none text-sm mt-2" />
+                            </div>
+                            {user?.role === 'owner' && (
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Shop Assignment</label>
+                                    <select value={productFormData.ShopId} onChange={e => setProductFormData({...productFormData, ShopId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
+                                        <option value="">Global (All Shops)</option>
+                                        {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
                         </div>
                     </div>
-                    {/* Pricing */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Purchase Price *</label>
-                            <input required type="number" value={productFormData.purchasePrice} onChange={e => setProductFormData({...productFormData, purchasePrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Selling Price *</label>
-                            <input required type="number" value={productFormData.sellingPrice} onChange={e => setProductFormData({...productFormData, sellingPrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Partner Price</label>
-                            <input type="number" value={productFormData.partnerPrice} onChange={e => setProductFormData({...productFormData, partnerPrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Wholesale Price</label>
-                            <input type="number" value={productFormData.wholesalePrice} onChange={e => setProductFormData({...productFormData, wholesalePrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Tax Type</label>
-                            <select value={productFormData.tax_type} onChange={e => setProductFormData({...productFormData, tax_type: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
-                                <option value="HTVA">HTVA</option>
-                                <option value="TVA">TVA</option>
-                            </select>
-                        </div>
-                        {user?.role === 'owner' && (
+
+                    {/* Pricing Section */}
+                    <div>
+                        <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Pricing</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-500 uppercase">Shop Assignment</label>
-                                <select value={productFormData.ShopId} onChange={e => setProductFormData({...productFormData, ShopId: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none">
-                                    <option value="">Global (All Shops)</option>
-                                    {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Purchase Price *</label>
+                                <input required type="number" value={productFormData.purchasePrice} onChange={e => setProductFormData({...productFormData, purchasePrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Selling Price *</label>
+                                <input required type="number" value={productFormData.sellingPrice} onChange={e => setProductFormData({...productFormData, sellingPrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Partner Price</label>
+                                <input type="number" value={productFormData.partnerPrice} onChange={e => setProductFormData({...productFormData, partnerPrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase">Wholesale Price</label>
+                                <input type="number" value={productFormData.wholesalePrice} onChange={e => setProductFormData({...productFormData, wholesalePrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
+                            </div>
+                        </div>
+
+                        {/* Real-time Profit/Margin Visualization */}
+                        {(productFormData.purchasePrice || productFormData.sellingPrice) && (
+                            <div className="mt-4 bg-brand-50/50 dark:bg-brand-950/20 border border-brand-100 dark:border-brand-900/50 p-4 rounded-xl flex items-center justify-between">
+                                <div>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none block mb-1">Expected Profit</span>
+                                    <span className={`text-lg font-black ${Number(margin) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        {Number(margin).toLocaleString()} Fbu
+                                    </span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none block mb-1">Margin Percentage</span>
+                                    <span className={`text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider inline-block ${Number(marginPercent) >= 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400'}`}>
+                                        {marginPercent}%
+                                    </span>
+                                </div>
                             </div>
                         )}
-                        <div className="space-y-1 md:col-span-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Product Image</label>
-                            <input type="file" id="product-image-upload" accept="image/*" className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
-                            {productFormData.image_url && <div className="mt-2 text-xs text-gray-400 truncate">Current: {productFormData.image_url}</div>}
-                        </div>
                     </div>
                     <div className="flex justify-end gap-2 pt-4">
                         <button type="button" onClick={() => setIsProductModalOpen(false)} className="px-6 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold">Cancel</button>
