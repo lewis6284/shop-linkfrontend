@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getImageUrl } from '../utils/imageUrl';
+import { exportJournalToPDF } from '../utils/pdfExport';
 
 const Sales = () => {
     const { user, activeShopId } = useAuth();
@@ -26,6 +27,8 @@ const Sales = () => {
     const [credits, setCredits] = useState([]);
     const [creditsLoading, setCreditsLoading] = useState(false);
     const [creditSearch, setCreditSearch] = useState('');
+    const [creditFilterStatus, setCreditFilterStatus] = useState('all');
+    const [selectedCredits, setSelectedCredits] = useState([]);
     const [selectedCredit, setSelectedCredit] = useState(null);
     const [payModal, setPayModal] = useState({ isOpen: false, creditId: null, amount: '', method: 'CASH' });
 
@@ -60,6 +63,46 @@ const Sales = () => {
             toast.error('Failed to load debts');
         } finally {
             setCreditsLoading(false);
+        }
+    };
+
+    const toggleSelectCredit = (id) => {
+        setSelectedCredits(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+
+    const selectAllFiltered = (filtered) => {
+        const ids = filtered.map(c => c.id);
+        const allSelected = ids.length > 0 && ids.every(id => selectedCredits.includes(id));
+        if (allSelected) {
+            setSelectedCredits(prev => prev.filter(id => !ids.includes(id)));
+        } else {
+            setSelectedCredits(prev => Array.from(new Set([...prev, ...ids])));
+        }
+    };
+
+    const exportSelectedCredits = async (filtered) => {
+        const toExport = credits.filter(c => selectedCredits.includes(c.id));
+        if (toExport.length === 0) {
+            toast.error('No credits selected for export');
+            return;
+        }
+        const activeShopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
+        const entries = toExport.map(c => ({
+            date: new Date(c.createdAt).toLocaleDateString('en-GB'),
+            type: 'ENTRY',
+            amount: Number(c.total_credit || 0),
+            currency: 'Fbu',
+            Account: { name: c.customer?.full_name || 'Client' },
+            source_table: 'credits',
+            balance_after: Number(c.remaining_credit || 0)
+        }));
+
+        try {
+            await exportJournalToPDF(entries, activeShopData?.name || 'ShopLink');
+            toast.success('Selected credits exported');
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to export credits');
         }
     };
 
@@ -168,6 +211,17 @@ const Sales = () => {
         s.User?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.Customer?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const normalizedCreditSearch = creditSearch.trim().toLowerCase();
+    const filteredCredits = credits.filter(c => {
+        if (creditFilterStatus === 'paid' && c.status !== 'paid') return false;
+        if (creditFilterStatus === 'partial' && c.status !== 'partial') return false;
+        if (creditFilterStatus === 'unpaid' && Number(c.paid_credit) > 0) return false;
+        if (!normalizedCreditSearch) return true;
+        const name = c.customer?.full_name?.toLowerCase() || '';
+        const phone = String(c.customer?.phone || '');
+        return name.includes(normalizedCreditSearch) || phone.includes(normalizedCreditSearch);
+    });
 
     const filteredPendingSales = pendingSales.filter(s => 
         s.User?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -462,27 +516,58 @@ const Sales = () => {
             {/* Debts Search */}
             {activeTab === 'debts' && (
             <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-orange-100 dark:border-orange-900/40 shadow-sm relative">
-                <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-orange-400" size={18} />
-                <input
-                    type="text"
-                    placeholder="Search debts by client name or phone..."
-                    value={creditSearch}
-                    onChange={(e) => { setCreditSearch(e.target.value); fetchCredits(e.target.value); }}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl outline-none focus:ring-2 focus:ring-orange-500/20 font-black text-sm uppercase tracking-wider dark:text-white"
-                />
+                <div className="flex gap-3 items-center">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-orange-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search debts by client name or phone..."
+                            value={creditSearch}
+                            onChange={(e) => { setCreditSearch(e.target.value); fetchCredits(e.target.value); }}
+                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl outline-none focus:ring-2 focus:ring-orange-500/20 font-black text-sm uppercase tracking-wider dark:text-white"
+                        />
+                    </div>
+                    <select
+                        value={creditFilterStatus}
+                        onChange={(e) => setCreditFilterStatus(e.target.value)}
+                        className="w-40 px-3 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none font-black text-sm uppercase tracking-wider"
+                    >
+                        <option value="all">All</option>
+                        <option value="unpaid">Unpaid</option>
+                        <option value="partial">Partial</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                    <button
+                        onClick={() => exportSelectedCredits()}
+                        className="px-4 py-3 bg-orange-500 text-white rounded-xl font-black text-sm uppercase tracking-wider"
+                    >
+                        Export Selected
+                    </button>
+                </div>
             </div>
             )}
 
             {/* Debts Table */}
             {activeTab === 'debts' && (
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-orange-100 dark:border-orange-900/40 overflow-hidden shadow-sm animate-in fade-in duration-300">
-                    <Table headers={['Client', 'Total Debt', 'Paid', 'Remaining', 'Status', 'Actions']}>
+                    <Table headers={[
+                        <input
+                            type="checkbox"
+                            key="select-all"
+                            onChange={() => selectAllFiltered(filteredCredits)}
+                            checked={filteredCredits.length > 0 && filteredCredits.every(c => selectedCredits.includes(c.id))}
+                        />,
+                        'Client', 'Total Debt', 'Paid', 'Remaining', 'Status', 'Actions'
+                    ]}>
                         {creditsLoading ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-10">Loading...</TableCell></TableRow>
-                        ) : credits.length === 0 ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No debt records found</TableCell></TableRow>
-                        ) : credits.map(c => (
+                            <TableRow><TableCell colSpan={7} className="text-center py-10">Loading...</TableCell></TableRow>
+                        ) : filteredCredits.length === 0 ? (
+                            <TableRow><TableCell colSpan={7} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No debt records found</TableCell></TableRow>
+                        ) : filteredCredits.map(c => (
                             <TableRow key={c.id}>
+                                <TableCell>
+                                    <input type="checkbox" checked={selectedCredits.includes(c.id)} onChange={() => toggleSelectCredit(c.id)} />
+                                </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <div className="p-2 bg-orange-50 dark:bg-orange-900/30 text-orange-500 rounded-xl">
