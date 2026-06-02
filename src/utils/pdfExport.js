@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
+import { getImageUrl } from '../utils/imageUrl';
 
 export const exportReceiptToPDF = async (receiptData) => {
     const doc = new jsPDF();
@@ -270,64 +271,94 @@ export const exportProductsToPDF = async ({ products = [], shopInfo = {}, priceT
     const generatedAt = new Date().toLocaleString();
     const priceLabel = priceType === 'wholesale' ? 'Wholesale Price' : 'Retail Price';
 
-    doc.setFillColor(15, 23, 42);
-    doc.rect(0, 0, 210, 35, 'F');
+    const primaryColor = [15, 23, 42];
+    const textColor = [51, 65, 85];
 
-    doc.setTextColor(255, 255, 255);
+    // Draw Company Logo (async) similar to Sales.jsx
+    const addImageProcess = new Promise((resolve) => {
+        const img = new Image();
+        img.src = getImageUrl(shopInfo?.logo_url);
+        img.onload = () => {
+            try {
+                doc.addImage(img, 'PNG', 14, 14, 32, 32);
+            } catch (e) {
+                console.error('Failed to draw logo for products export', e);
+            }
+            resolve();
+        };
+        img.onerror = () => {
+            // fallback square with initials
+            doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.roundedRect(14, 14, 32, 32, 4, 4, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            const initials = (shopName || 'S').split(' ').map(s => s[0]).slice(0,2).join('').toUpperCase();
+            doc.text(initials, 30, 34, { align: 'center' });
+            resolve();
+        };
+    });
+
+    await addImageProcess;
+
+    // Header Text Details (aligned like Sales.jsx)
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text(shopName.toUpperCase(), 14, 20);
+    doc.setFontSize(22);
+    doc.text(shopName.toUpperCase(), 58, 30);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text(`Address: ${shopAddress}`, 14, 26);
-    doc.text(`Phone: ${shopPhone}`, 14, 32);
+    doc.setTextColor(100, 116, 139);
+    doc.text('PRODUCT LIST / EXPORT', 58, 36);
+    if (shopAddress) doc.text(`Address: ${shopAddress}`, 58, 42);
+    if (shopPhone) doc.text(`Phone: ${shopPhone}`, 58, 47);
 
-    doc.setFontSize(10);
-    doc.text(`Selected Products Export`, 140, 20);
-    doc.text(`Price Type: ${priceLabel}`, 140, 26);
-    doc.text(`Generated: ${generatedAt}`, 140, 32);
+    // Right header box with meta
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(135, 20, 55, 32, 3, 3, 'F');
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('EXPORT DETAILS', 140, 27);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text(`Price: ${priceLabel}`, 140, 33);
+    doc.text(`Generated: ${generatedAt}`, 140, 38);
 
-    doc.setDrawColor(201, 213, 225);
-    doc.line(14, 38, 196, 38);
+    // Divider
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(14, 58, 196, 58);
 
-    const rows = products.map((product) => {
-        const category = product.Category?.name || 'Uncategorized';
-        const brand = product.Brand?.name || 'No Brand';
-        const price = priceType === 'wholesale' ? (product.wholesalePrice ?? product.partnerPrice ?? product.sellingPrice) : product.sellingPrice;
-        return [
-            product.name || '',
-            `${category} / ${brand}`,
-            `${Number(price || 0).toLocaleString()} Fbu`
-        ];
-    });
+    // Prepare rows
+    const rows = products.map((product) => ({
+        name: product.name || '',
+        category: `${product.Category?.name || 'Uncategorized'} / ${product.Brand?.name || 'No Brand'}`,
+        price: `${Number(priceType === 'wholesale' ? (product.wholesalePrice ?? product.partnerPrice ?? product.sellingPrice) : product.sellingPrice || 0).toLocaleString()} Fbu`
+    }));
 
     autoTable(doc, {
-        head: [['Product', 'Category / Brand', priceLabel]],
-        body: rows,
-        startY: 42,
-        theme: 'grid',
-        headStyles: {
-            fillColor: [15, 23, 42],
-            textColor: 255,
-            halign: 'left'
-        },
-        styles: {
-            fontSize: 9,
-            cellPadding: 4
-        },
-        columnStyles: {
-            2: { halign: 'right' }
-        }
+        head: [[ 'Product', 'Category / Brand', priceLabel ]],
+        body: rows.map(r => [r.name, r.category, r.price]),
+        startY: 68,
+        margin: { left: 14, right: 14 },
+        theme: 'striped',
+        headStyles: { fillColor: primaryColor, textColor: 255 },
+        styles: { fontSize: 9 },
+        columnStyles: { 2: { halign: 'right' } }
     });
 
+    // Footer
     const pageHeight = doc.internal.pageSize.height;
-    doc.setDrawColor(201, 213, 225);
+    doc.setDrawColor(226, 232, 240);
     doc.line(14, pageHeight - 20, 196, pageHeight - 20);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(100);
-    doc.text(`${shopName} • ${shopAddress} • ${shopPhone}`, 105, pageHeight - 10, null, null, 'center');
+    doc.text('THANK YOU FOR YOUR BUSINESS!', 105, pageHeight - 14, null, null, 'center');
+    doc.text(`${shopName} • ${shopAddress} • ${shopPhone}`, 105, pageHeight - 8, null, null, 'center');
 
     doc.save(`SelectedProducts-${new Date().toISOString().split('T')[0]}.pdf`);
 };
