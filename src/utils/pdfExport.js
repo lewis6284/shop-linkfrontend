@@ -362,3 +362,145 @@ export const exportProductsToPDF = async ({ products = [], shopInfo = {}, priceT
 
     doc.save(`SelectedProducts-${new Date().toISOString().split('T')[0]}.pdf`);
 };
+
+export const exportCreditsToPDF = async ({ credits = [], shopInfo = {}, filter = 'all' }) => {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const shopName = shopInfo.name || 'ShopLink';
+    const shopAddress = shopInfo.address || 'No address provided';
+    const shopPhone = shopInfo.phone || 'No phone provided';
+    const generatedAt = new Date().toLocaleString();
+
+    const primaryColor = [15, 23, 42];
+    const textColor = [51, 65, 85];
+    const accentColor = [234, 88, 12]; // orange for credits
+
+    // Draw Company Logo (async) similar to Sales.jsx
+    const addImageProcess = new Promise((resolve) => {
+        const img = new Image();
+        img.src = getImageUrl(shopInfo?.logo_url);
+        img.onload = () => {
+            try {
+                doc.addImage(img, 'PNG', 14, 14, 32, 32);
+            } catch (e) {
+                console.error('Failed to draw logo for credits export', e);
+            }
+            resolve();
+        };
+        img.onerror = () => {
+            // fallback square with initials
+            doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+            doc.roundedRect(14, 14, 32, 32, 4, 4, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            const initials = (shopName || 'S').split(' ').map(s => s[0]).slice(0,2).join('').toUpperCase();
+            doc.text(initials, 30, 34, { align: 'center' });
+            resolve();
+        };
+    });
+
+    await addImageProcess;
+
+    // Header Text Details
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text(shopName.toUpperCase(), 58, 30);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text('CUSTOMER DEBTS / EXPORT', 58, 36);
+    if (shopAddress) doc.text(`Address: ${shopAddress}`, 58, 42);
+    if (shopPhone) doc.text(`Phone: ${shopPhone}`, 58, 47);
+
+    // Right header box with meta
+    doc.setFillColor(255, 247, 237);
+    doc.roundedRect(135, 20, 55, 32, 3, 3, 'F');
+    doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('EXPORT DETAILS', 140, 27);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text(`Filter: ${filter.toUpperCase()}`, 140, 33);
+    doc.text(`Generated: ${generatedAt}`, 140, 38);
+
+    // Divider
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(14, 58, 196, 58);
+
+    // Filter credits by status
+    const filteredCredits = filter === 'all' ? credits : credits.filter(c => c.status === filter);
+
+    // Calculate totals
+    const totalDebt = filteredCredits.reduce((sum, c) => sum + Number(c.total_credit || 0), 0);
+    const totalPaid = filteredCredits.reduce((sum, c) => sum + Number(c.paid_credit || 0), 0);
+    const totalRemaining = filteredCredits.reduce((sum, c) => sum + Number(c.remaining_credit || 0), 0);
+
+    // Prepare rows
+    const rows = filteredCredits.map((credit) => ({
+        customer: credit.customer?.full_name || 'Unknown',
+        phone: credit.customer?.phone || '—',
+        totalDebt: `${Number(credit.total_credit || 0).toLocaleString()} Fbu`,
+        paid: `${Number(credit.paid_credit || 0).toLocaleString()} Fbu`,
+        remaining: `${Number(credit.remaining_credit || 0).toLocaleString()} Fbu`,
+        status: (credit.status || 'unpaid').toUpperCase()
+    }));
+
+    autoTable(doc, {
+        head: [[ 'Customer', 'Phone', 'Total Debt', 'Paid', 'Remaining', 'Status' ]],
+        body: rows.map(r => [r.customer, r.phone, r.totalDebt, r.paid, r.remaining, r.status]),
+        startY: 68,
+        margin: { left: 14, right: 14 },
+        theme: 'striped',
+        headStyles: { fillColor: accentColor, textColor: 255 },
+        styles: { fontSize: 8 },
+        columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' } }
+    });
+
+    // Totals Summary Footer
+    const finalY = doc.lastAutoTable.finalY + 8;
+
+    // Total Debt box (orange/red)
+    doc.setFillColor(255, 237, 213);
+    doc.roundedRect(14, finalY, 57, 18, 2, 2, 'F');
+    doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL DEBT", 16, finalY + 6);
+    doc.setFontSize(10);
+    doc.text(`${totalDebt.toLocaleString()} Fbu`, 16, finalY + 14);
+
+    // Total Paid box (green)
+    doc.setFillColor(220, 252, 231);
+    doc.roundedRect(76, finalY, 57, 18, 2, 2, 'F');
+    doc.setTextColor(22, 163, 74);
+    doc.setFontSize(7);
+    doc.text("TOTAL PAID", 78, finalY + 6);
+    doc.setFontSize(10);
+    doc.text(`${totalPaid.toLocaleString()} Fbu`, 78, finalY + 14);
+
+    // Remaining box (rose)
+    doc.setFillColor(254, 226, 226);
+    doc.roundedRect(138, finalY, 57, 18, 2, 2, 'F');
+    doc.setTextColor(220, 38, 38);
+    doc.setFontSize(7);
+    doc.text("REMAINING", 140, finalY + 6);
+    doc.setFontSize(10);
+    doc.text(`${totalRemaining.toLocaleString()} Fbu`, 140, finalY + 14);
+
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setDrawColor(226, 232, 240);
+    doc.line(14, pageHeight - 20, 196, pageHeight - 20);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text('CUSTOMER DEBTS REPORT', 105, pageHeight - 14, null, null, 'center');
+    doc.text(`${shopName} • ${shopAddress} • ${shopPhone}`, 105, pageHeight - 8, null, null, 'center');
+
+    doc.save(`CustomerDebts-${new Date().toISOString().split('T')[0]}.pdf`);
+};

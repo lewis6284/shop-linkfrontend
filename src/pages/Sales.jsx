@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getImageUrl } from '../utils/imageUrl';
-import { exportJournalToPDF } from '../utils/pdfExport';
+import { exportCreditsToPDF } from '../utils/pdfExport';
 
 const Sales = () => {
     const { user, activeShopId } = useAuth();
@@ -80,25 +80,20 @@ const Sales = () => {
         }
     };
 
-    const exportSelectedCredits = async (filtered) => {
+    const exportSelectedCredits = async () => {
         const toExport = credits.filter(c => selectedCredits.includes(c.id));
         if (toExport.length === 0) {
             toast.error('No credits selected for export');
             return;
         }
         const activeShopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
-        const entries = toExport.map(c => ({
-            date: new Date(c.createdAt).toLocaleDateString('en-GB'),
-            type: 'ENTRY',
-            amount: Number(c.total_credit || 0),
-            currency: 'Fbu',
-            Account: { name: c.customer?.full_name || 'Client' },
-            source_table: 'credits',
-            balance_after: Number(c.remaining_credit || 0)
-        }));
 
         try {
-            await exportJournalToPDF(entries, activeShopData?.name || 'ShopLink');
+            await exportCreditsToPDF({
+                credits: toExport,
+                shopInfo: activeShopData,
+                filter: creditFilterStatus
+            });
             toast.success('Selected credits exported');
         } catch (e) {
             console.error(e);
@@ -652,6 +647,7 @@ const Sales = () => {
                     </div>
                 </div>
             </Modal>
+            {activeTab !== 'debts' ? (
                 <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
                     <Table headers={['Invoice Number', 'Seller', 'Financials', 'Actions']}>
                         {loading ? (
