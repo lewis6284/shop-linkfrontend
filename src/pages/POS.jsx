@@ -31,7 +31,7 @@ import toast from "react-hot-toast";
 import { getImageUrl } from "../utils/imageUrl";
 
 const POS = () => {
-    const { user, activeShopId } = useAuth();
+    const { activeShopId } = useAuth();
 
     // ─── Product Search ───────────────────────────────────────────────
     const [searchQuery, setSearchQuery] = useState("");
@@ -88,6 +88,7 @@ const POS = () => {
     // ==========================================
     useEffect(() => {
         if (!debtPhone.trim() || debtPhone.length < 3) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setDebtSearchResults([]);
             setShowNewClientForm(false);
             return;
@@ -207,25 +208,58 @@ const POS = () => {
     // SAVE DEBT
     // ==========================================
     const saveDebt = async () => {
+        if (cart.length === 0) { toast.error("Add products to cart before selling on credit"); return; }
         if (!debtPhone.trim()) { toast.error("Phone number is required"); return; }
-        if (!debtAmount || isNaN(Number(debtAmount)) || Number(debtAmount) <= 0) {
-            toast.error("Enter a valid debt amount"); return;
-        }
         if (showNewClientForm && !newClientName.trim()) {
             toast.error("Enter the client's name"); return;
         }
 
-        const loading = toast.loading("Saving debt...");
+        const amount = debtAmount ? Number(debtAmount) : totals.total;
+        if (!amount || isNaN(amount) || amount <= 0) {
+            toast.error("Enter a valid credit amount"); return;
+        }
+        if (amount > totals.total) {
+            toast.error("Credit amount cannot exceed the cart total"); return;
+        }
+
+        const loading = toast.loading("Saving credit sale...");
         try {
+            let customer = debtClient;
+            if (!customer) {
+                customer = await customerService.create({
+                    full_name: newClientName.trim(),
+                    phone: debtPhone.trim(),
+                    address: newClientAddress.trim() || null,
+                    customer_type: 'retail',
+                    ShopId: activeShopId
+                });
+            }
+
+            const paymentMethod = amount === totals.total ? 'CREDIT' : 'CASH';
+            const sale = await saleService.create({
+                CustomerId: customer.id,
+                items: cart.map(i => {
+                    const p = getEffectivePrice(i, effectiveCustomerType, i.qty);
+                    return { ProductId: i.id, quantity: i.qty, unitPrice: p.unitPrice, total: p.total };
+                }),
+                paymentMethod,
+                ShopId: activeShopId,
+                customerType: effectiveCustomerType,
+                status: 'COMPLETED'
+            });
+
             await creditService.create({
                 phone: debtPhone.trim(),
-                full_name: debtClient?.full_name || newClientName.trim(),
-                address: debtClient?.address || newClientAddress.trim() || undefined,
-                total_credit: Number(debtAmount),
-                note: debtNote.trim() || undefined
+                full_name: customer.full_name,
+                address: customer.address || newClientAddress.trim() || undefined,
+                total_credit: amount,
+                note: debtNote.trim() || undefined,
+                sale_id: sale.id
             });
-            toast.success("Debt saved successfully!", { id: loading });
-            // reset debt form
+
+            toast.success("Credit sale completed successfully!", { id: loading });
+            setCart([]);
+            setSearchQuery("");
             setDebtPhone("");
             setDebtClient(null);
             setDebtSearchResults([]);
@@ -236,7 +270,7 @@ const POS = () => {
             setDebtNote("");
             setIsDebtMode(false);
         } catch (e) {
-            const msg = e.response?.data?.message || e.message || "Failed to save debt.";
+            const msg = e.response?.data?.message || e.message || "Failed to save credit sale.";
             toast.error(msg, { id: loading });
         }
     };
@@ -438,7 +472,10 @@ const POS = () => {
                 <div className="border-t border-gray-100 dark:border-gray-800">
                     <button
                         type="button"
-                        onClick={() => setIsDebtMode(v => !v)}
+                        onClick={() => setIsDebtMode(v => {
+                            if (!v) setDebtAmount(totals.total.toString());
+                            return !v;
+                        })}
                         className={`w-full flex items-center justify-between px-6 py-3 text-xs font-black uppercase tracking-wider transition-colors ${
                             isDebtMode
                                 ? "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
@@ -539,27 +576,38 @@ const POS = () => {
                             {/* Debt amount & note */}
                             {(debtClient || showNewClientForm) && (
                                 <>
-                                    <input
-                                        type="number"
-                                        value={debtAmount}
-                                        onChange={(e) => setDebtAmount(e.target.value)}
-                                        placeholder="Debt amount (Fbu) *"
-                                        className="w-full px-3 py-2.5 bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800 rounded-xl outline-none font-bold text-sm dark:text-white focus:border-orange-400 transition-colors"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={debtNote}
-                                        onChange={(e) => setDebtNote(e.target.value)}
-                                        placeholder="Note (optional)"
-                                        className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800 rounded-xl outline-none font-bold text-sm dark:text-white"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={saveDebt}
-                                        className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-colors"
-                                    >
-                                        <AlertCircle size={14} /> Record Debt
-                                    </button>
+                                    <div className="grid gap-3">
+                                        <div className="flex flex-col gap-2 bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800 rounded-xl p-4">
+                                            <div className="flex items-center justify-between gap-4">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-orange-600">Credit amount</label>
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">Max {totals.total.toLocaleString()} Fbu</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                value={debtAmount}
+                                                onChange={(e) => setDebtAmount(e.target.value)}
+                                                placeholder="Amount to put on credit"
+                                                min="0"
+                                                max={totals.total}
+                                                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-orange-200 dark:border-orange-800 rounded-xl outline-none font-bold text-sm dark:text-white"
+                                            />
+                                            <p className="text-[10px] text-gray-500 dark:text-gray-400">Leave this amount empty to automatically use the cart total.</p>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={debtNote}
+                                            onChange={(e) => setDebtNote(e.target.value)}
+                                            placeholder="Note (optional)"
+                                            className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800 rounded-xl outline-none font-bold text-sm dark:text-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={saveDebt}
+                                            className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-colors"
+                                        >
+                                            <AlertCircle size={14} /> Save Credit Sale
+                                        </button>
+                                    </div>
                                 </>
                             )}
                         </div>
