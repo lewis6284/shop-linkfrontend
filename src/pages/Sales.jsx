@@ -29,7 +29,6 @@ const Sales = () => {
     const [creditSearch, setCreditSearch] = useState('');
     const [creditFilterStatus, setCreditFilterStatus] = useState('all');
     const [selectedCredits, setSelectedCredits] = useState([]);
-    const [selectedCredit, setSelectedCredit] = useState(null);
     const [payModal, setPayModal] = useState({ isOpen: false, creditId: null, amount: '', method: 'CASH' });
 
     // Rejection prompt modal state
@@ -47,12 +46,12 @@ const Sales = () => {
     });
 
     useEffect(() => {
-        fetchSales();
-    }, [activeShopId, user]);
-
-    useEffect(() => {
-        if (activeTab === 'debts') fetchCredits();
-    }, [activeTab]);
+        if (activeTab === 'debts') {
+            fetchCredits();
+        } else {
+            fetchSales();
+        }
+    }, [activeTab, activeShopId, user]);
 
     const fetchCredits = async (search = '') => {
         setCreditsLoading(true);
@@ -134,7 +133,7 @@ const Sales = () => {
 
             setSales(Array.isArray(completedData) ? completedData : (completedData?.sales || []));
             setPendingSales(Array.isArray(pendingData) ? pendingData : (pendingData?.sales || []));
-        } catch (error) {
+        } catch (err) {
             toast.error("Failed to load transaction data");
             setSales([]);
             setPendingSales([]);
@@ -647,14 +646,18 @@ const Sales = () => {
                     </div>
                 </div>
             </Modal>
-            {activeTab !== 'debts' ? (
-                <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
-                    <Table headers={['Invoice Number', 'Seller', 'Financials', 'Actions']}>
-                        {loading ? (
-                            <TableRow><TableCell colSpan={4} className="text-center py-10">Loading...</TableCell></TableRow>
-                        ) : filteredSales.length === 0 ? (
-                            <TableRow><TableCell colSpan={4} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No records found matching criteria</TableCell></TableRow>
-                        ) : filteredSales.map(s => (
+
+            {/* Completed Sales & Pending Approval Tables */}
+            {activeTab === 'completed' && (
+                <>
+                    {/* Completed Sales Table */}
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
+                        <Table headers={['Invoice Number', 'Seller', 'Financials', 'Actions']}>
+                            {loading ? (
+                                <TableRow><TableCell colSpan={4} className="text-center py-10">Loading...</TableCell></TableRow>
+                            ) : filteredSales.length === 0 ? (
+                                <TableRow><TableCell colSpan={4} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No records found matching criteria</TableCell></TableRow>
+                            ) : filteredSales.map(s => (
                             <TableRow key={s.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
@@ -703,14 +706,19 @@ const Sales = () => {
                         ))}
                     </Table>
                 </div>
-            ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
-                    <Table headers={['Queue Date', 'Customer Detail', 'Cashier Issuer', 'Total Amount', 'Actions']}>
-                        {loading ? (
-                            <TableRow><TableCell colSpan={5} className="text-center py-10">Loading...</TableCell></TableRow>
-                        ) : filteredPendingSales.length === 0 ? (
-                            <TableRow><TableCell colSpan={5} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No pending authorization queues found</TableCell></TableRow>
-                        ) : filteredPendingSales.map(s => (
+
+                    {/* Pending Approval Queue - only show if owner/manager */}
+                    {/* {(user?.role === 'owner' || user?.role === 'manager') && (
+                        <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm animate-in fade-in duration-300">
+                            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-amber-50/50 dark:bg-amber-900/10">
+                                <h3 className="font-black text-sm text-amber-700 dark:text-amber-400 uppercase tracking-wider">Partner Order Queue • Pending Approval</h3>
+                            </div>
+                            <Table headers={['Queue Date', 'Customer Detail', 'Cashier Issuer', 'Total Amount', 'Actions']}>
+                                {loading ? (
+                                    <TableRow><TableCell colSpan={5} className="text-center py-10">Loading...</TableCell></TableRow>
+                                ) : filteredPendingSales.length === 0 ? (
+                                    <TableRow><TableCell colSpan={5} className="text-center py-20 text-gray-400 font-bold italic uppercase tracking-widest text-xs">No pending authorization queues found</TableCell></TableRow>
+                                ) : filteredPendingSales.map(s => (
                             <TableRow key={s.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
@@ -766,8 +774,10 @@ const Sales = () => {
                                 </TableCell>
                             </TableRow>
                         ))}
-                    </Table>
-                </div>
+                            </Table>
+                        </div>
+                    )} */}
+                </>
             )}
 
             {/* Sale Details Modal */}
