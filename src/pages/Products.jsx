@@ -11,12 +11,14 @@ import StatusBadge from '../components/StatusBadge';
 import { getImageUrl } from '../utils/imageUrl';
 import { 
     Plus, Search, Edit2, Trash2, Package, Tag, Layers, Scale,
-    Image as ImageIcon, Barcode, DollarSign, Filter, BarChart2, Check, X, RefreshCw
+    Image as ImageIcon, Barcode, DollarSign, Filter, BarChart2, Check, X, RefreshCw, Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Products = () => {
     const { user } = useAuth();
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [exportPriceType, setExportPriceType] = useState('retail'); // 'retail' | 'wholesale'
     const [activeTab, setActiveTab] = useState('products'); // 'products', 'categories', 'brands', 'units'
     
     // Core data lists
@@ -437,10 +439,29 @@ const Products = () => {
         if (product.GlobalStock?.quantity != null) return Number(product.GlobalStock.quantity);
         return Number(shopTotal || 0);
     };
+    const toggleSelect = (id) => {
+        setSelectedProducts(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+
+    const selectAllFiltered = () => {
+        const ids = filteredProducts.map(p => p.id);
+        setSelectedProducts(ids);
+    };
+
+    const clearSelection = () => setSelectedProducts([]);
+
     const productRows = filteredProducts.map((p) => {
         const stockQuantity = getStockQuantity(p);
         return (
             <TableRow key={p.id}>
+                <TableCell className="w-12">
+                    <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                        className="w-4 h-4"
+                    />
+                </TableCell>
                 <TableCell>
                     <div className="flex items-center gap-3">
                         <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewProduct(p); }} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 overflow-hidden shadow-sm hover:opacity-80 transition-opacity cursor-pointer">
@@ -497,13 +518,13 @@ const Products = () => {
 
     const productsTableBody = loading ? (
         <TableRow>
-            <TableCell colSpan={7} className="text-center py-20">
+            <TableCell colSpan={8} className="text-center py-20">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
             </TableCell>
         </TableRow>
     ) : filteredProducts.length === 0 ? (
         <TableRow>
-            <TableCell colSpan={7} className="text-center py-20 text-gray-500">No products found in the catalog.</TableCell>
+            <TableCell colSpan={8} className="text-center py-20 text-gray-500">No products found in the catalog.</TableCell>
         </TableRow>
     ) : (
         productRows
@@ -513,6 +534,39 @@ const Products = () => {
     const { margin, marginPercent } = calculateMargin(productFormData.purchasePrice, productFormData.sellingPrice);
     const taxAmount = calculateTax(productFormData.sellingPrice, productFormData.tax_type, productFormData.tax_rate);
     const finalPrice = Number(productFormData.sellingPrice) + taxAmount;
+
+    const escapeHtml = (unsafe) => String(unsafe || '').replace(/[&<>\"]/g, (match) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[match]));
+    const handlePrintSelected = () => {
+        if (!selectedProducts.length) {
+            toast.error('Select products to print');
+            return;
+        }
+
+        const selected = products.filter(p => selectedProducts.includes(p.id));
+        const headerLabel = exportPriceType === 'wholesale' ? 'Wholesale Price' : 'Retail Price';
+        const rows = selected.map((p) => {
+            const category = p.Category?.name || categories.find(c => c.id === p.CategoryId)?.name || 'Uncategorized';
+            const brand = p.Brand?.name || brands.find(b => b.id === p.BrandId)?.name || 'No Brand';
+            const price = exportPriceType === 'wholesale' ? (p.wholesalePrice ?? p.partnerPrice ?? p.sellingPrice) : p.sellingPrice;
+            return `
+                <tr>
+                    <td style="padding:8px;border:1px solid #ddd;">${escapeHtml(p.name)}</td>
+                    <td style="padding:8px;border:1px solid #ddd;">${escapeHtml(category)} / ${escapeHtml(brand)}</td>
+                    <td style="padding:8px;border:1px solid #ddd;text-align:right;">${Number(price || 0).toLocaleString()} Fbu</td>
+                </tr>`;
+        }).join('');
+
+        const html = `<!doctype html><html><head><meta charset="utf-8"><title>Selected Products</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:24px;color:#111}h1{margin-bottom:12px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:12px;text-align:left}th{text-align:left;background:#f9fafb}</style></head><body><h1>Selected Products</h1><p>Price type: ${escapeHtml(headerLabel)}</p><table><thead><tr><th>Product</th><th>Category / Brand</th><th style="text-align:right">${escapeHtml(headerLabel)}</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            toast.error('Popup blocked. Allow popups to print.');
+            return;
+        }
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 200);
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 text-gray-900 dark:text-gray-100">
@@ -527,43 +581,63 @@ const Products = () => {
                     </p>
                 </div>
                 {isAuthorized && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
                         {activeTab === 'products' && (
-                            <button
-                                onClick={() => handleOpenProductModal()}
-                                className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95 text-sm"
-                            >
-                                <Plus size={18} /> Add Product
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={exportPriceType}
+                                    onChange={(e) => setExportPriceType(e.target.value)}
+                                    className="bg-gray-100 dark:bg-gray-900 text-sm rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2"
+                                >
+                                    <option value="retail">Retail Price</option>
+                                    <option value="wholesale">Wholesale Price</option>
+                                </select>
+                                <button
+                                    onClick={handlePrintSelected}
+                                    disabled={!selectedProducts.length}
+                                    className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm px-4 py-2 rounded-xl flex items-center gap-2 transition ${selectedProducts.length ? 'hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                                >
+                                    <Printer size={16} /> Print Selected
+                                </button>
+                            </div>
                         )}
-                        {activeTab === 'categories' && (
-                            <button
-                                onClick={() => handleOpenCategoryModal()}
-                                className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95 text-sm"
-                            >
-                                <Plus size={18} /> Add Category
-                            </button>
-                        )}
-                        {activeTab === 'brands' && (
-                            <button
-                                onClick={() => handleOpenBrandModal()}
-                                className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95 text-sm"
-                            >
-                                <Plus size={18} /> Add Brand
-                            </button>
-                        )}
-                        {activeTab === 'units' && (
-                            <button
-                                onClick={() => handleOpenUnitModal()}
-                                className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95 text-sm"
-                            >
-                                <Plus size={18} /> Add Unit
-                            </button>
-                        )}
+                        <div>
+                            {activeTab === 'products' && (
+                                <button
+                                    onClick={() => handleOpenProductModal()}
+                                    className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95 text-sm"
+                                >
+                                    <Plus size={18} /> Add Product
+                                </button>
+                            )}
+                            {activeTab === 'categories' && (
+                                <button
+                                    onClick={() => handleOpenCategoryModal()}
+                                    className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95 text-sm"
+                                >
+                                    <Plus size={18} /> Add Category
+                                </button>
+                            )}
+                            {activeTab === 'brands' && (
+                                <button
+                                    onClick={() => handleOpenBrandModal()}
+                                    className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95 text-sm"
+                                >
+                                    <Plus size={18} /> Add Brand
+                                </button>
+                            )}
+                            {activeTab === 'units' && (
+                                <button
+                                    onClick={() => handleOpenUnitModal()}
+                                    className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95 text-sm"
+                                >
+                                    <Plus size={18} /> Add Unit
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
-
             {/* Sliding Dashboard Tabs Navigation */}
             <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-1.5 rounded-2xl shadow-sm gap-1">
                 <button
@@ -642,7 +716,7 @@ const Products = () => {
                     </div>
 
                     {/* Products Table */}
-                    <Table headers={['Product Details', 'Category / Brand', 'Unit of Measure', 'Selling Price', 'Stock Level', 'Tax Taxonomy', 'Actions']}>
+                    <Table headers={['Select', 'Product Details', 'Category / Brand', 'Unit of Measure', 'Selling Price', 'Stock Level', 'Tax Taxonomy', 'Actions']}>
                         {productsTableBody}
                     </Table>
                 </div>
