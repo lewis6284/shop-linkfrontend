@@ -1,26 +1,13 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
-import { getCandidateById } from '../services/candidateService';
 
 export const exportReceiptToPDF = async (receiptData) => {
     const doc = new jsPDF();
 
-    let candidate = null;
-    let allPayments = [];
-    let societyName = "AL-SUWEDI";
-
-    if (receiptData.payer_type === 'CANDIDATE') {
-        try {
-            candidate = await getCandidateById(receiptData.payer_id);
-            allPayments = candidate.CandidatePayments || [];
-            if (candidate.Agency && candidate.Agency.name) {
-                societyName = candidate.Agency.name;
-            }
-        } catch (error) {
-            console.error("Failed to fetch candidate details for PDF", error);
-        }
-    }
+    const candidate = null;
+    const allPayments = [];
+    const societyName = "AL-SUWEDI";
 
     // QR CODE
     let qrDataUrl = null;
@@ -226,7 +213,7 @@ export const exportJournalToPDF = async (entries, societyName = "AL-SUWEDI") => 
         styles: {
             fontSize: 8
         },
-        didDrawPage: (data) => {
+        didDrawPage: () => {
             drawHeader(doc, societyName, qrDataUrl, title);
         }
     });
@@ -273,4 +260,74 @@ export const exportJournalToPDF = async (entries, societyName = "AL-SUWEDI") => 
     }
 
     doc.save(`Journal_${new Date().toISOString().split('T')[0]}.pdf`);
+};
+
+export const exportProductsToPDF = async ({ products = [], shopInfo = {}, priceType = 'retail' }) => {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const shopName = shopInfo.name || 'ShopLink';
+    const shopAddress = shopInfo.address || 'No address provided';
+    const shopPhone = shopInfo.phone || 'No phone provided';
+    const generatedAt = new Date().toLocaleString();
+    const priceLabel = priceType === 'wholesale' ? 'Wholesale Price' : 'Retail Price';
+
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 35, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text(shopName.toUpperCase(), 14, 20);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Address: ${shopAddress}`, 14, 26);
+    doc.text(`Phone: ${shopPhone}`, 14, 32);
+
+    doc.setFontSize(10);
+    doc.text(`Selected Products Export`, 140, 20);
+    doc.text(`Price Type: ${priceLabel}`, 140, 26);
+    doc.text(`Generated: ${generatedAt}`, 140, 32);
+
+    doc.setDrawColor(201, 213, 225);
+    doc.line(14, 38, 196, 38);
+
+    const rows = products.map((product) => {
+        const category = product.Category?.name || 'Uncategorized';
+        const brand = product.Brand?.name || 'No Brand';
+        const price = priceType === 'wholesale' ? (product.wholesalePrice ?? product.partnerPrice ?? product.sellingPrice) : product.sellingPrice;
+        return [
+            product.name || '',
+            `${category} / ${brand}`,
+            `${Number(price || 0).toLocaleString()} Fbu`
+        ];
+    });
+
+    autoTable(doc, {
+        head: [['Product', 'Category / Brand', priceLabel]],
+        body: rows,
+        startY: 42,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [15, 23, 42],
+            textColor: 255,
+            halign: 'left'
+        },
+        styles: {
+            fontSize: 9,
+            cellPadding: 4
+        },
+        columnStyles: {
+            2: { halign: 'right' }
+        }
+    });
+
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setDrawColor(201, 213, 225);
+    doc.line(14, pageHeight - 20, 196, pageHeight - 20);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(`${shopName} • ${shopAddress} • ${shopPhone}`, 105, pageHeight - 10, null, null, 'center');
+
+    doc.save(`SelectedProducts-${new Date().toISOString().split('T')[0]}.pdf`);
 };

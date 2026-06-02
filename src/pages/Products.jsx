@@ -9,6 +9,7 @@ import Modal from '../components/Modal';
 import ProductDetailsModal from '../components/ProductDetailsModal';
 import StatusBadge from '../components/StatusBadge';
 import { getImageUrl } from '../utils/imageUrl';
+import { exportProductsToPDF } from '../utils/pdfExport';
 import { 
     Plus, Search, Edit2, Trash2, Package, Tag, Layers, Scale,
     Image as ImageIcon, Barcode, DollarSign, Filter, BarChart2, Check, X, RefreshCw, Printer
@@ -535,37 +536,25 @@ const Products = () => {
     const taxAmount = calculateTax(productFormData.sellingPrice, productFormData.tax_type, productFormData.tax_rate);
     const finalPrice = Number(productFormData.sellingPrice) + taxAmount;
 
-    const escapeHtml = (unsafe) => String(unsafe || '').replace(/[&<>\"]/g, (match) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[match]));
-    const handlePrintSelected = () => {
+    const handlePrintSelected = async () => {
         if (!selectedProducts.length) {
             toast.error('Select products to print');
             return;
         }
 
         const selected = products.filter(p => selectedProducts.includes(p.id));
-        const headerLabel = exportPriceType === 'wholesale' ? 'Wholesale Price' : 'Retail Price';
-        const rows = selected.map((p) => {
-            const category = p.Category?.name || categories.find(c => c.id === p.CategoryId)?.name || 'Uncategorized';
-            const brand = p.Brand?.name || brands.find(b => b.id === p.BrandId)?.name || 'No Brand';
-            const price = exportPriceType === 'wholesale' ? (p.wholesalePrice ?? p.partnerPrice ?? p.sellingPrice) : p.sellingPrice;
-            return `
-                <tr>
-                    <td style="padding:8px;border:1px solid #ddd;">${escapeHtml(p.name)}</td>
-                    <td style="padding:8px;border:1px solid #ddd;">${escapeHtml(category)} / ${escapeHtml(brand)}</td>
-                    <td style="padding:8px;border:1px solid #ddd;text-align:right;">${Number(price || 0).toLocaleString()} Fbu</td>
-                </tr>`;
-        }).join('');
+        const activeShopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
 
-        const html = `<!doctype html><html><head><meta charset="utf-8"><title>Selected Products</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:24px;color:#111}h1{margin-bottom:12px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:12px;text-align:left}th{text-align:left;background:#f9fafb}</style></head><body><h1>Selected Products</h1><p>Price type: ${escapeHtml(headerLabel)}</p><table><thead><tr><th>Product</th><th>Category / Brand</th><th style="text-align:right">${escapeHtml(headerLabel)}</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            toast.error('Popup blocked. Allow popups to print.');
-            return;
+        try {
+            await exportProductsToPDF({
+                products: selected,
+                shopInfo: activeShopData,
+                priceType: exportPriceType
+            });
+        } catch (error) {
+            console.error('Failed to export selected products', error);
+            toast.error('Unable to export selected products.');
         }
-        printWindow.document.write(html);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => printWindow.print(), 200);
     };
 
     return (
