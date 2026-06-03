@@ -54,9 +54,14 @@ const Sales = () => {
     }, [activeTab, activeShopId, user]);
 
     const fetchCredits = async (search = '') => {
+        if (!activeShopId) {
+            setCredits([]);
+            return;
+        }
         setCreditsLoading(true);
         try {
-            const res = await creditService.getAll(search ? { search } : {});
+            const params = search ? { search } : {};
+            const res = await creditService.getAll(params);
             setCredits(Array.isArray(res) ? res : []);
         } catch {
             toast.error('Failed to load debts');
@@ -463,7 +468,7 @@ const Sales = () => {
             </div>
 
             {/* Owner/Manager Tabs */}
-            {(user?.role === 'owner' || user?.role === 'manager') && (
+            
                 <div className="flex gap-6 border-b border-gray-100 dark:border-gray-800 pb-px mb-2">
                     <button
                         onClick={() => { setActiveTab('completed'); setSearchTerm(''); }}
@@ -491,7 +496,6 @@ const Sales = () => {
                         )}
                     </button>
                 </div>
-            )}
 
             {/* Filter & Search — show only for non-debts tab */}
             {activeTab !== 'debts' && (

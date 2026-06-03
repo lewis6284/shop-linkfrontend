@@ -34,8 +34,8 @@ const Sidebar = ({ isOpen, toggle }) => {
         {
             title: 'Inventory',
             items: [
-                { path: '/products', name: 'Products', icon: <Package size={20} />, roles: ['owner', 'manager', 'cashier'] },
-                { path: '/stock', name: 'Stock', icon: <BarChart2 size={20} />, roles: ['owner', 'manager'] },
+                { path: '/products', name: 'Products', icon: <Package size={20} />, roles: ['owner', 'manager'] },
+                { path: '/stock', name: 'Stock', icon: <BarChart2 size={20} />, roles: ['owner', 'manager','cashier'] },
             ]
         },
         {

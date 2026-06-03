@@ -95,7 +95,7 @@ const App = () => {
                     <Route
                         path="/products"
                         element={
-                            <ProtectedRoute allowedRoles={['owner', 'manager', 'cashier']}>
+                            <ProtectedRoute allowedRoles={['owner', 'manager']}>
                                 <Layout />
                             </ProtectedRoute>
                         }
@@ -106,7 +106,7 @@ const App = () => {
                     <Route
                         path="/stock"
                         element={
-                            <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                            <ProtectedRoute allowedRoles={['owner', 'manager','cashier']}>
                                 <Layout />
                             </ProtectedRoute>
                         }

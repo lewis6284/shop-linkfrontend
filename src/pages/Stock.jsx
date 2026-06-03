@@ -46,7 +46,7 @@ const Stock = () => {
     const closeConfirmModal = () => {
         setConfirmConfig(prev => ({ ...prev, isOpen: false }));
     };
-// ... (skipping some lines as replace_file_content needs an exact block)
+
     const [transfers, setTransfers] = useState([]);
     const [products, setProducts] = useState([]);
     const [shops, setShops] = useState([]);
@@ -87,21 +87,22 @@ const Stock = () => {
     const [activeTab, setActiveTab] = useState('inventory');
 
     useEffect(() => {
-        fetchAuxData();
-    }, []);
-
-    useEffect(() => {
         setFilterShopId(activeShopId);
+        if (!activeShopId) {
+            setStocks([]);
+            setTransfers([]);
+            setProducts([]);
+            return;
+        }
         fetchData();
+        fetchAuxData();
     }, [activeShopId]);
 
     const fetchData = async () => {
+        if (!activeShopId) return;
         try {
             setLoading(true);
-            const params = {};
-            if (activeShopId) {
-                params.shop_id = activeShopId;
-            }
+            const params = { shop_id: activeShopId };
 
             const [stockData, transferData] = await Promise.all([
                 stockService.getAll(params),
@@ -112,12 +113,19 @@ const Stock = () => {
         } catch (error) {
             console.error("Failed to fetch stock", error);
             toast.error("Failed to load stock data");
+            setStocks([]);
+            setTransfers([]);
         } finally {
             setLoading(false);
         }
     };
 
+    /** Shop catalog for pickers — scoped via X-Shop-Id (same as POS product API). */
     const fetchAuxData = async () => {
+        if (!activeShopId) {
+            setProducts([]);
+            return;
+        }
         try {
             const [pData, sData, suppData] = await Promise.all([
                 productService.getAll(),
@@ -129,6 +137,7 @@ const Stock = () => {
             setSuppliers(Array.isArray(suppData) ? suppData : (suppData?.suppliers || []));
         } catch (err) {
             console.error("Aux data fetch failed", err);
+            setProducts([]);
         }
     };
 
@@ -291,17 +300,19 @@ const Stock = () => {
                 >
                     <Package size={14} /> Inventory
                 </button>
-                <button
-                    onClick={() => setActiveTab('transfers')}
-                    className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'transfers' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                >
-                    <ArrowLeftRight size={14} /> Transfers
-                    {transfers.filter(t => t.status === 'PENDING').length > 0 && (
-                        <span className="bg-amber-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
-                            {transfers.filter(t => t.status === 'PENDING').length}
-                        </span>
-                    )}
-                </button>
+                {isAuthorized && (
+                    <button
+                        onClick={() => setActiveTab('transfers')}
+                        className={`px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'transfers' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                    >
+                        <ArrowLeftRight size={14} /> Transfers
+                        {transfers.filter(t => t.status === 'PENDING').length > 0 && (
+                            <span className="bg-amber-500 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
+                                {transfers.filter(t => t.status === 'PENDING').length}
+                            </span>
+                        )}
+                    </button>
+                )}
             </div>
 
             {/* Inventory Tab */}
@@ -331,7 +342,7 @@ const Stock = () => {
                         <button onClick={fetchData} className="p-2 text-gray-400 hover:text-brand-500 transition-colors shrink-0"><RefreshCw size={16} /></button>
                     </div>
                 </div>
-                        <Table headers={['Product', 'Location', 'Quantity', 'Total Value', 'Status', 'Actions']}>
+                        <Table headers={['Product', 'Location', 'Quantity', 'Total Value', 'Status', isAuthorized ? 'Actions' : '']}>
                             {filteredStocks.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6}>

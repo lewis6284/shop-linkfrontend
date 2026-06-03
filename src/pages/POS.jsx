@@ -61,27 +61,49 @@ const POS = () => {
     const [showCartMobile, setShowCartMobile] = useState(false);
     const searchRef = useRef(null);
 
+    const shopIdMatches = (a, b) => a != null && b != null && String(a) === String(b);
+
+    const getShopStock = (product) =>
+        Number(product.Stocks?.find(s => shopIdMatches(s.ShopId, activeShopId))?.quantity || 0);
+
+    const loadPosCatalog = async (search = "") => {
+        if (!activeShopId) {
+            setSearchResults([]);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            const params = { in_stock: "true" };
+            if (search.trim()) params.search = search.trim();
+            const res = await productService.getAll(params);
+            const products = Array.isArray(res) ? res : res?.products || [];
+            setSearchResults(products.filter((p) => getShopStock(p) > 0));
+        } catch (err) {
+            console.error("Failed to fetch product catalog", err);
+            setSearchResults([]);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
     // ==========================================
-    // PRODUCT CATALOG — only in-stock products
+    // PRODUCT CATALOG — in-stock at active shop (X-Shop-Id header), no limit
     // ==========================================
     useEffect(() => {
-        const fetchProducts = async () => {
-            setIsSearching(true);
-            try {
-                const params = { in_stock: "true" };
-                if (searchQuery.trim()) params.search = searchQuery.trim();
-                const res = await productService.getAll(params);
-                const products = Array.isArray(res) ? res : res?.products || [];
-                setSearchResults(products);
-            } catch (err) {
-                console.error("Failed to fetch product catalog", err);
-            } finally {
-                setIsSearching(false);
-            }
-        };
-        const t = setTimeout(fetchProducts, searchQuery.trim() ? 300 : 0);
+        if (!activeShopId) {
+            setSearchResults([]);
+            return;
+        }
+        const t = setTimeout(() => loadPosCatalog(searchQuery), searchQuery.trim() ? 300 : 0);
         return () => clearTimeout(t);
-    }, [searchQuery]);
+    }, [searchQuery, activeShopId]);
+
+    // Clear stale catalog/cart when switching shops
+    useEffect(() => {
+        setSearchResults([]);
+        setCart([]);
+        setSearchQuery("");
+    }, [activeShopId]);
 
     // ==========================================
     // DEBT PHONE LIVE SEARCH
@@ -113,7 +135,7 @@ const POS = () => {
     // CART & QUANTITY SAFETY LOGIC
     // ==========================================
     const addToCart = (product) => {
-        const shopStock = Number(product.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
+        const shopStock = getShopStock(product);
         if (shopStock <= 0) {
             toast.error(`${product.name} is out of stock.`, { position: "top-center" });
             return;
@@ -135,7 +157,7 @@ const POS = () => {
         setCart(prev => {
             const item = prev.find(i => i.id === id);
             if (!item) return prev;
-            const shopStock = Number(item.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
+            const shopStock = getShopStock(item);
             if (delta > 0 && item.qty >= shopStock) {
                 toast.error(`Cannot exceed available stock of ${shopStock} for ${item.name}`, { position: "top-center" });
                 return prev;
@@ -151,7 +173,7 @@ const POS = () => {
             if (!item) return prev;
             if (qty === "") return prev.map(i => i.id === id ? { ...i, qty: "" } : i);
             if (isNaN(qty) || qty < 0) return prev;
-            const shopStock = Number(item.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
+            const shopStock = getShopStock(item);
             if (qty > shopStock) {
                 toast.error(`Cannot exceed available stock of ${shopStock} for ${item.name}`, { position: "top-center" });
                 return prev.map(i => i.id === id ? { ...i, qty: shopStock } : i);
@@ -195,8 +217,7 @@ const POS = () => {
             setCart([]);
             setSearchQuery("");
 
-            const res = await productService.getAll({ in_stock: "true" });
-            setSearchResults(Array.isArray(res) ? res : res?.products || []);
+            await loadPosCatalog(searchQuery);
             toast.success("Sale Successful!", { id: loading });
         } catch (e) {
             const msg = e.response?.data?.message || e.message || "Checkout failed.";
@@ -345,7 +366,7 @@ const POS = () => {
                     ) : searchResults.length > 0 ? (
                         <Table headers={["Product", customerType === "wholesale" ? "Wholesale Price" : "Price", "Action"]}>
                             {searchResults.map(p => {
-                                const shopStock = Number(p.Stocks?.find(s => s.ShopId === activeShopId)?.quantity || 0);
+                                const shopStock = getShopStock(p);
                                 const priceInfo = getEffectivePrice(p, effectiveCustomerType, 1);
                                 return (
                                     <TableRow key={p.id} className="cursor-pointer group" onClick={() => addToCart(p)}>
