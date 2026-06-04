@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Building2, Edit2, FileText, Phone, Plus, Stamp, Trash2 } from 'lucide-react';
-import Table, { TableRow, TableCell } from '../components/Table';
+import { Building2, Edit2, FileText, Phone, Plus, Stamp } from 'lucide-react';
 import companySettingService from '../services/companySettingService';
 import { getImageUrl } from '../utils/imageUrl';
 
@@ -22,6 +21,7 @@ const CompanySettings = () => {
     const [formData, setFormData] = useState(blankForm);
     const [stampPreview, setStampPreview] = useState('');
     const fileInputRef = useRef(null);
+    const companyRecord = records[0] || null;
 
     useEffect(() => {
         fetchRecords();
@@ -106,19 +106,6 @@ const CompanySettings = () => {
         }
     };
 
-    const handleDelete = async (record) => {
-        if (!window.confirm(`Delete company settings for ${record.company_name}?`)) return;
-
-        try {
-            await companySettingService.delete(record.id);
-            toast.success('Company settings deleted');
-            fetchRecords();
-        } catch (error) {
-            console.error('Failed to delete company settings', error);
-            toast.error(error.response?.data?.message || 'Failed to delete company settings');
-        }
-    };
-
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -128,83 +115,98 @@ const CompanySettings = () => {
                     </h1>
                     <p className="text-gray-500 font-medium text-sm">Owner-only legal company information and stamp.</p>
                 </div>
-                <button
-                    onClick={() => openModal()}
-                    className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95"
-                >
-                    <Plus size={20} /> Add Company
-                </button>
+                {!loading && (
+                    companyRecord ? (
+                        <button
+                            onClick={() => openModal(companyRecord)}
+                            className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95"
+                        >
+                            <Edit2 size={20} /> Edit Information
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => openModal()}
+                            className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95"
+                        >
+                            <Plus size={20} /> Add Company Information
+                        </button>
+                    )
+                )}
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-                <Table headers={['Company', 'NIF', 'RC', 'Phone', 'Stamp', 'Actions']}>
-                    {loading ? (
-                        <TableRow>
-                            <TableCell colSpan={6} className="text-center py-20">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
-                            </TableCell>
-                        </TableRow>
-                    ) : records.length === 0 ? (
-                        <TableRow>
-                            <TableCell colSpan={6} className="text-center py-20 text-gray-500 font-bold">
-                                No company settings created yet.
-                            </TableCell>
-                        </TableRow>
-                    ) : records.map((record) => (
-                        <TableRow key={record.id}>
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-11 h-11 rounded-xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600">
-                                        <Building2 size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="font-black text-gray-900 dark:text-white">{record.company_name}</p>
-                                        <p className="text-[10px] text-gray-400 font-mono uppercase">{record.id.substring(0, 8)}...</p>
-                                    </div>
+            {loading ? (
+                <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm py-20">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
+                </div>
+            ) : companyRecord ? (
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 md:p-8 space-y-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 shrink-0">
+                                <Building2 size={26} />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Registered Company</p>
+                                <h2 className="text-2xl font-black text-gray-900 dark:text-white break-words mt-1">
+                                    {companyRecord.company_name}
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 p-4">
+                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">NIF</p>
+                                <p className="font-black text-gray-900 dark:text-white break-words">{companyRecord.nif || 'N/A'}</p>
+                            </div>
+                            <div className="rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 p-4">
+                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">RC</p>
+                                <p className="font-black text-gray-900 dark:text-white break-words">{companyRecord.rc || 'N/A'}</p>
+                            </div>
+                            <div className="rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 p-4">
+                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Phone</p>
+                                <p className="font-black text-gray-900 dark:text-white break-words">{companyRecord.phone || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 space-y-4">
+                        <div className="flex items-center gap-2 text-gray-900 dark:text-white">
+                            <Stamp className="text-brand-600" size={20} />
+                            <h3 className="font-black">Company Stamp</h3>
+                        </div>
+                        <div className="h-44 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-2xl flex items-center justify-center overflow-hidden">
+                            {companyRecord.stamp_url ? (
+                                <img
+                                    src={getImageUrl(companyRecord.stamp_url)}
+                                    alt={`${companyRecord.company_name} stamp`}
+                                    className="w-full h-full object-contain bg-white p-4"
+                                />
+                            ) : (
+                                <div className="text-center text-gray-400">
+                                    <Stamp size={36} className="mx-auto mb-2" />
+                                    <p className="text-xs font-bold">No stamp uploaded</p>
                                 </div>
-                            </TableCell>
-                            <TableCell>
-                                <span className="font-bold text-gray-700 dark:text-gray-300">{record.nif || 'N/A'}</span>
-                            </TableCell>
-                            <TableCell>
-                                <span className="font-bold text-gray-700 dark:text-gray-300">{record.rc || 'N/A'}</span>
-                            </TableCell>
-                            <TableCell>
-                                <span className="font-bold text-gray-700 dark:text-gray-300">{record.phone || 'N/A'}</span>
-                            </TableCell>
-                            <TableCell>
-                                {record.stamp_url ? (
-                                    <img
-                                        src={getImageUrl(record.stamp_url)}
-                                        alt={`${record.company_name} stamp`}
-                                        className="h-12 w-20 object-contain rounded-lg border border-gray-100 dark:border-gray-700 bg-white"
-                                    />
-                                ) : (
-                                    <span className="text-gray-400 text-xs font-bold">No stamp</span>
-                                )}
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => openModal(record)}
-                                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
-                                        title="Edit"
-                                    >
-                                        <Edit2 size={16} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(record)}
-                                        className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg"
-                                        title="Delete"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </Table>
-            </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm p-8 md:p-12 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 mx-auto mb-5">
+                        <Building2 size={30} />
+                    </div>
+                    <h2 className="text-xl font-black text-gray-900 dark:text-white">No company information yet</h2>
+                    <p className="text-gray-500 font-medium text-sm mt-2 max-w-md mx-auto">
+                        Add the legal company information once. After it is saved, this page will only show the saved details and an edit option.
+                    </p>
+                    <button
+                        onClick={() => openModal()}
+                        className="mt-6 bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold inline-flex items-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-95"
+                    >
+                        <Plus size={20} /> Add Company Information
+                    </button>
+                </div>
+            )}
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
