@@ -19,6 +19,7 @@ import Suppliers from './pages/Suppliers';
 import Report from './pages/Report';
 import Unauthorized from './pages/Unauthorized';
 import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
+import CompanySettings from './pages/CompanySettings';
 
 const App = () => {
     return (
@@ -157,6 +158,17 @@ const App = () => {
                         }
                     >
                         <Route index element={<AuditLogs />} />
+                    </Route>
+
+                    <Route
+                        path="/company-settings"
+                        element={
+                            <ProtectedRoute allowedRoles={['owner']} skipShopGuard>
+                                <Layout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<CompanySettings />} />
                     </Route>
 
                     <Route

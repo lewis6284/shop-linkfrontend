@@ -4,7 +4,7 @@ import {
     LayoutDashboard, Users, Store, Wallet,
     ShoppingCart, Package, BarChart2,
     ArrowLeftRight, CreditCard, FileText, Truck,
-    PanelLeftClose, Activity
+    PanelLeftClose, Activity, Building2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../utils/imageUrl';
@@ -27,6 +27,7 @@ const Sidebar = ({ isOpen, toggle }) => {
                 { path: dashboardPath, name: 'Home', icon: <LayoutDashboard size={20} />, roles: ['owner', 'manager'] },
                 { path: '/pos', name: 'POS', icon: <ShoppingCart size={20} />, roles: ['owner', 'manager', 'cashier'] },
                 { path: '/shops', name: 'Shops', icon: <Store size={20} />, roles: ['owner'] },
+                { path: '/company-settings', name: 'Company', icon: <Building2 size={20} />, roles: ['owner'] },
                 { path: '/users', name: 'Staff', icon: <Users size={20} />, roles: ['owner', 'manager'] },
                 { path: '/audit-logs', name: 'Security', icon: <Activity size={20} />, roles: ['owner'] },
             ]
