@@ -278,7 +278,7 @@ const Sales = () => {
         // Header Text Details
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(22);
+        doc.setFontSize(12);
         doc.text(shopName.toUpperCase(), 58, 30);
         
         doc.setFont('helvetica', 'normal');
@@ -289,14 +289,11 @@ const Sales = () => {
             doc.text(line, 58, 42 + (index * 5));
         });
 
-        // Right Header Box (Invoice details)
-        doc.setFillColor(248, 250, 252);
-        doc.roundedRect(135, 20, 55, 32, 3, 3, 'F');
-        
+        // Right header invoice details
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(9);
-        doc.text('INVOICE DETAIL', 140, 27);
+        doc.text('INVOICE DETAIL', 140, 29);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);

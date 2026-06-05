@@ -398,7 +398,7 @@ export const exportProductsToPDF = async ({ products = [], shopInfo = {}, priceT
     // Header Text Details (aligned like Sales.jsx)
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
+    doc.setFontSize(12);
     doc.text(shopName.toUpperCase(), 58, 30);
 
     doc.setFont('helvetica', 'normal');
@@ -409,13 +409,11 @@ export const exportProductsToPDF = async ({ products = [], shopInfo = {}, priceT
         doc.text(line, 58, 42 + (index * 5));
     });
 
-    // Right header box with meta
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(135, 20, 55, 32, 3, 3, 'F');
+    // Right header meta
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.text('EXPORT DETAILS', 140, 27);
+    doc.text('EXPORT DETAILS', 140, 29);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(textColor[0], textColor[1], textColor[2]);
@@ -503,7 +501,7 @@ export const exportCreditsToPDF = async ({ credits = [], shopInfo = {}, filter =
     // Header Text Details
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
+    doc.setFontSize(12);
     doc.text(shopName.toUpperCase(), 58, 30);
 
     doc.setFont('helvetica', 'normal');
@@ -514,13 +512,11 @@ export const exportCreditsToPDF = async ({ credits = [], shopInfo = {}, filter =
         doc.text(line, 58, 42 + (index * 5));
     });
 
-    // Right header box with meta
-    doc.setFillColor(255, 247, 237);
-    doc.roundedRect(135, 20, 55, 32, 3, 3, 'F');
+    // Right header meta
     doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.text('EXPORT DETAILS', 140, 27);
+    doc.text('EXPORT DETAILS', 140, 29);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(textColor[0], textColor[1], textColor[2]);
