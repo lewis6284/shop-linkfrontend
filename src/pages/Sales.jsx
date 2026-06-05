@@ -234,7 +234,7 @@ const Sales = () => {
 
     const handlePrintInvoice = async (sale) => {
         const invoiceNum = sale.Invoice?.invoice_number || sale.invoice_number || `SAL-${sale.id?.slice(0, 8)}`;
-        const customerName = sale.Customer?.full_name || 'Walk-in Customer';
+        const customerName = sale.Customer?.full_name || '________________';
         const cashierName = sale.User?.full_name || 'System';
         const activeShopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
         const companyInfo = await getPrintableCompanyInfo(activeShopData);
