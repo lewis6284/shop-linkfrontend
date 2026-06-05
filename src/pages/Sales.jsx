@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getImageUrl } from '../utils/imageUrl';
-import { exportCreditsToPDF } from '../utils/pdfExport';
+import { exportCreditsToPDF, getPrintableCompanyInfo, getCompanyIdentityLines, drawStampBlock } from '../utils/pdfExport';
 
 const Sales = () => {
     const { user, activeShopId } = useAuth();
@@ -237,9 +237,8 @@ const Sales = () => {
         const customerName = sale.Customer?.full_name || 'Walk-in Customer';
         const cashierName = sale.User?.full_name || 'System';
         const activeShopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
-        const shopName = activeShopData?.name || "ShopLink Store";
-        const shopPhone = activeShopData?.phone || "";
-        const shopAddress = activeShopData?.address || "";
+        const companyInfo = await getPrintableCompanyInfo(activeShopData);
+        const shopName = companyInfo.name || "ShopLink Store";
 
         const doc = new jsPDF({
             orientation: 'portrait',
@@ -286,8 +285,9 @@ const Sales = () => {
         doc.setFontSize(9);
         doc.setTextColor(100, 116, 139);
         doc.text('INVOICE / FACTURE CERTIFICATE', 58, 36);
-        if (shopAddress) doc.text(`Address: ${shopAddress}`, 58, 42);
-        if (shopPhone) doc.text(`Phone: ${shopPhone}`, 58, 47);
+        getCompanyIdentityLines(companyInfo, { includeLegal: true }).forEach((line, index) => {
+            doc.text(line, 58, 42 + (index * 5));
+        });
 
         // Right Header Box (Invoice details)
         doc.setFillColor(248, 250, 252);
@@ -309,22 +309,22 @@ const Sales = () => {
         // Divider Line
         doc.setDrawColor(226, 232, 240);
         doc.setLineWidth(0.5);
-        doc.line(20, 58, 190, 58);
+        doc.line(20, 64, 190, 64);
 
         // Party Details Section
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('CLIENT DETAILS', 20, 68);
-        doc.text('TRANSACTION META', 110, 68);
+        doc.text('CLIENT DETAILS', 20, 74);
+        doc.text('TRANSACTION META', 110, 74);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-        doc.text(`Name: ${customerName}`, 20, 74);
-        doc.text('Type: Retail Customer', 20, 79);
-        doc.text(`Seller: ${cashierName}`, 110, 74);
-        doc.text(`Branch ID: ${activeShopId ? activeShopId.slice(0, 8) : 'N/A'}`, 110, 79);
+        doc.text(`Name: ${customerName}`, 20, 80);
+        doc.text('Type: Retail Customer', 20, 85);
+        doc.text(`Seller: ${cashierName}`, 110, 80);
+        doc.text(`Branch ID: ${activeShopId ? activeShopId.slice(0, 8) : 'N/A'}`, 110, 85);
 
         // Generate Items Table
         const tableColumns = [
@@ -344,7 +344,7 @@ const Sales = () => {
         autoTable(doc, {
             columns: tableColumns,
             body: tableRows,
-            startY: 88,
+            startY: 94,
             margin: { left: 20, right: 20 },
             styles: {
                 font: 'helvetica',
@@ -414,9 +414,7 @@ const Sales = () => {
         doc.line(130, sigY, 190, sigY);
         doc.text('Verified Stamp & Date', 130, sigY + 6);
         
-        // Stamp Box Decoration (Subtle rounded box)
-        doc.setDrawColor(226, 232, 240);
-        doc.roundedRect(130, sigY + 10, 60, 24, 2, 2, 'S');
+        await drawStampBlock(doc, companyInfo, { x: 130, y: sigY + 10, width: 60, height: 24 });
 
         // Premium Footer
         const pageHeight = doc.internal.pageSize.height;
