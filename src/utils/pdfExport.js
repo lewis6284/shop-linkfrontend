@@ -55,7 +55,12 @@ export const drawPdfImage = async (doc, imageUrl, x, y, width, height, format = 
     if (!img) return false;
 
     try {
-        doc.addImage(img, format, x, y, width, height);
+        const ratio = Math.min(width / img.width, height / img.height);
+        const drawWidth = img.width * ratio;
+        const drawHeight = img.height * ratio;
+        const drawX = x + (width - drawWidth) / 2;
+        const drawY = y + (height - drawHeight) / 2;
+        doc.addImage(img, format, drawX, drawY, drawWidth, drawHeight);
         return true;
     } catch (error) {
         console.error('Failed to draw PDF image', error);
@@ -65,20 +70,15 @@ export const drawPdfImage = async (doc, imageUrl, x, y, width, height, format = 
 
 export const drawStampBlock = async (doc, companyInfo = {}, options = {}) => {
     const {
-        x = 130,
+        x = 100,
         y = 230,
-        width = 60,
-        height = 24,
-        label = 'Verified Stamp & Date'
+        width = 42,
+        height = 28,
+        label = 'Company stamp'
     } = options;
 
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(x, y, width, height, 2, 2, 'S');
-
     if (companyInfo.stamp_url) {
-        const padding = 2;
-        const drawn = await drawPdfImage(doc, companyInfo.stamp_url, x + padding, y + padding, width - padding * 2, height - padding * 2);
+        const drawn = await drawPdfImage(doc, companyInfo.stamp_url, x, y, width, height);
         if (drawn) return;
     }
 
@@ -447,8 +447,8 @@ export const exportProductsToPDF = async ({ products = [], shopInfo = {}, priceT
 
     // Footer and stamp
     const pageHeight = doc.internal.pageSize.height;
-    const stampY = ensurePdfSpace(doc, (doc.lastAutoTable?.finalY || 74) + 10, 34);
-    await drawStampBlock(doc, companyInfo, { x: 142, y: stampY, width: 48, height: 24, label: 'Company stamp' });
+    const stampY = ensurePdfSpace(doc, (doc.lastAutoTable?.finalY || 74) + 10, 28);
+    await drawStampBlock(doc, companyInfo, { x: 152, y: stampY, width: 42, height: 28, label: 'Company stamp' });
 
     doc.setDrawColor(226, 232, 240);
     doc.line(14, pageHeight - 20, 196, pageHeight - 20);
@@ -594,8 +594,8 @@ export const exportCreditsToPDF = async ({ credits = [], shopInfo = {}, filter =
 
     // Footer and stamp
     const pageHeight = doc.internal.pageSize.height;
-    const stampY = ensurePdfSpace(doc, finalY + 24, 34);
-    await drawStampBlock(doc, companyInfo, { x: 142, y: stampY, width: 48, height: 24, label: 'Company stamp' });
+    const stampY = ensurePdfSpace(doc, finalY + 24, 28);
+    await drawStampBlock(doc, companyInfo, { x: 152, y: stampY, width: 42, height: 28, label: 'Company stamp' });
 
     doc.setDrawColor(226, 232, 240);
     doc.line(14, pageHeight - 20, 196, pageHeight - 20);

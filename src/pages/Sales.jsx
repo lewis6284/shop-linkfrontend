@@ -414,7 +414,7 @@ const Sales = () => {
         doc.line(130, sigY, 190, sigY);
         doc.text('Verified Stamp & Date', 130, sigY + 6);
         
-        await drawStampBlock(doc, companyInfo, { x: 130, y: sigY + 10, width: 60, height: 24 });
+        await drawStampBlock(doc, companyInfo, { x: 142, y: sigY + 8, width: 48, height: 32 });
 
         // Premium Footer
         const pageHeight = doc.internal.pageSize.height;
