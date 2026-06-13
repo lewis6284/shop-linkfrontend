@@ -357,7 +357,7 @@ const POS = () => {
                 </div>
 
                 {/* Products Table */}
-                <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar bg-gray-50/30 dark:bg-gray-950">
+                <div className="flex-1 overflow-y-auto p-4 lg:p-6 pb-36 lg:pb-6 custom-scrollbar bg-gray-50/30 dark:bg-gray-950">
                     {isSearching ? (
                         <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-50">
                             <Loader2 className="animate-spin text-brand-600" size={48} />
@@ -421,7 +421,7 @@ const POS = () => {
                 </div>
 
                 {/* Mobile Cart Row */}
-                <div className="lg:hidden border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-4">
+                <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-4 shadow-[0_-12px_30px_rgba(15,23,42,0.12)]">
                     <button
                         type="button"
                         onClick={() => setShowCartMobile(true)}
