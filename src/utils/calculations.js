@@ -52,14 +52,21 @@ export const generateBarcode = () => {
  */
 export const resolveTierPrice = (product, customerType = 'retail') => {
     const retail = Number(product.sellingPrice) || 0;
-    if (customerType === 'wholesale') {
+    const type = (customerType || 'retail').toLowerCase();
+
+    if (type === 'wholesale') {
         const wholesale = Number(product.wholesalePrice);
-        return wholesale > 0 ? wholesale : retail;
+        const partner = Number(product.partnerPrice);
+        if (wholesale > 0) return wholesale;
+        if (partner > 0) return partner;
+        return retail;
     }
-    if (customerType === 'partner') {
+
+    if (type === 'partner') {
         const partner = Number(product.partnerPrice);
         return partner > 0 ? partner : retail;
     }
+
     return retail;
 };
 

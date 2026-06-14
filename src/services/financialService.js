@@ -32,5 +32,9 @@ export const financialService = {
     getAuditLogsReport: async (shopId = null, startDate = null, endDate = null) => {
         const response = await api.get('/reports/audit-logs', { params: { shop_id: shopId, start_date: startDate, end_date: endDate } });
         return response.data.data || response.data;
+    },
+    getInventoryReport: async (startDate, endDate) => {
+        const response = await api.get('/reports/inventory', { params: { start_date: startDate, end_date: endDate } });
+        return response.data.data || response.data;
     }
 };

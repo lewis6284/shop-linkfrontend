@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { saleService } from '../services/saleService';
+import { financialService } from '../services/financialService';
 import { useAuth } from '../context/AuthContext';
 import { Calendar, Download, Loader2, Search, FileText } from 'lucide-react';
 import Table, { TableRow, TableCell } from '../components/Table';
@@ -17,6 +18,10 @@ const daysAgo = (n) => {
 const Reports = () => {
     const { activeShopId } = useAuth();
     const [sales, setSales] = useState([]);
+    const [inventory, setInventory] = useState([]);
+    const [availableColumns, setAvailableColumns] = useState([]);
+    const [selectedColumns, setSelectedColumns] = useState(['product_name', 'quantity_sold', 'remaining_quantity', 'total_revenue', 'gross_profit']);
+    const [reportType, setReportType] = useState('sales');
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState('30');
     const [startDate, setStartDate] = useState(daysAgo(30));
@@ -32,6 +37,16 @@ const Reports = () => {
             if (dateRange === '7')  { start = daysAgo(7);  end = today(); }
             if (dateRange === '30') { start = daysAgo(30); end = today(); }
 
+            if (reportType === 'inventory') {
+                const data = await financialService.getInventoryReport(start, end);
+                setInventory(Array.isArray(data?.rows) ? data.rows : []);
+                setAvailableColumns(Array.isArray(data?.availableColumns) ? data.availableColumns : []);
+                if (selectedColumns.length === 0 && Array.isArray(data?.availableColumns)) {
+                    setSelectedColumns(data.availableColumns.slice(0, 6).map(col => col.key));
+                }
+                return;
+            }
+
             const params = { start_date: start, end_date: end };
             if (activeShopId) params.shop_id = activeShopId;
 
@@ -44,10 +59,10 @@ const Reports = () => {
         }
     };
 
-    useEffect(() => { fetchData(); }, [dateRange, startDate, endDate, activeShopId]);
+    useEffect(() => { fetchData(); }, [dateRange, startDate, endDate, activeShopId, reportType]);
 
     /* ─── Flatten sales → one row per sale item ─── */
-    const rows = useMemo(() => {
+    const salesRows = useMemo(() => {
         const items = [];
         sales.forEach(sale => {
             const staffName = sale.User?.full_name || sale.cashier?.full_name || 'N/A';
@@ -71,53 +86,90 @@ const Reports = () => {
         return items.sort((a, b) => b.rawDate - a.rawDate);
     }, [sales]);
 
-    /* ─── Client-side search filter ─── */
+    const inventoryRows = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return inventory;
+        return inventory.filter(item => item.product_name.toLowerCase().includes(q));
+    }, [inventory, search]);
+
     const filtered = useMemo(() => {
-        if (!search.trim()) return rows;
+        if (reportType === 'inventory') return inventoryRows;
+        if (!search.trim()) return salesRows;
         const q = search.toLowerCase();
-        return rows.filter(r =>
+        return salesRows.filter(r =>
             r.product_name.toLowerCase().includes(q) ||
             r.staff_name.toLowerCase().includes(q)
         );
-    }, [rows, search]);
+    }, [reportType, salesRows, inventoryRows, search]);
 
     /* ─── Export to PDF ─── */
     const handleExportPDF = () => {
         const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
         const shopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
+        const reportTitle = reportType === 'inventory' ? 'Inventory Report' : 'Sales Report';
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(14);
         doc.setTextColor(15, 23, 42);
-        doc.text((shopData.name || 'ShopLink').toUpperCase() + ' — Sales Report', 14, 18);
+        doc.text((shopData.name || 'ShopLink').toUpperCase() + ` — ${reportTitle}`, 14, 18);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(100, 116, 139);
         doc.text(`Period: ${startDate} → ${endDate}   |   Generated: ${new Date().toLocaleString('en-GB')}`, 14, 25);
 
-        autoTable(doc, {
-            startY: 30,
-            head: [['Product Name', 'Staff Member', 'Price (Fbu)', 'Qty', 'Date', 'Time']],
-            body: filtered.map(r => [
+        const head = reportType === 'inventory'
+            ? availableColumns.filter(col => selectedColumns.includes(col.key)).map(col => col.label)
+            : ['Product Name', 'Staff Member', 'Price (Fbu)', 'Qty', 'Date', 'Time'];
+
+        const body = filtered.map(r => {
+            if (reportType === 'inventory') {
+                return availableColumns
+                    .filter(col => selectedColumns.includes(col.key))
+                    .map(col => {
+                        const value = r[col.key];
+                        return typeof value === 'number' ? value.toLocaleString() : String(value || '');
+                    });
+            }
+            return [
                 r.product_name,
                 r.staff_name,
                 r.price.toLocaleString(),
                 r.quantity,
                 r.date,
                 r.time,
-            ]),
+            ];
+        });
+
+        autoTable(doc, {
+            startY: 30,
+            head: [head],
+            body,
             styles: { fontSize: 8, cellPadding: 3, font: 'helvetica' },
             headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold', fontSize: 8 },
             alternateRowStyles: { fillColor: [248, 250, 252] },
             theme: 'striped',
         });
 
-        doc.save(`report_${startDate}_${endDate}.pdf`);
+        doc.save(`report_${reportType}_${startDate}_${endDate}.pdf`);
         toast.success('PDF exported successfully');
     };
 
-    const totalRevenue = filtered.reduce((sum, r) => sum + r.price * r.quantity, 0);
+    const totalRevenue = filtered.reduce((sum, r) => {
+        if (reportType === 'inventory') return sum + Number(r.total_revenue || 0);
+        return sum + r.price * r.quantity;
+    }, 0);
+
+    const visibleColumns = reportType === 'inventory'
+        ? availableColumns.filter(col => selectedColumns.includes(col.key))
+        : [
+            { key: 'product_name', label: 'Product Name' },
+            { key: 'staff_name', label: 'Staff Member' },
+            { key: 'price', label: 'Price' },
+            { key: 'quantity', label: 'Qty' },
+            { key: 'date', label: 'Date' },
+            { key: 'time', label: 'Time' }
+        ];
 
     return (
         <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -125,7 +177,7 @@ const Reports = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                        <FileText className="text-brand-600" /> Sales Report
+                        <FileText className="text-brand-600" /> {reportType === 'inventory' ? 'Inventory Report' : 'Sales Report'}
                     </h1>
                     <p className="text-sm text-gray-500 font-medium mt-0.5">
                         {filtered.length} line item{filtered.length !== 1 ? 's' : ''} · Total:{' '}
@@ -142,6 +194,22 @@ const Reports = () => {
 
             {/* Date Filters */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-xl gap-1 shrink-0">
+                    {[['sales','Sales'], ['inventory','Inventory']].map(([val,label]) => (
+                        <button
+                            key={val}
+                            type="button"
+                            onClick={() => setReportType(val)}
+                            className={`px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all ${
+                                reportType === val
+                                    ? 'bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                            }`}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
                 {/* Quick range buttons */}
                 <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-xl gap-1 shrink-0">
                     {[['7', 'Last 7 days'], ['30', 'Last 30 days'], ['custom', 'Custom']].map(([val, label]) => (
@@ -205,38 +273,75 @@ const Reports = () => {
                         <p className="text-sm text-gray-400 font-bold uppercase tracking-widest animate-pulse">Loading report…</p>
                     </div>
                 ) : (
-                    <Table headers={['Product Name', 'Staff Member', 'Price', 'Qty', 'Date', 'Time']}>
-                        {filtered.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-bold">
-                                    No data found for this period.
-                                </TableCell>
-                            </TableRow>
-                        ) : filtered.map((row, idx) => (
-                            <TableRow key={idx}>
-                                <TableCell>
-                                    <span className="font-bold text-gray-900 dark:text-white text-sm">{row.product_name}</span>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{row.staff_name}</span>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="font-black text-brand-600 dark:text-brand-400 text-sm">
-                                        {row.price.toLocaleString()} <span className="text-[10px] font-bold text-gray-400">Fbu</span>
-                                    </span>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">×{row.quantity}</span>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400">{row.date}</span>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="font-mono text-xs text-gray-400">{row.time}</span>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </Table>
+                    <>
+                        {reportType === 'inventory' && availableColumns.length > 0 && (
+                            <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                                <p className="text-xs uppercase tracking-widest font-black text-gray-500 dark:text-gray-400 mb-2">Columns</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {availableColumns.map(col => {
+                                        const active = selectedColumns.includes(col.key);
+                                        return (
+                                            <button
+                                                key={col.key}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedColumns(prev =>
+                                                        prev.includes(col.key)
+                                                            ? prev.filter(key => key !== col.key)
+                                                            : [...prev, col.key]
+                                                    );
+                                                }}
+                                                className={`px-3 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+                                                    active
+                                                        ? 'bg-brand-600 text-white'
+                                                        : 'bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                                                }`}
+                                            >
+                                                {col.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                        <Table headers={visibleColumns.map(col => col.label)}>
+                            {filtered.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={visibleColumns.length || 1} className="text-center py-20 text-gray-400 font-bold">
+                                        No data found for this period.
+                                    </TableCell>
+                                </TableRow>
+                            ) : filtered.map((row, idx) => (
+                                <TableRow key={idx}>
+                                    {visibleColumns.map(col => (
+                                        <TableCell key={col.key}>
+                                            {reportType === 'inventory' ? (
+                                                <span className="text-sm text-gray-700 dark:text-gray-200 font-medium">
+                                                    {typeof row[col.key] === 'number' ? Number(row[col.key]).toLocaleString() : row[col.key]}
+                                                </span>
+                                            ) : (
+                                                col.key === 'price' ? (
+                                                    <span className="font-black text-brand-600 dark:text-brand-400 text-sm">
+                                                        {row.price.toLocaleString()} <span className="text-[10px] font-bold text-gray-400">Fbu</span>
+                                                    </span>
+                                                ) : col.key === 'quantity' ? (
+                                                    <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">×{row.quantity}</span>
+                                                ) : col.key === 'staff_name' ? (
+                                                    <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{row.staff_name}</span>
+                                                ) : col.key === 'date' ? (
+                                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400">{row.date}</span>
+                                                ) : col.key === 'time' ? (
+                                                    <span className="font-mono text-xs text-gray-400">{row.time}</span>
+                                                ) : (
+                                                    <span className="font-bold text-gray-900 dark:text-white text-sm">{row.product_name}</span>
+                                                )
+                                            )}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </Table>
+                    </>
                 )}
             </div>
         </div>
