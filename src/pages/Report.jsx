@@ -247,14 +247,13 @@ const Reports = () => {
                 fontSize: 8 
             },
             alternateRowStyles: { fillColor: lightGray },
-            didDrawCell: (data) => {
-                // Style the totals row with bold and accent color
+            didParseCell: (data) => {
+                // Style the totals row with bold black text on white background
                 if (reportType === 'inventory' && totalsRowIndex !== null && data.row.index === totalsRowIndex) {
-                    doc.setFillColor(255, 237, 213);
-                    doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9);
-                    doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+                    data.cell.styles.fillColor = [255, 255, 255];
+                    data.cell.styles.textColor = [0, 0, 0];
+                    data.cell.styles.fontStyle = 'bold';
+                    data.cell.styles.fontSize = 9;
                 }
             },
             theme: 'striped',
