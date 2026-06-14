@@ -182,7 +182,7 @@ const Reports = () => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-        doc.text(`Period: ${startDate} → ${endDate}`, 210, 31, { align: 'right' });
+        doc.text(`Period: ${startDate} to ${endDate}`, 210, 31, { align: 'right' });
         doc.text(`Generated: ${new Date().toLocaleString('en-GB')}`, 210, 37, { align: 'right' });
 
         // ─── DIVIDER LINE ───
