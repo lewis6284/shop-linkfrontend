@@ -21,6 +21,7 @@ const Reports = () => {
     const [inventory, setInventory] = useState([]);
     const [availableColumns, setAvailableColumns] = useState([]);
     const [selectedColumns, setSelectedColumns] = useState(['product_name', 'quantity_sold', 'remaining_quantity', 'total_revenue', 'gross_profit']);
+    const [apiTotals, setApiTotals] = useState(null);
     const [reportType, setReportType] = useState('sales');
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState('30');
@@ -41,6 +42,7 @@ const Reports = () => {
                 const data = await financialService.getInventoryReport(start, end);
                 setInventory(Array.isArray(data?.rows) ? data.rows : []);
                 setAvailableColumns(Array.isArray(data?.availableColumns) ? data.availableColumns : []);
+                setApiTotals(data?.totals || null);
                 if (selectedColumns.length === 0 && Array.isArray(data?.availableColumns)) {
                     setSelectedColumns(data.availableColumns.slice(0, 6).map(col => col.key));
                 }
@@ -94,15 +96,16 @@ const Reports = () => {
 
     // Totals for inventory numeric columns (used for footer row)
     const inventoryTotals = useMemo(() => {
-        const totals = {};
+        if (apiTotals) return apiTotals;
+        const totals = { total_revenue: 0, total_cost: 0, gross_profit: 0 };
         (inventoryRows || []).forEach(r => {
             // sum commonly used numeric fields if present
-            totals.total_revenue = (totals.total_revenue || 0) + Number(r.total_revenue || 0);
-            totals.total_cost = (totals.total_cost || 0) + Number(r.total_cost || r.total_costs || 0);
-            totals.gross_profit = (totals.gross_profit || 0) + Number(r.gross_profit || 0);
+            totals.total_revenue += Number(r.total_revenue || 0);
+            totals.total_cost += Number(r.total_cost || r.total_costs || 0);
+            totals.gross_profit += Number(r.gross_profit || 0);
         });
         return totals;
-    }, [inventoryRows]);
+    }, [inventoryRows, apiTotals]);
 
     const filtered = useMemo(() => {
         if (reportType === 'inventory') return inventoryRows;
@@ -153,7 +156,7 @@ const Reports = () => {
             ];
         });
 
-        // Append totals row for inventory export
+        // Append totals row for inventory export (prefer backend totals)
         if (reportType === 'inventory' && availableColumns && availableColumns.length > 0) {
             const totalsRow = availableColumns
                 .filter(col => selectedColumns.includes(col.key))
@@ -164,6 +167,7 @@ const Reports = () => {
                     if (col.key === 'gross_profit') return (inventoryTotals.gross_profit || 0).toLocaleString();
                     return '';
                 });
+            // If API provided totals, mark row as totals (no need to sum client-side)
             body.push(totalsRow);
         }
 
