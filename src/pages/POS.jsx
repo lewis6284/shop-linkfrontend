@@ -39,7 +39,7 @@ const POS = () => {
     const [isSearching, setIsSearching] = useState(false);
 
     // ─── Customer Type Toggle ─────────────────────────────────────────
-    const [customerType, setCustomerType] = useState("retail"); // 'retail' | 'partner' | 'wholesale'
+    const [customerType, setCustomerType] = useState("retail"); // 'retail' | 'wholesale'
 
     // ─── Cart ─────────────────────────────────────────────────────────
     const [cart, setCart] = useState([]);
@@ -183,7 +183,7 @@ const POS = () => {
         });
     };
 
-    const effectiveCustomerType = customerType; // 'retail' or 'wholesale'
+    const effectiveCustomerType = customerType === 'wholesale' ? 'wholesale' : 'retail';
 
     const totals = cart.reduce((acc, item) => {
         const p = getEffectivePrice(item, effectiveCustomerType, item.qty);
@@ -329,18 +329,7 @@ const POS = () => {
                             >
                                 <Store size={14} /> <span className="hidden sm:inline">Retail</span>
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setCustomerType("partner")}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider transition-all ${
-                                    customerType === "partner"
-                                        ? "bg-white dark:bg-gray-700 text-sky-600 dark:text-sky-400 shadow-sm"
-                                        : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                }`}
-                            >
-                                <ShieldAlert size={14} /> <span className="hidden sm:inline">Partner</span>
-                            </button>
-                            <button
+                                <button
                                 type="button"
                                 onClick={() => setCustomerType("wholesale")}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider transition-all ${
@@ -359,12 +348,10 @@ const POS = () => {
                         <span className={`inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${
                             customerType === "retail"
                                 ? "bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400"
-                                : customerType === "partner"
-                                    ? "bg-sky-50 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400"
-                                    : "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
+                                : "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
                         }`}>
-                            {customerType === "retail" ? <Store size={10} /> : customerType === "partner" ? <ShieldAlert size={10} /> : <Users size={10} />}
-                            {customerType === "retail" ? "Retail pricing active" : customerType === "partner" ? "Partner pricing active" : "Wholesale pricing active"}
+                            {customerType === "retail" ? <Store size={10} /> : <Users size={10} />}
+                            {customerType === "retail" ? "Retail pricing active" : "Wholesale pricing active"}
                         </span>
                     </div>
                 </div>
@@ -377,7 +364,7 @@ const POS = () => {
                             <p className="font-black text-xs uppercase tracking-widest">Loading Catalog...</p>
                         </div>
                     ) : searchResults.length > 0 ? (
-                        <Table headers={["Product", customerType === "wholesale" ? "Wholesale Price" : customerType === "partner" ? "Partner Price" : "Price", "Action"]}>
+                        <Table headers={["Product", customerType === "wholesale" ? "Wholesale Price" : "Price", "Action"]}>
                             {searchResults.map(p => {
                                 const shopStock = getShopStock(p);
                                 const priceInfo = getEffectivePrice(p, effectiveCustomerType, 1);
@@ -402,7 +389,7 @@ const POS = () => {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <p className={`font-black text-base ${customerType === "wholesale" ? "text-amber-600 dark:text-amber-400" : customerType === "partner" ? "text-sky-600 dark:text-sky-400" : "text-brand-600 dark:text-brand-400"}`}>
+                                            <p className={`font-black text-base ${customerType === "wholesale" ? "text-amber-600 dark:text-amber-400" : "text-brand-600 dark:text-brand-400"}`}>
                                                 {Number(priceInfo.unitPrice).toLocaleString()} <span className="text-xs">Fbu</span>
                                             </p>
                                             {customerType !== "retail" && Number(p.sellingPrice) !== Number(priceInfo.unitPrice) && (

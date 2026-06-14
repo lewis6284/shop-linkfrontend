@@ -56,15 +56,8 @@ export const resolveTierPrice = (product, customerType = 'retail') => {
 
     if (type === 'wholesale') {
         const wholesale = Number(product.wholesalePrice);
-        const partner = Number(product.partnerPrice);
         if (wholesale > 0) return wholesale;
-        if (partner > 0) return partner;
         return retail;
-    }
-
-    if (type === 'partner') {
-        const partner = Number(product.partnerPrice);
-        return partner > 0 ? partner : retail;
     }
 
     return retail;

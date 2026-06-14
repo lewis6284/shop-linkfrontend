@@ -429,7 +429,7 @@ export const exportProductsToPDF = async ({ products = [], shopInfo = {}, priceT
     const rows = products.map((product) => ({
         name: product.name || '',
         category: `${product.Category?.name || 'Uncategorized'} / ${product.Brand?.name || 'No Brand'}`,
-        price: `${Number(priceType === 'wholesale' ? (product.wholesalePrice ?? product.partnerPrice ?? product.sellingPrice) : product.sellingPrice || 0).toLocaleString()} Fbu`
+        price: `${Number(priceType === 'wholesale' ? (product.wholesalePrice ?? product.sellingPrice) : product.sellingPrice || 0).toLocaleString()} Fbu`
     }));
 
     autoTable(doc, {

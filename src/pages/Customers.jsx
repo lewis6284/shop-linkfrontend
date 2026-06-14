@@ -174,7 +174,6 @@ const Customers = () => {
                         <label className="text-xs font-bold text-gray-500 uppercase">Customer Type</label>
                         <select value={formData.customer_type} onChange={e => setFormData({...formData, customer_type: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500/20">
                             <option value="retail">Retail (Standard)</option>
-                            <option value="partner">Partner (Discount)</option>
                             <option value="wholesale">Wholesale (Bulk)</option>
                         </select>
                     </div>

@@ -73,7 +73,6 @@ const Products = () => {
         unit_of_measure: '', // UUID from Unit table
         purchasePrice: '',
         sellingPrice: '',
-        partnerPrice: '',
         wholesalePrice: '',
         tax_type: 'HTVA',
         tax_rate: 18,
@@ -160,7 +159,6 @@ const Products = () => {
                 unit_of_measure: product.unit_of_measure || '',
                 purchasePrice: product.purchasePrice || product.buyingPrice || '',
                 sellingPrice: product.sellingPrice || '',
-                partnerPrice: product.partnerPrice || '',
                 wholesalePrice: product.wholesalePrice || '',
                 tax_type: product.tax_type || 'HTVA',
                 tax_rate: product.tax_rate || 18,
@@ -180,7 +178,6 @@ const Products = () => {
                 unit_of_measure: '',
                 purchasePrice: '',
                 sellingPrice: '',
-                partnerPrice: '',
                 wholesalePrice: '',
                 tax_type: 'HTVA',
                 tax_rate: 18,
@@ -969,10 +966,6 @@ const Products = () => {
                                 <label className="text-xs font-bold text-gray-500 uppercase">Selling Price *</label>
                                 <input required type="number" value={productFormData.sellingPrice} onChange={e => setProductFormData({...productFormData, sellingPrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
                             </div>
-                            {/* <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-500 uppercase">Partner Price</label>
-                                <input type="number" value={productFormData.partnerPrice} onChange={e => setProductFormData({...productFormData, partnerPrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />
-                            </div> */}
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-500 uppercase">Wholesale Price</label>
                                 <input type="number" value={productFormData.wholesalePrice} onChange={e => setProductFormData({...productFormData, wholesalePrice: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none" />

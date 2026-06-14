@@ -6,10 +6,7 @@ export const calculatePrice = (product, customerType = 'RETAIL', quantity = 1) =
     let basePrice = Number(product.sellingPrice);
 
     // Apply Pricing Rules based on customer type
-    if (customerType === 'PARTNER' && product.partnerPrice > 0) {
-        basePrice = Number(product.partnerPrice);
-    } 
-    else if (customerType === 'WHOLESALE' && product.wholesalePrice > 0) {
+    if (customerType === 'WHOLESALE' && product.wholesalePrice > 0) {
         basePrice = Number(product.wholesalePrice);
     }
 
