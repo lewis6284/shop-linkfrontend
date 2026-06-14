@@ -7,6 +7,8 @@ import Table, { TableRow, TableCell } from '../components/Table';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getPrintableCompanyInfo, getCompanyIdentityLines } from '../utils/pdfExport';
+import { getImageUrl } from '../utils/imageUrl';
 
 const today = () => new Date().toISOString().split('T')[0];
 const daysAgo = (n) => {
@@ -118,20 +120,75 @@ const Reports = () => {
     }, [reportType, salesRows, inventoryRows, search]);
 
     /* ─── Export to PDF ─── */
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
         const shopData = JSON.parse(localStorage.getItem('activeShopData') || '{}');
+        const companyInfo = await getPrintableCompanyInfo(shopData);
         const reportTitle = reportType === 'inventory' ? 'Inventory Report' : 'Sales Report';
+        const shopName = companyInfo.name || 'ShopLink';
+        
+        const primaryColor = [15, 23, 42];
+        const textColor = [51, 65, 85];
+        const lightGray = [248, 250, 252];
+        const accentColor = [234, 88, 12];
 
+        // ─── DRAW LOGO ───
+        const addImageProcess = new Promise((resolve) => {
+            const img = new Image();
+            img.src = getImageUrl(shopData?.logo_url);
+            img.onload = () => {
+                try {
+                    doc.addImage(img, 'PNG', 14, 14, 32, 32);
+                } catch (e) {
+                    console.error('Failed to draw logo', e);
+                }
+                resolve();
+            };
+            img.onerror = () => {
+                doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                doc.roundedRect(14, 14, 32, 32, 4, 4, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.text('SL', 30, 34, { align: 'center' });
+                resolve();
+            };
+        });
+
+        await addImageProcess;
+
+        // ─── HEADER TEXT ───
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(14);
-        doc.setTextColor(15, 23, 42);
-        doc.text((shopData.name || 'ShopLink').toUpperCase() + ` — ${reportTitle}`, 14, 18);
+        doc.text(shopName.toUpperCase(), 58, 24);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(100, 116, 139);
-        doc.text(`Period: ${startDate} → ${endDate}   |   Generated: ${new Date().toLocaleString('en-GB')}`, 14, 25);
+        doc.text(reportTitle.toUpperCase(), 58, 31);
+        
+        getCompanyIdentityLines(companyInfo, { includeLegal: false }).forEach((line, index) => {
+            doc.setFontSize(8);
+            doc.text(line, 58, 37 + (index * 4));
+        });
+
+        // ─── RIGHT SIDE METADATA ───
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('REPORT DETAILS', 210, 24, { align: 'right' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        doc.text(`Period: ${startDate} → ${endDate}`, 210, 31, { align: 'right' });
+        doc.text(`Generated: ${new Date().toLocaleString('en-GB')}`, 210, 37, { align: 'right' });
+
+        // ─── DIVIDER LINE ───
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.line(14, 52, 283, 52);
 
         const head = reportType === 'inventory'
             ? availableColumns.filter(col => selectedColumns.includes(col.key)).map(col => col.label)
@@ -156,7 +213,8 @@ const Reports = () => {
             ];
         });
 
-        // Append totals row for inventory export (prefer backend totals)
+        // Append totals row for inventory export
+        let totalsRowIndex = null;
         if (reportType === 'inventory' && availableColumns && availableColumns.length > 0) {
             const totalsRow = availableColumns
                 .filter(col => selectedColumns.includes(col.key))
@@ -167,19 +225,56 @@ const Reports = () => {
                     if (col.key === 'gross_profit') return (inventoryTotals.gross_profit || 0).toLocaleString();
                     return '';
                 });
-            // If API provided totals, mark row as totals (no need to sum client-side)
+            totalsRowIndex = body.length;
             body.push(totalsRow);
         }
 
+        // ─── TABLE WITH STYLED TOTALS ROW ───
         autoTable(doc, {
-            startY: 30,
+            startY: 58,
             head: [head],
             body,
-            styles: { fontSize: 8, cellPadding: 3, font: 'helvetica' },
-            headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold', fontSize: 8 },
-            alternateRowStyles: { fillColor: [248, 250, 252] },
+            styles: { 
+                fontSize: 8, 
+                cellPadding: 4, 
+                font: 'helvetica',
+                textColor: textColor
+            },
+            headStyles: { 
+                fillColor: primaryColor, 
+                textColor: [255, 255, 255], 
+                fontStyle: 'bold', 
+                fontSize: 8 
+            },
+            alternateRowStyles: { fillColor: lightGray },
+            didDrawCell: (data) => {
+                // Style the totals row with bold and accent color
+                if (reportType === 'inventory' && totalsRowIndex !== null && data.row.index === totalsRowIndex) {
+                    doc.setFillColor(255, 237, 213);
+                    doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+                }
+            },
             theme: 'striped',
         });
+
+        // ─── FOOTER ───
+        const pageHeight = doc.internal.pageSize.height;
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.line(14, pageHeight - 20, 283, pageHeight - 20);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('THANK YOU FOR YOUR BUSINESS!', 148.5, pageHeight - 13, { align: 'center' });
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`${shopName} | ${new Date().toLocaleDateString('en-GB')}`, 148.5, pageHeight - 8, { align: 'center' });
 
         doc.save(`report_${reportType}_${startDate}_${endDate}.pdf`);
         toast.success('PDF exported successfully');
