@@ -92,6 +92,18 @@ const Reports = () => {
         return inventory.filter(item => item.product_name.toLowerCase().includes(q));
     }, [inventory, search]);
 
+    // Totals for inventory numeric columns (used for footer row)
+    const inventoryTotals = useMemo(() => {
+        const totals = {};
+        (inventoryRows || []).forEach(r => {
+            // sum commonly used numeric fields if present
+            totals.total_revenue = (totals.total_revenue || 0) + Number(r.total_revenue || 0);
+            totals.total_cost = (totals.total_cost || 0) + Number(r.total_cost || r.total_costs || 0);
+            totals.gross_profit = (totals.gross_profit || 0) + Number(r.gross_profit || 0);
+        });
+        return totals;
+    }, [inventoryRows]);
+
     const filtered = useMemo(() => {
         if (reportType === 'inventory') return inventoryRows;
         if (!search.trim()) return salesRows;
@@ -140,6 +152,20 @@ const Reports = () => {
                 r.time,
             ];
         });
+
+        // Append totals row for inventory export
+        if (reportType === 'inventory' && availableColumns && availableColumns.length > 0) {
+            const totalsRow = availableColumns
+                .filter(col => selectedColumns.includes(col.key))
+                .map(col => {
+                    if (col.key === 'product_name') return 'Total';
+                    if (col.key === 'total_revenue') return (inventoryTotals.total_revenue || 0).toLocaleString();
+                    if (col.key === 'total_cost' || col.key === 'total_costs') return (inventoryTotals.total_cost || 0).toLocaleString();
+                    if (col.key === 'gross_profit') return (inventoryTotals.gross_profit || 0).toLocaleString();
+                    return '';
+                });
+            body.push(totalsRow);
+        }
 
         autoTable(doc, {
             startY: 30,
@@ -340,6 +366,26 @@ const Reports = () => {
                                     ))}
                                 </TableRow>
                             ))}
+                            {/* Totals row for inventory */}
+                            {reportType === 'inventory' && filtered.length > 0 && (
+                                <TableRow>
+                                    {visibleColumns.map(col => (
+                                        <TableCell key={col.key} className={col.key === 'product_name' ? 'font-black text-gray-900 dark:text-white' : 'font-bold text-gray-700 dark:text-gray-300'}>
+                                            {col.key === 'product_name' ? (
+                                                <span className="text-sm">Total</span>
+                                            ) : (col.key === 'total_revenue' ? (
+                                                <span className="text-sm">{(inventoryTotals.total_revenue || 0).toLocaleString()}</span>
+                                            ) : col.key === 'total_cost' || col.key === 'total_costs' ? (
+                                                <span className="text-sm">{(inventoryTotals.total_cost || 0).toLocaleString()}</span>
+                                            ) : col.key === 'gross_profit' ? (
+                                                <span className="text-sm">{(inventoryTotals.gross_profit || 0).toLocaleString()}</span>
+                                            ) : (
+                                                <span className="text-sm text-gray-400">&nbsp;</span>
+                                            ))}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            )}
                         </Table>
                     </>
                 )}
