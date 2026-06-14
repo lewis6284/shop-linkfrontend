@@ -169,7 +169,7 @@ const Sales = () => {
     };
 
     const handleApprove = async (saleId) => {
-        const loadingMsg = toast.loading("Approving partner transaction...");
+        const loadingMsg = toast.loading("Approving transaction...");
         try {
             await saleService.approve(saleId);
             toast.success("Transaction successfully approved and finalized!", { id: loadingMsg });
@@ -844,12 +844,12 @@ const Sales = () => {
             <Modal 
                 isOpen={rejectModal.isOpen} 
                 onClose={() => setRejectModal({ isOpen: false, saleId: null, reason: '' })} 
-                title="REJECT PARTNER TRANSACTION" 
+                title="REJECT TRANSACTION" 
                 maxWidth="max-w-md"
             >
                 <div className="space-y-6 p-2">
                     <p className="text-sm text-gray-500 font-medium">
-                        Provide a brief explanation for rejecting this partner order. This rejection will restore all reserved stocks immediately back to physical inventory.
+                        Provide a brief explanation for rejecting this order. This rejection will restore all reserved stocks immediately back to physical inventory.
                     </p>
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">REJECTION REASON</label>

@@ -48,7 +48,7 @@ export const generateBarcode = () => {
 };
 
 /**
- * Resolve unit price for retail / partner / wholesale tiers.
+ * Resolve unit price for retail / wholesale tiers.
  */
 export const resolveTierPrice = (product, customerType = 'retail') => {
     const retail = Number(product.sellingPrice) || 0;
